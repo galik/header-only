@@ -1,5 +1,5 @@
-#ifndef LOCAL_STRING_VIEW_STREAM_H
-#define LOCAL_STRING_VIEW_STREAM_H
+#ifndef GALIK_STRING_VIEW_STREAM_H
+#define GALIK_STRING_VIEW_STREAM_H
 
 #include <istream>
 #include <experimental/string_view>
@@ -101,4 +101,4 @@ using wstring_view_stream = basic_string_view_stream<wchar_t>;
 
 } // galik
 
-#endif // LOCAL_STRING_VIEW_STREAM_H
+#endif // GALIK_STRING_VIEW_STREAM_H
