@@ -24,8 +24,13 @@
 //
 
 #include <array>
+#include <cstring>
 
 namespace galik {
+
+using std::strncpy;
+using std::strcmp;
+using std::strlen;
 
 using char16_pair = std::array<char16_t, 2>;
 
