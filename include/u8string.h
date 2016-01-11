@@ -23,7 +23,11 @@
 // SOFTWARE.
 //
 
+#include <array>
+
 namespace galik {
+
+using char16_pair = std::array<char16_t, 2>;
 
 class u8char
 {
@@ -95,16 +99,34 @@ public:
 		return c32;
 	}
 
+	static unsigned char16(const char* cp, char16_pair& cp16)
+	{
+		char32_t c32 = u8char::char32(cp);
+
+		if(c32 < 0xD800 || (c32 > 0xDFFF && c32 < 0x10000))
+		{
+			cp16[0] = char16_t(c32);
+			cp16[1] = 0;
+			return 1;
+		}
+
+		c32 -= 0x010000;
+
+		cp16[0] = ((0b11111111110000000000 & c32) >> 10) + 0xD800;
+		cp16[1] = ((0b00000000001111111111 & c32) >> 00) + 0xDC00;
+
+		return 2;
+	}
+
 	void assign(const char* cp) noexcept { strncpy(this->cp, cp, size(cp)); }
 	void assign(const u8char& u8c) noexcept { assign(u8c.data()); }
 
 	unsigned size() const { return size(cp); }
+
 	const char* data() const { return cp; }
 	std::string string() const { return {cp, size()}; }
-	char32_t char32() const
-	{
-		return char32(cp);
-	}
+	char32_t char32() const { return char32(cp); }
+	unsigned char16(char16_pair& cp16) const { return char16(cp, cp16); }
 
 	bool operator==(const u8char& u8c) const { return u8c.size() == size() && !strncmp(u8c.cp, cp, size()); }
 	bool operator!=(const u8char& u8c) const { return !(*this == u8c); }
@@ -249,7 +271,7 @@ public:
 	}
 
 	std::string string() const { return {utf8.begin(), utf8.end()}; }
-	std::u16string u16string() const { return {}; } // TODO:
+	std::u16string u16string() const { throw std::runtime_error("Not implemented: u8string::u16string()"); return {}; } // TODO:
 	std::u32string u32string() const
 	{
 		std::u32string utf32;
