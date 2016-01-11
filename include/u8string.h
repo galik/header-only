@@ -91,27 +91,66 @@ public:
 	u8char& operator=(const char* cp) noexcept { assign(cp); return *this; }
 	u8char& operator=(const u8char& u8c) noexcept { assign(u8c); return *this; }
 	u8char& operator=(const std::string& s) noexcept { assign(s.data()); return *this; }
+
+	char* begin() { return cp; }
+	char* end() { return cp + sizeof(cp); }
+
+	const char* begin() const { return cp; }
+	const char* end() const { return cp + sizeof(cp); }
 };
 
 class u8string
 {
-	using iterator = std::vector<char>::iterator;
-	using const_iterator = std::vector<char>::const_iterator;
-	std::vector<char> utf8;
+	using container = std::string;
+	using container_ref = container&;
+	using container_const_ref = container const&;
+	using iterator = container::iterator;
+	using const_iterator = container::const_iterator;
 
-	template<typename InternalIterator>
-	struct UTF8StringIterator
+	container utf8;
+
+	template<typename ContainerRef, typename Iterator>
+	class u8char_proxy
 	{
-		InternalIterator i;
-		UTF8StringIterator(InternalIterator i): i(i) {}
+		ContainerRef c;
+		Iterator i;
 
-		bool operator==(const UTF8StringIterator& i) const { return this->i == i.i; }
-		bool operator!=(const UTF8StringIterator& i) const { return !(*this == i); }
+	public:
+		u8char_proxy(ContainerRef c, Iterator i): c(c), i(i) {}
+		u8char_proxy(const u8char_proxy& u8p): c(u8p.c), i(u8p.i) {}
 
-		static u8char& get_u8c()
+		u8char_proxy& operator=(u8char u8c)
 		{
-			thread_local static u8char u8c;
-			return u8c;
+			iterator e = i + u8char::size(*i);
+			c.replace(i, e, u8c.begin(), u8c.end());
+			return *this;
+		}
+
+		operator u8char() const { return u8char(&*i); }
+
+		std::size_t size() const { return u8char::size(*i); }
+		std::string string() const { return {&*i, &*(i + size())}; }
+	};
+
+	template<typename ContainerRef, typename Iterator>
+	class UTF8StringIterator
+	{
+		friend class u8string;
+		ContainerRef c;
+		Iterator i;
+
+		static u8char& get_u8c(const u8char& u8c)
+		{
+			thread_local static u8char local_u8c;
+			local_u8c = u8c;
+			return local_u8c;
+		}
+
+		static auto& get_u8c_proxy(ContainerRef c, Iterator i)
+		{
+			thread_local static u8char_proxy<ContainerRef, Iterator> local_u8c_proxy;
+			local_u8c_proxy = u8char_proxy<ContainerRef, Iterator>(c, i);
+			return local_u8c_proxy;
 		}
 
 		void increment()
@@ -126,10 +165,21 @@ class u8string
 				--i;
 		}
 
+	public:
+		UTF8StringIterator(ContainerRef c, Iterator i): c(c), i(i) {}
+
+		bool operator==(const UTF8StringIterator& i) const { return this->i == i.i; }
+		bool operator!=(const UTF8StringIterator& i) const { return !(*this == i); }
+
+		auto operator*() { return u8char_proxy<ContainerRef, Iterator>(c, i); }
+		auto* operator->() { return &get_u8c_proxy(c, i); }
+
 		u8char operator*() const { return u8char(&*i); }
-		u8char* operator->() const { get_u8c() = &*i; return &get_u8c(); }
+		u8char* operator->() const { return &get_u8c(&*i); }
+
 		UTF8StringIterator& operator++() { increment(); return *this; }
 		UTF8StringIterator operator++(int) { UTF8StringIterator n = i; increment(); return n; }
+
 		UTF8StringIterator& operator--() { decrement(); return *this; }
 		UTF8StringIterator operator--(int) { UTF8StringIterator n = i; decrement(); return n; }
 	};
@@ -148,6 +198,22 @@ public:
 	u8string(const char* s): utf8(s, s + strlen(s)) {}
 	u8string(const std::string& s): utf8(s.begin(), s.end()) {}
 
+	auto begin() { return UTF8StringIterator<container_ref, iterator>(utf8, utf8.begin()); }
+	auto end() { return UTF8StringIterator<container_ref, iterator>(utf8, utf8.end()); }
+
+	auto begin() const { return UTF8StringIterator<container_const_ref, const_iterator>(utf8, utf8.begin()); }
+	auto end() const { return UTF8StringIterator<container_const_ref, const_iterator>(utf8, utf8.end()); }
+
+	auto operator[](std::size_t n)
+	{
+		auto i = begin();
+
+		while(n--)
+			++i;
+
+		return u8char_proxy<container_ref, iterator>(utf8, i.i);
+	}
+
 	u8char operator[](std::size_t n) const
 	{
 		auto i = begin();
@@ -162,12 +228,6 @@ public:
 
 	// number of utf8 characters
 	std::size_t size() const { return utf8.empty() ? 0 : size(utf8.data()); }
-
-	UTF8StringIterator<iterator> begin() { return UTF8StringIterator<iterator>(utf8.begin()); }
-	UTF8StringIterator<iterator> end() { return UTF8StringIterator<iterator>(utf8.end()); }
-
-	UTF8StringIterator<const_iterator> begin() const { return UTF8StringIterator<const_iterator>(utf8.begin()); }
-	UTF8StringIterator<const_iterator> end() const { return UTF8StringIterator<const_iterator>(utf8.end()); }
 };
 
 } // galik
