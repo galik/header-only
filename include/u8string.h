@@ -51,11 +51,6 @@ class u8char
 		return (c & 0b10000000) && !(c & 0b01000000);
 	}
 
-	static unsigned size(const char* data)
-	{
-		return size(*data);
-	}
-
 	static unsigned size(const unsigned char c)
 	{
 		if(!(c & na1))
@@ -78,12 +73,38 @@ public:
 	explicit u8char(const char* cp) noexcept { assign(cp); }
 	u8char(const u8char& u8c) noexcept { assign(u8c); }
 
+	//static utils
+
+	static unsigned size(const char* data)
+	{
+		return size(*data);
+	}
+
+	static char32_t char32(const char* cp)
+	{
+		auto sz = u8char::size(cp);
+
+		if(sz == 1)
+			return *cp;
+
+		char32_t c32 = (0b01111111 >> sz) & (*cp);
+
+		for(unsigned i = 1; i < sz; ++i)
+			c32 = (c32 << 6) | (cp[i] & 0b00111111);
+
+		return c32;
+	}
+
 	void assign(const char* cp) noexcept { strncpy(this->cp, cp, size(cp)); }
 	void assign(const u8char& u8c) noexcept { assign(u8c.data()); }
 
 	unsigned size() const { return size(cp); }
 	const char* data() const { return cp; }
 	std::string string() const { return {cp, size()}; }
+	char32_t char32() const
+	{
+		return char32(cp);
+	}
 
 	bool operator==(const u8char& u8c) const { return u8c.size() == size() && !strncmp(u8c.cp, cp, size()); }
 	bool operator!=(const u8char& u8c) const { return !(*this == u8c); }
@@ -97,6 +118,8 @@ public:
 
 	const char* begin() const { return cp; }
 	const char* end() const { return cp + sizeof(cp); }
+
+
 };
 
 class u8string
@@ -130,6 +153,7 @@ class u8string
 
 		std::size_t size() const { return u8char::size(*i); }
 		std::string string() const { return {&*i, &*(i + size())}; }
+		char32_t char32() const { return u8char::char32(&*i); }
 	};
 
 	template<typename ContainerRef, typename Iterator>
@@ -225,6 +249,16 @@ public:
 	}
 
 	std::string string() const { return {utf8.begin(), utf8.end()}; }
+	std::u16string u16string() const { return {}; } // TODO:
+	std::u32string u32string() const
+	{
+		std::u32string utf32;
+
+		for(auto&& u8c: *this)
+			utf32 += u8c.char32();
+
+		return utf32;
+	}
 
 	// number of utf8 characters
 	std::size_t size() const { return utf8.empty() ? 0 : size(utf8.data()); }
