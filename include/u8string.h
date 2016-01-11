@@ -77,7 +77,7 @@ public:
 	explicit u8char(const char* cp) noexcept { assign(cp); }
 	u8char(const u8char& u8c) noexcept { assign(u8c); }
 
-	//static utils
+	// static utils
 
 	static unsigned size(const char* data)
 	{
