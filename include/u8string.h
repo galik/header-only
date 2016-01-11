@@ -136,10 +136,10 @@ public:
 	u8char& operator=(const std::string& s) noexcept { assign(s.data()); return *this; }
 
 	char* begin() { return cp; }
-	char* end() { return cp + sizeof(cp); }
+	char* end() { return cp + size(cp); }
 
 	const char* begin() const { return cp; }
-	const char* end() const { return cp + sizeof(cp); }
+	const char* end() const { return cp + size(cp); }
 
 
 };
