@@ -3,3 +3,4 @@
 /.settings/
 test-string-view-stream
 test-u8char
+test-string-utils
