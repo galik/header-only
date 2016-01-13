@@ -1,5 +1,3 @@
-#ifndef GALIK_TEST_H
-#define GALIK_TEST_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -22,23 +20,47 @@
 // SOFTWARE.
 //
 
-#include <map>
-#include <string>
-#include <vector>
 #include <iomanip>
 #include <iostream>
-#include "bug.h"
 
-#define con(msg) do{std::cout << std::boolalpha << msg << '\n';}while(0)
-#define err(msg) do{std::cerr << msg << std::endl;}while(0)
+#include "test.h"
+#include "string_utils.h"
 
-namespace galik {
+using namespace galik;
+using namespace std::literals::string_literals;
 
-using str = std::string;
-using str_map = std::map<str, str>;
-using str_vec = std::vector<str, str>;
+const str_map test_data =
+{
+	{"", ""}
+	, {"x", "x"}
+	, {" x", "x"}
+	, {"x ", "x"}
+	, {" x ", "x"}
+	, {"  x  ", "x"}
+	, {"a b", "a b"}
+	, {" a b", "a b"}
+	, {"a b ", "a b"}
+	, {" a b ", "a b"}
+};
 
+int main()
+{
+	std::string s;
+	for(auto const& test: test_data)
+	{
+		s = test.first;
+
+		if(trim(s) != test.second)
+			err("fail: trim(): '" << s << "'");
+		if(trim_copy(test.first) != test.second)
+			err("fail: trim_copy(): '" << trim_copy(test.first) << "'");
+		if(trim_view(test.first) != test.second)
+			err("fail: trim_view(): '" << trim_view(test.first) << "'");
+	}
 }
 
-#endif // GALIK_TEST_H
+
+
+
+
 

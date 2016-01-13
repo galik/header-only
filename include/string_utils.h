@@ -27,8 +27,6 @@
 
 namespace galik {
 
-//namespace ex = std::experimental;
-
 using std::experimental::string_view;
 
 constexpr const char* const ws = " \t\n\r\f\v";
@@ -46,7 +44,7 @@ inline std::string& ltrim(std::string& s, const char* t = ws)
 	return s;
 }
 
-inline string_view ltrim(string_view s, const char* t = ws)
+inline string_view ltrim_view(string_view s, const char* t = ws)
 {
 	auto pos = s.find_first_not_of(t);
 	if(pos == string_view::npos)
@@ -68,9 +66,11 @@ inline std::string& rtrim(std::string& s, const char* t = ws)
 	return s;
 }
 
-inline string_view rtrim(string_view s, const char* t = ws)
+inline string_view rtrim_view(string_view s, const char* t = ws)
 {
 	auto pos = s.find_last_not_of(t) + 1;
+	if(!pos)
+		pos = s.size();
 	s.remove_suffix(s.size() - pos);
 	return s;
 }
@@ -87,9 +87,9 @@ inline std::string& trim(std::string& s, const char* t = ws)
 	return ltrim(rtrim(s, t), t);
 }
 
-inline string_view trim(string_view s, const char* t = ws)
+inline string_view trim_view(string_view s, const char* t = ws)
 {
-	return ltrim(rtrim(s, t), t);
+	return ltrim_view(rtrim_view(s, t), t);
 }
 
 // MOVE SEMANTICS

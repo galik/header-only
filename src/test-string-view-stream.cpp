@@ -67,14 +67,14 @@ string_view_stream& read_to(string_view_stream& svs, ex::string_view& sv, char d
 
 string_view_stream& read_to_one_of(string_view_stream& svs, ex::string_view& sv, ex::string_view tokens)
 {
-	sv = svs.get_string_view();
-
-	auto size = sv.size();
-	sv.remove_prefix(svs.tellg());
-
-	for(auto i = sv.begin(); i != sv.end() && tokens.find(*i) = ex::string_view::npos; ++i) {}
-
-	sv.remove_suffix(size - svs.tellg());
+//	sv = svs.get_string_view();
+//
+//	auto size = sv.size();
+//	sv.remove_prefix(svs.tellg());
+//
+//	for(auto i = sv.begin(); i != sv.end() && tokens.find(*i) = ex::string_view::npos; ++i) {}
+//
+//	sv.remove_suffix(size - svs.tellg());
 
 	return svs;
 }
@@ -110,7 +110,7 @@ int main()
 //	bug_var(svs.tellg());
 
 	ex::string_view sv;
-	while(readto(svs, sv, '"'))
+//	while(readto(svs, sv, '"'))
 		con(sv);
 
 }
