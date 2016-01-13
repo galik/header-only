@@ -1,3 +1,5 @@
 /.cproject
 /.project
 /.settings/
+test-string-view-stream
+test-u8char
