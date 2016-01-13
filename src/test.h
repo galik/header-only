@@ -1,3 +1,5 @@
+#ifndef GALIK_TEST_H
+#define GALIK_TEST_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -22,38 +24,10 @@
 
 #include <iomanip>
 #include <iostream>
+#include "bug.h"
 
-#include "test.h"
-#include "u8string.h"
+#define con(msg) do{std::cout << std::boolalpha << msg << '\n';}while(0)
+#define err(msg) do{std::cerr << msg << std::endl;}while(0)
 
-using namespace galik;
-using namespace std::literals::string_literals;
-
-const u8string test_data[] =
-{
-	  u8"κόσμε"s
-	, u8""s
-};
-
-int main()
-{
-	u8string::report r;
-
-	for(auto&& test: test_data)
-	{
-		con("test : " << test.string());
-		r = test.valid();
-		con("valid: " << r);
-		if(!r)
-		{
-			con('\t' << test[0].size());
-			con('\t' << r.msg + " at: " + std::to_string(r.pos));
-		}
-	}
-}
-
-
-
-
-
+#endif // GALIK_TEST_H
 

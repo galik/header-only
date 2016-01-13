@@ -24,7 +24,10 @@
 //
 
 #include <istream>
+#include <streambuf>
 #include <experimental/string_view>
+
+#include "bug.h"
 
 namespace galik {
 
@@ -36,8 +39,10 @@ class basic_string_view_buf
 {
 	using char_type = CharType;
 	using buf_type = std::basic_streambuf<char_type>;
-	using traits_type = buf_type::traits_type;
+	using traits_type = typename buf_type::traits_type;
 	using string_view_type = ex::basic_string_view<char_type>;
+	using pos_type = typename buf_type::pos_type;
+	using off_type = typename buf_type::off_type;
 
 	std::locale loc;
 	string_view_type sv;
@@ -45,17 +50,21 @@ class basic_string_view_buf
 public:
 	basic_string_view_buf(string_view_type sv): sv(sv)
 	{
-		setg(const_cast<char_type*>(sv.data())
+		bug_fun();
+		buf_type::setg(const_cast<char_type*>(sv.data())
 			, const_cast<char_type*>(sv.data())
 				, const_cast<char_type*>(sv.data()) + sv.size());
 	}
+
+	string_view_type get_string_view() const { return sv; }
 
 	void imbue(const std::locale& loc) override { this->loc = loc; }
 
 	buf_type* setbuf(char_type* b, std::streamsize l) override
 	{
+		bug_fun();
 		sv = string_view_type(b, l);
-		setg(const_cast<char_type*>(sv.data())
+		buf_type::setg(const_cast<char_type*>(sv.data())
 			, const_cast<char_type*>(sv.data())
 				, const_cast<char_type*>(sv.data()) + sv.size());
 		return this;
@@ -63,41 +72,49 @@ public:
 
 	pos_type seekoff(off_type off, std::ios::seekdir dir, std::ios::openmode which) override
 	{
+//		bug_fun();
 		if(which == std::ios::in)
 		{
 			if(dir == std::ios::cur)
-				gbump(off);
+				buf_type::gbump(off);
 			else if(dir == std::ios::beg)
-				setg(eback(), eback() + off, egptr());
+				buf_type::setg(buf_type::eback()
+					, buf_type::eback() + off
+						, buf_type::egptr());
 			else if(dir == std::ios::end)
-				setg(eback(), egptr() - off, egptr());
+				buf_type::setg(buf_type::eback()
+					, buf_type::egptr() - off
+						, buf_type::egptr());
 		}
 
-		return egptr() - eback();
+		return buf_type::gptr() - buf_type::eback();
 	}
 
 	pos_type seekpos(pos_type pos, std::ios::openmode which) override
 	{
+//		bug_fun();
 		return seekoff(pos, std::ios::beg, which);
 	}
 
 	std::streamsize showmanyc() override
 	{
-		if(gptr() == egptr())
+//		bug_fun();
+		if(buf_type::gptr() == buf_type::egptr())
 			return -1;
-		return egptr() - gptr();
+		return buf_type::egptr() - buf_type::gptr();
 	}
 
 	std::streamsize xsgetn(char_type* s, std::streamsize n)
 	{
-		char_type* e = gptr() + n;
-		if(e > egptr())
+		bug_fun();
+		char_type* e = buf_type::gptr() + n;
+		if(e > buf_type::egptr())
 		{
-			e = egptr();
-			n = e - gptr();
+			e = buf_type::egptr();
+			n = e - buf_type::gptr();
 		}
-		std::copy(s, s + n, gptr());
-		gbump(n);
+		std::copy(s, s + n, buf_type::gptr());
+		buf_type::gbump(n);
 		return n;
 	}
 };
@@ -108,12 +125,22 @@ class basic_string_view_stream
 {
 	using char_type = CharType;
 	using buf_type = std::basic_streambuf<char_type>;
-	using traits_type = buf_type::traits_type;
+	using traits_type = typename buf_type::traits_type;
 	using string_view_type = ex::basic_string_view<char_type>;
 
 	basic_string_view_buf<char_type> buf;
+
 public:
-	basic_string_view_stream(string_view_type sv): std::istream(&buf), buf(sv) {}
+	basic_string_view_stream(string_view_type sv): std::basic_istream<CharType>(), buf(sv)
+	{
+		std::basic_istream<CharType>::rdbuf(&buf);
+	}
+//	basic_string_view_stream(string_view_type sv): std::istream(nullptr), buf(sv)
+//	{
+//		std::istream::
+//	}
+	string_view_type get_string_view() const { return buf.get_string_view(); }
+
 };
 
 using string_view_buf = basic_string_view_buf<char>;

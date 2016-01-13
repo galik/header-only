@@ -24,6 +24,7 @@
 //
 
 #include <array>
+#include <string>
 #include <cstring>
 
 namespace galik {
@@ -145,8 +146,6 @@ public:
 
 	const char* begin() const { return cp; }
 	const char* end() const { return cp + size(cp); }
-
-
 };
 
 class u8string
@@ -289,6 +288,33 @@ public:
 
 	// number of utf8 characters
 	std::size_t size() const { return utf8.empty() ? 0 : size(utf8.data()); }
+
+	struct report
+	{
+		bool valid = false;
+		std::size_t pos = 0; // error pos (bytes)
+		std::string msg; // error message
+
+		operator bool() const { return valid; }
+	};
+
+	report valid() const
+	{
+		unsigned sz;
+		for(auto i = utf8.begin(); i != utf8.end(); ++i)
+		{
+			if(!(sz = u8char::size(*i)))
+				return {false, std::size_t(std::distance(utf8.begin(), i)), "bad base code"};
+
+			while(--sz && ++i != utf8.end())
+				if(!u8char::is_continuation(*i))
+					return {false, std::size_t(std::distance(utf8.begin(), i)), "bad continuation code"};
+
+			if(sz)
+				return {false, std::size_t(std::distance(utf8.begin(), i)), "final code point too short"};
+		}
+		return {true, {}, {}};
+	}
 };
 
 } // galik

@@ -1,3 +1,5 @@
+#ifndef GALIK_BUG_H
+#define GALIK_BUG_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -20,40 +22,17 @@
 // SOFTWARE.
 //
 
-#include <iomanip>
-#include <iostream>
+#include <string>
 
-#include "test.h"
-#include "u8string.h"
+namespace galik {
 
-using namespace galik;
-using namespace std::literals::string_literals;
-
-const u8string test_data[] =
-{
-	  u8"κόσμε"s
-	, u8""s
+#define bug(m) do{std::cout << m << std::endl;}while(0)
+#define bug_var(v) do{bug(#v ": " << v);}while(0)
+struct _{ std::string m;_(const std::string& m):m(m){bug("--> " << m);}
+	~_(){bug("<-- " << m);}
 };
+#define bug_fun() galik::_ __(__PRETTY_FUNCTION__)
 
-int main()
-{
-	u8string::report r;
+} // galik
 
-	for(auto&& test: test_data)
-	{
-		con("test : " << test.string());
-		r = test.valid();
-		con("valid: " << r);
-		if(!r)
-		{
-			con('\t' << test[0].size());
-			con('\t' << r.msg + " at: " + std::to_string(r.pos));
-		}
-	}
-}
-
-
-
-
-
-
+#endif // GALIK_BUG_H
