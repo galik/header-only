@@ -24,12 +24,19 @@
 
 #include <algorithm>
 #include <experimental/string_view>
+#include "string_view_stream.h"
+
+//#define STRING_UTILS_TRACE() bug_fun()
+#define STRING_UTILS_TRACE() while(0){}
+
 
 namespace galik {
 
 using std::experimental::string_view;
 
 constexpr const char* const ws = " \t\n\r\f\v";
+
+// mute
 
 /**
  * Remove leading characters from a std::string.
@@ -38,18 +45,10 @@ constexpr const char* const ws = " \t\n\r\f\v";
  * of the string.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string& ltrim(std::string& s, const char* t = ws)
+inline std::string& ltrim_mute(std::string& s, const char* t = ws)
 {
+	STRING_UTILS_TRACE();
 	s.erase(0, s.find_first_not_of(t));
-	return s;
-}
-
-inline string_view ltrim_view(string_view s, const char* t = ws)
-{
-	auto pos = s.find_first_not_of(t);
-	if(pos == string_view::npos)
-		pos = s.size();
-	s.remove_prefix(pos);
 	return s;
 }
 
@@ -60,9 +59,34 @@ inline string_view ltrim_view(string_view s, const char* t = ws)
  * of the string.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string& rtrim(std::string& s, const char* t = ws)
+inline std::string& rtrim_mute(std::string& s, const char* t = ws)
 {
+	STRING_UTILS_TRACE();
 	s.erase(s.find_last_not_of(t) + 1);
+	return s;
+}
+
+/**
+ * Remove surrounding characters from a std::string.
+ * @param s The string to be modified.
+ * @param t The set of characters to delete from each end
+ * of the string.
+ * @return The same string passed in as a parameter reference.
+ */
+inline std::string& trim_mute(std::string& s, const char* t = ws)
+{
+
+	return ltrim_mute(rtrim_mute(s, t), t);
+}
+
+// view
+
+inline string_view ltrim_view(string_view s, const char* t = ws)
+{
+	auto pos = s.find_first_not_of(t);
+	if(pos == string_view::npos)
+		pos = s.size();
+	s.remove_prefix(pos);
 	return s;
 }
 
@@ -75,76 +99,26 @@ inline string_view rtrim_view(string_view s, const char* t = ws)
 	return s;
 }
 
-/**
- * Remove surrounding characters from a std::string.
- * @param s The string to be modified.
- * @param t The set of characters to delete from each end
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& trim(std::string& s, const char* t = ws)
-{
-	return ltrim(rtrim(s, t), t);
-}
-
 inline string_view trim_view(string_view s, const char* t = ws)
 {
 	return ltrim_view(rtrim_view(s, t), t);
 }
 
-// MOVE SEMANTICS
-
-/**
- * Remove leading characters from a std::string.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the beginning
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string ltrim(std::string&& s, const char* t = ws)
-{
-	s.erase(0, s.find_first_not_of(t));
-	return s;
-}
-
-/**
- * Remove trailing characters from a std::string.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the end
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string rtrim(std::string&& s, const char* t = ws)
-{
-	s.erase(s.find_last_not_of(t) + 1);
-	return s;
-}
-
-/**
- * Remove surrounding characters from a std::string.
- * @param s The string to be modified.
- * @param t The set of characters to delete from each end
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string trim(std::string&& s, const char* t = ws)
-{
-	return ltrim(rtrim(s, t), t);
-}
+// copy
 
 inline std::string ltrim_copy(std::string s, const char* t = ws)
 {
-	return ltrim(s, t);
+	return ltrim_mute(s, t);
 }
 
 inline std::string rtrim_copy(std::string s, const char* t = ws)
 {
-	return rtrim(s, t);
+	return rtrim_mute(s, t);
 }
 
 inline std::string trim_copy(std::string s, const char* t = ws)
 {
-	return trim(s, t);
+	return trim_mute(s, t);
 }
 
 /**
@@ -154,7 +128,7 @@ inline std::string trim_copy(std::string s, const char* t = ws)
  * @param c The character value to delete.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string& ltrim(std::string& s, char c)
+inline std::string& ltrim_mute(std::string& s, char c)
 {
 	s.erase(0, s.find_first_not_of(c));
 	return s;
@@ -167,7 +141,7 @@ inline std::string& ltrim(std::string& s, char c)
  * @param c The character value to delete.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string& rtrim(std::string& s, char c)
+inline std::string& rtrim_mute(std::string& s, char c)
 {
 	s.erase(s.find_last_not_of(c) + 1);
 	return s;
@@ -180,27 +154,28 @@ inline std::string& rtrim(std::string& s, char c)
  * @param c The character value to delete.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string& trim(std::string& s, char c)
+inline std::string& trim_mute(std::string& s, char c)
 {
-	return ltrim(rtrim(s, c), c);
+	return ltrim_mute(rtrim_mute(s, c), c);
 }
 
 inline std::string rtrim_copy(std::string s, char c)
 {
-	return rtrim(s, c);
+	return rtrim_mute(s, c);
 }
 
 inline std::string ltrim_copy(std::string s, char c)
 {
-	return ltrim(s, c);
+	STRING_UTILS_TRACE();
+	return ltrim_mute(s, c);
 }
 
 inline std::string trim_copy(std::string s, char c)
 {
-	return trim(s, c);
+	return trim_mute(s, c);
 }
 
-inline std::string ltrim_keep(std::string& s, const char* t = ws)
+inline std::string ltrim_mute_keep(std::string& s, const char* t = ws)
 {
 	std::string::size_type pos;
 	std::string keep = s.substr(0, (pos = s.find_first_not_of(t)));
@@ -208,7 +183,7 @@ inline std::string ltrim_keep(std::string& s, const char* t = ws)
 	return keep;
 }
 
-inline std::string rtrim_keep(std::string& s, const char* t = ws)
+inline std::string rtrim_mute_keep(std::string& s, const char* t = ws)
 {
 	std::string::size_type pos;
 	std::string keep = s.substr((pos = s.find_last_not_of(t) + 1));
@@ -216,8 +191,10 @@ inline std::string rtrim_keep(std::string& s, const char* t = ws)
 	return keep;
 }
 
+// upper lower
+
 inline
-std::string& lower(std::string& s)
+std::string& lower_mute(std::string& s)
 {
 	std::transform(s.begin(), s.end(), s.begin()
 		, std::ptr_fun<int, int>(std::tolower));
@@ -225,13 +202,7 @@ std::string& lower(std::string& s)
 }
 
 inline
-std::string lower(std::string&& s)
-{
-	return lower(s);
-}
-
-inline
-std::string& upper(std::string& s)
+std::string& upper_mute(std::string& s)
 {
 	std::transform(s.begin(), s.end(), s.begin()
 		, std::ptr_fun<int, int>(std::toupper));
@@ -239,22 +210,35 @@ std::string& upper(std::string& s)
 }
 
 inline
-std::string upper(std::string&& s)
-{
-	return upper(s);
-}
-
-inline
 std::string lower_copy(std::string s)
 {
-	return lower(s);
+	return lower_mute(s);
 }
 
 inline
 std::string upper_copy(std::string s)
 {
-	return upper(s);
+	return upper_mute(s);
 }
+
+// split
+
+//std::vector<std::string> split2(const std::string& s)
+//{
+//	std::vector<std::string> v;
+//
+//    auto done = s.end();
+//    auto end = s.begin();
+//    decltype(end) pos;
+//
+//    while((pos = std::find_if(end, done, std::not1(std::ptr_fun(isspace)))) != done)
+//    {
+//        end = std::find_if(pos, done, std::ptr_fun(isspace));
+//        v.emplace_back(pos, end);
+//    }
+//    return v;
+//}
+
 
 } // galik
 

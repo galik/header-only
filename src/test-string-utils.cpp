@@ -43,19 +43,135 @@ const str_map test_data =
 	, {" a b ", "a b"}
 };
 
+std::string get_string(const std::string& s) { return s; }
+
+std::vector<string_view> split0(const std::string& s)
+{
+	std::vector<string_view> v;
+
+	auto done = s.data() + s.size();
+	auto end = s.data();
+	decltype(end) pos;
+
+	while((pos = std::find_if(end, done, std::not1(std::ptr_fun(isspace)))) != done)
+	{
+		end = std::find_if(pos, done, std::ptr_fun(isspace));
+		v.emplace_back(pos, end - pos);
+	}
+
+	return v;
+}
+
+std::vector<string_view> split1(const std::string& s, char delim = ' ')
+{
+	std::vector<string_view> v;
+
+	auto done = s.data() + s.size();
+	auto end = s.data();
+	decltype(end) pos;
+
+	while((pos = std::find_if(end, done, [delim](char c){ return c != delim; })) != done)
+	{
+		end = std::find_if(pos, done, [delim](char c){ return c == delim; });
+		v.emplace_back(pos, end - pos);
+	}
+
+	return v;
+}
+
+std::vector<string_view> split2(const std::string& s, string_view sv = ws)
+{
+	std::vector<string_view> v;
+
+	auto done = s.data() + s.size();
+	auto end = s.data();
+	decltype(end) pos;
+
+	while((pos = std::find_if(end, done, [sv](char c){ return sv.find(c) == sv.npos; })) != done)
+	{
+		end = std::find_if(pos, done, [sv](char c){ return sv.find(c) != sv.npos; });
+		v.emplace_back(pos, end - pos);
+	}
+
+	return v;
+}
+
+//std::vector<string_view> split(const std::string& s, char delim = ' ', bool fold = true)
+//{
+//	std::vector<string_view> views;
+//
+//	decltype(s.begin()) i;
+//
+//	while((i = std::find(s.begin(), s.end(), delim)) != s.end())
+//	{
+//
+//	}
+//
+//	return views;
+//}
+//
+//std::vector<std::string> split2(const std::string& s)
+//{
+//	std::vector<std::string> v;
+//
+//    auto done = s.end();
+//    auto end = s.begin();
+//    decltype(end) pos;
+//
+//    while((pos = std::find_if(end, done, std::not1(std::ptr_fun(isspace)))) != done)
+//    {
+//        end = std::find_if(pos, done, std::ptr_fun(isspace));
+//        v.emplace_back(pos, end);
+//    }
+//    return v;
+//}
+
 int main()
 {
-	std::string s;
-	for(auto const& test: test_data)
+	try
 	{
-		s = test.first;
+		std::string s;
 
-		if(trim(s) != test.second)
-			err("fail: trim(): '" << s << "'");
-		if(trim_copy(test.first) != test.second)
-			err("fail: trim_copy(): '" << trim_copy(test.first) << "'");
-		if(trim_view(test.first) != test.second)
-			err("fail: trim_view(): '" << trim_view(test.first) << "'");
+		for(auto const& test: test_data)
+		{
+			s = test.first;
+
+			if(trim_mute(s) != test.second)
+				err("fail: trim_mute(): '" << s << "'");
+			if(trim_copy(test.first) != test.second)
+				err("fail: trim_copy(): '" << trim_copy(test.first) << "'");
+			if(trim_view(test.first) != test.second)
+				err("fail: trim_view(): '" << trim_view(test.first) << "'");
+
+			if(trim_copy(get_string(test.first)) != test.second)
+				err("fail: trim_copy(): '" << trim_copy(test.first) << "'");
+			if(trim_view(get_string(test.first)) != test.second)
+				err("fail: trim_view(): '" << trim_view(test.first) << "'");
+		}
+
+		con("split");
+
+		s = " some text   to  split  ";
+
+		auto v = split0(s);
+		for(auto const& sv: v)
+			con(sv);
+
+		v = split1(s);
+		for(auto const& sv: v)
+			con(sv);
+
+		v = split2(s);
+		for(auto const& sv: v)
+			con(sv);
+	}
+	catch(const std::exception& e)
+	{
+		err(e.what());
+	}
+	catch(...)
+	{
+		err("Unknown exception thrown");
 	}
 }
 

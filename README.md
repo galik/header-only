@@ -34,4 +34,7 @@ This is a `std::istream` that wraps a `std::experimental::string_view` as its in
 
 This is a `UTF-8` string class.
 
+* `string_utils`
+
+This is basic string manipulation functions like `trim()`.
 
