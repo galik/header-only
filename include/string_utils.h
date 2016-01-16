@@ -26,10 +26,6 @@
 #include <experimental/string_view>
 #include "string_view_stream.h"
 
-//#define STRING_UTILS_TRACE() bug_fun()
-#define STRING_UTILS_TRACE() while(0){}
-
-
 namespace galik {
 
 using std::experimental::string_view;
@@ -48,7 +44,6 @@ constexpr const char* const ws = " \t\n\r\f\v";
  */
 inline std::string& ltrim_mute(std::string& s, const char* t = ws)
 {
-	STRING_UTILS_TRACE();
 	s.erase(0, s.find_first_not_of(t));
 	return s;
 }
@@ -62,7 +57,6 @@ inline std::string& ltrim_mute(std::string& s, const char* t = ws)
  */
 inline std::string& rtrim_mute(std::string& s, const char* t = ws)
 {
-	STRING_UTILS_TRACE();
 	s.erase(s.find_last_not_of(t) + 1);
 	return s;
 }
@@ -76,7 +70,6 @@ inline std::string& rtrim_mute(std::string& s, const char* t = ws)
  */
 inline std::string& trim_mute(std::string& s, const char* t = ws)
 {
-
 	return ltrim_mute(rtrim_mute(s, t), t);
 }
 
@@ -167,7 +160,6 @@ inline std::string rtrim_copy(std::string s, char c)
 
 inline std::string ltrim_copy(std::string s, char c)
 {
-	STRING_UTILS_TRACE();
 	return ltrim_mute(s, c);
 }
 
@@ -312,13 +304,40 @@ std::vector<StringType> split_at_delim(StringType&& s
 	return split(std::forward<StringType>(s), [delim](Char c){return c == delim;}, fold);
 }
 
-//template<typename StringType>
-//std::vector<StringType> split_at_delim(StringType&& s
-//	, basic_string_view<typename StringType::value_type> delim, bool fold = true)
-//{
-//	using Char = typename StringType::value_type;
-//	return split(std::forward<StringType>(s), [delims](Char c){return delims.find(delim) != StringType::npos;}, fold);
-//}
+/**
+ * Split a StringType at every string_view sequence delim into a std::vector<StringType>
+ *
+ * NOTE: Both the parameter StringType and the return StringType are the
+ * same so if you want to return a std::vector<string_view>, for example, from a
+ * a std::string you can do this:
+ *
+ * auto v = split_at_delim(string_view(s), "&&");
+ *
+ * @param s A StringType to be split
+ * @param delim A delimiting string_view
+ * @return A std::vector<StringType> containing the split string
+ */
+template<typename StringType>
+std::vector<StringType> split_at_delim(StringType&& s
+	, basic_string_view<typename StringType::value_type> delim)
+{
+	std::vector<StringType> v;
+
+	auto done = s.data() + s.size();
+	auto end = s.data();
+	auto pos = end;
+
+	while((end = std::search(pos, done, delim.begin(), delim.end())) != done)
+	{
+		v.emplace_back(pos, end - pos);
+		pos = end + delim.size();
+	}
+
+	if(pos != done)
+		v.emplace_back(pos, end - pos);
+
+	return v;
+}
 
 /**
  * Split a StringType at every delimiter provided in delims into a std::vector<StringType>

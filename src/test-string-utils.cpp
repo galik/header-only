@@ -123,7 +123,7 @@ int main()
 		{
 			con("==== split: '" << s << "'");
 //			auto v = split_at_spaces(string_view(s), false);
-			auto v = split_at_delims(string_view(s), string_view(" "), true);
+			auto v = split_at_delim(string_view(s), string_view(" "));
 			for(auto const& sv: v)
 				con("'" << sv << "'");
 			con("");
