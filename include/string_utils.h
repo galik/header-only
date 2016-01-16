@@ -223,22 +223,59 @@ std::string upper_copy(std::string s)
 
 // split
 
-//std::vector<std::string> split2(const std::string& s)
-//{
-//	std::vector<std::string> v;
-//
-//    auto done = s.end();
-//    auto end = s.begin();
-//    decltype(end) pos;
-//
-//    while((pos = std::find_if(end, done, std::not1(std::ptr_fun(isspace)))) != done)
-//    {
-//        end = std::find_if(pos, done, std::ptr_fun(isspace));
-//        v.emplace_back(pos, end);
-//    }
-//    return v;
-//}
+template<typename StringType, typename Comparator>
+std::vector<StringType> split(StringType&& s, Comparator cmp, bool fold = true)
+{
+	std::vector<StringType> v;
 
+	auto done = s.data() + s.size();
+	auto end = s.data();
+	auto pos = end;
+
+	if(fold)
+	{
+		while((pos = std::find_if_not(end, done, cmp)) != done)
+		{
+			end = std::find_if(pos, done, cmp);
+			v.emplace_back(pos, end - pos);
+		}
+	}
+	else
+	{
+		while((end = std::find_if(pos, done, cmp)) != done)
+		{
+			v.emplace_back(pos, end - pos);
+			pos = end + 1;
+		}
+
+		if(pos != done)
+			v.emplace_back(pos, end - pos);
+	}
+
+	return v;
+}
+
+template<typename StringType>
+std::vector<StringType> split_at_spaces(StringType&& s, bool fold = true)
+{
+	return split(std::forward<StringType>(s), std::ptr_fun<int, int>(std::isspace), fold);
+}
+
+template<typename StringType>
+std::vector<StringType> split_at_delim(StringType&& s
+	, typename StringType::value_type delim, bool fold = true)
+{
+	using Char = typename StringType::value_type;
+	return split(std::forward<StringType>(s), [delim](Char c){return c == delim;}, fold);
+}
+
+template<typename StringType>
+std::vector<StringType> split_at_delims(StringType&& s
+	, StringType const& delims, bool fold = true)
+{
+	using Char = typename StringType::value_type;
+	return split(std::forward<StringType>(s), [delims](Char c){return delims.find(c) != StringType::npos;}, fold);
+}
 
 } // galik
 

@@ -36,7 +36,7 @@ namespace galik {
 
 using str = std::string;
 using str_map = std::map<str, str>;
-using str_vec = std::vector<str, str>;
+using str_vec = std::vector<str>;
 
 }
 

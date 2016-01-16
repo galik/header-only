@@ -22,6 +22,8 @@
 
 #include <iomanip>
 #include <iostream>
+#include <cstring>
+#include <cctype>
 
 #include "test.h"
 #include "string_utils.h"
@@ -44,6 +46,7 @@ const str_map test_data =
 };
 
 std::string get_string(const std::string& s) { return s; }
+
 
 std::vector<string_view> split0(const std::string& s)
 {
@@ -151,19 +154,32 @@ int main()
 
 		con("split");
 
-		s = " some text   to  split  ";
+		const str_vec splits =
+		{
+			  "x"
+			, " x"
+			, "x "
+			, " x "
+			, "ab"
+			, " ab"
+			, "ab "
+			, " ab "
+			, "1 2 3"
+			, " 1 2 3"
+			, "1 2 3 "
+			, " 1 2 3 "
+			, "x  "
+		};
 
-		auto v = split0(s);
-		for(auto const& sv: v)
-			con(sv);
-
-		v = split1(s);
-		for(auto const& sv: v)
-			con(sv);
-
-		v = split2(s);
-		for(auto const& sv: v)
-			con(sv);
+		for(auto const& s: splits)
+		{
+			con("==== split: '" << s << "'");
+//			auto v = split_at_spaces(string_view(s), false);
+			auto v = split_at_delims(string_view(s), string_view(" "), true);
+			for(auto const& sv: v)
+				con("'" << sv << "'");
+			con("");
+		}
 	}
 	catch(const std::exception& e)
 	{
