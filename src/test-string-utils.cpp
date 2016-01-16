@@ -47,58 +47,6 @@ const str_map test_data =
 
 std::string get_string(const std::string& s) { return s; }
 
-
-std::vector<string_view> split0(const std::string& s)
-{
-	std::vector<string_view> v;
-
-	auto done = s.data() + s.size();
-	auto end = s.data();
-	decltype(end) pos;
-
-	while((pos = std::find_if(end, done, std::not1(std::ptr_fun(isspace)))) != done)
-	{
-		end = std::find_if(pos, done, std::ptr_fun(isspace));
-		v.emplace_back(pos, end - pos);
-	}
-
-	return v;
-}
-
-std::vector<string_view> split1(const std::string& s, char delim = ' ')
-{
-	std::vector<string_view> v;
-
-	auto done = s.data() + s.size();
-	auto end = s.data();
-	decltype(end) pos;
-
-	while((pos = std::find_if(end, done, [delim](char c){ return c != delim; })) != done)
-	{
-		end = std::find_if(pos, done, [delim](char c){ return c == delim; });
-		v.emplace_back(pos, end - pos);
-	}
-
-	return v;
-}
-
-std::vector<string_view> split2(const std::string& s, string_view sv = ws)
-{
-	std::vector<string_view> v;
-
-	auto done = s.data() + s.size();
-	auto end = s.data();
-	decltype(end) pos;
-
-	while((pos = std::find_if(end, done, [sv](char c){ return sv.find(c) == sv.npos; })) != done)
-	{
-		end = std::find_if(pos, done, [sv](char c){ return sv.find(c) != sv.npos; });
-		v.emplace_back(pos, end - pos);
-	}
-
-	return v;
-}
-
 //std::vector<string_view> split(const std::string& s, char delim = ' ', bool fold = true)
 //{
 //	std::vector<string_view> views;

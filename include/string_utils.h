@@ -33,6 +33,7 @@
 namespace galik {
 
 using std::experimental::string_view;
+using std::experimental::basic_string_view;
 
 constexpr const char* const ws = " \t\n\r\f\v";
 
@@ -223,6 +224,20 @@ std::string upper_copy(std::string s)
 
 // split
 
+/**
+ * Split a StringType into a std::vector<StringType> at every character where
+ * Comparator(Char) returns true.
+ *
+ * NOTE: Both the parameter StringType and the return StringType are the
+ * same so if you want to return a std::vector<string_view>, for example, from a
+ * a std::string you can do this:
+ *
+ * auto v = split_at_space(string_view(s), std::ptr_fun<int, int>(std::isspace));
+ *
+ * @param s A StringType to be split
+ * @param fold If true then fold (ignore adjacent) delimiters
+ * @return A std::vector<StringType> containing the split string
+ */
 template<typename StringType, typename Comparator>
 std::vector<StringType> split(StringType&& s, Comparator cmp, bool fold = true)
 {
@@ -255,12 +270,40 @@ std::vector<StringType> split(StringType&& s, Comparator cmp, bool fold = true)
 	return v;
 }
 
+/**
+ * Split a StringType at every whitespace character into a std::vector<StringType>.
+ * A whitespace character is determined by calling `std::isspace`.
+ *
+ * NOTE: Both the parameter StringType and the return StringType are the
+ * same so if you want to return a std::vector<string_view>, for example, from a
+ * a std::string you can do this:
+ *
+ * auto v = split_at_space(string_view(s));
+ *
+ * @param s A StringType to be split
+ * @param fold If true then fold (ignore adjacent) delimiters
+ * @return A std::vector<StringType> containing the split string
+ */
 template<typename StringType>
-std::vector<StringType> split_at_spaces(StringType&& s, bool fold = true)
+std::vector<StringType> split_at_space(StringType&& s, bool fold = true)
 {
 	return split(std::forward<StringType>(s), std::ptr_fun<int, int>(std::isspace), fold);
 }
 
+/**
+ * Split a StringType at every character delim into a std::vector<StringType>
+ *
+ * NOTE: Both the parameter StringType and the return StringType are the
+ * same so if you want to return a std::vector<string_view>, for example, from a
+ * a std::string you can do this:
+ *
+ * auto v = split_at_delim(string_view(s), '\n');
+ *
+ * @param s A StringType to be split
+ * @param delim A delimiting character
+ * @param fold If true then fold (ignore adjacent) delimiters
+ * @return A std::vector<StringType> containing the split string
+ */
 template<typename StringType>
 std::vector<StringType> split_at_delim(StringType&& s
 	, typename StringType::value_type delim, bool fold = true)
@@ -269,9 +312,31 @@ std::vector<StringType> split_at_delim(StringType&& s
 	return split(std::forward<StringType>(s), [delim](Char c){return c == delim;}, fold);
 }
 
+//template<typename StringType>
+//std::vector<StringType> split_at_delim(StringType&& s
+//	, basic_string_view<typename StringType::value_type> delim, bool fold = true)
+//{
+//	using Char = typename StringType::value_type;
+//	return split(std::forward<StringType>(s), [delims](Char c){return delims.find(delim) != StringType::npos;}, fold);
+//}
+
+/**
+ * Split a StringType at every delimiter provided in delims into a std::vector<StringType>
+ *
+ * NOTE: Both the parameter StringType and the return StringType are the
+ * same so if you want to return a std::vector<string_view>, for example, from a
+ * a std::string you can do this:
+ *
+ * auto v = split_at_delims(string_view(s), delims);
+ *
+ * @param s A StringType to be split
+ * @param delims A std::experimental::string_view of delimiting characters
+ * @param fold If true then fold (ignore adjacent) delimiters
+ * @return A std::vector<StringType> containing the split string
+ */
 template<typename StringType>
 std::vector<StringType> split_at_delims(StringType&& s
-	, StringType const& delims, bool fold = true)
+	, basic_string_view<typename StringType::value_type> delims, bool fold = true)
 {
 	using Char = typename StringType::value_type;
 	return split(std::forward<StringType>(s), [delims](Char c){return delims.find(c) != StringType::npos;}, fold);
