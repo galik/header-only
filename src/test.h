@@ -1,5 +1,5 @@
-#ifndef GALIK_TEST_H
-#define GALIK_TEST_H
+#ifndef HOL_TEST_H
+#define HOL_TEST_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -32,7 +32,7 @@
 #define con(msg) do{std::cout << std::boolalpha << msg << '\n';}while(0)
 #define err(msg) do{std::cerr << msg << std::endl;}while(0)
 
-namespace galik {
+namespace hol {
 
 using str = std::string;
 using str_map = std::map<str, str>;
@@ -40,5 +40,5 @@ using str_vec = std::vector<str>;
 
 }
 
-#endif // GALIK_TEST_H
+#endif // HOL_TEST_H
 

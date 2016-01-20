@@ -1,5 +1,5 @@
-#ifndef GALIK_U8STRING_H
-#define GALIK_U8STRING_H
+#ifndef HOL_U8STRING_H
+#define HOL_U8STRING_H
 
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
@@ -27,13 +27,57 @@
 #include <string>
 #include <cstring>
 
-namespace galik {
+namespace hol {
 
 using std::strncpy;
 using std::strcmp;
 using std::strlen;
 
 using char16_pair = std::array<char16_t, 2>;
+
+//inline std::vector<char> create_lookup()
+//{
+//	std::vector<char> lookup(256);
+//	for(int c = 0b00000000; c < 0b10000000; ++c)
+//		lookup[c] = 1;
+//	for(int c = 0b11000000; c < 0b11100000; ++c)
+//		lookup[c] = 2;
+//	for(int c = 0b11100000; c < 0b11110000; ++c)
+//		lookup[c] = 3;
+//	for(int c = 0b11110000; c < 0b11111000; ++c)
+//		lookup[c] = 4;
+//	for(int c = 0b11111000; c < 0b11111100; ++c)
+//		lookup[c] = 5;
+//	for(int c = 0b11111100; c < 0b11111110; ++c)
+//		lookup[c] = 6;
+//	return lookup;
+//}
+
+//inline const std::vector<char>& get_lookup()
+//{
+////	static std::vector<char> lookup = create_lookup();
+//	static const std::vector<char> u8char_size =
+//	{
+//		  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+//		, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+//		, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+//		, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+//		, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+//		, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+//		, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+//		, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+//		, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+//		, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+//		, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+//		, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+//		, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+//		, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+//		, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
+//		, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0
+//	};
+//
+//	return u8char_size;
+//}
 
 class u8char
 {
@@ -63,31 +107,52 @@ class u8char
 
 	static unsigned size(const unsigned char c)
 	{
-		if(!(c & na1))
-			return 1;
-		if(!(c & na2) && ((c & no2) == no2))
-			return 2;
-		if(!(c & na3) && ((c & no3) == no3))
-			return 3;
-		if(!(c & na4) && ((c & no4) == no4))
-			return 4;
-		if(!(c & na5) && ((c & no5) == no5))
-			return 5;
-		if(!(c & na6) && ((c & no6) == no6))
-			return 5;
-		return 0;
+//		if(!(c & na1))
+//			return 1;
+//		if(!(c & na2) && ((c & no2) == no2))
+//			return 2;
+//		if(!(c & na3) && ((c & no3) == no3))
+//			return 3;
+//		if(!(c & na4) && ((c & no4) == no4))
+//			return 4;
+//		if(!(c & na5) && ((c & no5) == no5))
+//			return 5;
+//		if(!(c & na6) && ((c & no6) == no6))
+//			return 6;
+//		return 0;
+		constexpr static const char u8char_size[] =
+		{
+			  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+			, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+			, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+			, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+			, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+			, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+			, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+			, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+			, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+			, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+			, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
+			, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0
+		};
+		return u8char_size[c];
 	}
 
 public:
 	u8char() {}
 	explicit u8char(const char* cp) noexcept { assign(cp); }
+	explicit u8char(char c) noexcept { assign(c); }
 	u8char(const u8char& u8c) noexcept { assign(u8c); }
 
 	// static utils
 
-	static unsigned size(const char* data)
+	static unsigned size(const char* cp)
 	{
-		return size(*data);
+		return size(*cp);
 	}
 
 	static char32_t char32(const char* cp)
@@ -124,6 +189,7 @@ public:
 		return 2;
 	}
 
+	void assign(char c) noexcept { *cp = c; }
 	void assign(const char* cp) noexcept { strncpy(this->cp, cp, size(cp)); }
 	void assign(const u8char& u8c) noexcept { assign(u8c.data()); }
 
@@ -150,12 +216,17 @@ public:
 
 class u8string
 {
+public:
 	using container = std::string;
 	using container_ref = container&;
 	using container_const_ref = container const&;
 	using iterator = container::iterator;
 	using const_iterator = container::const_iterator;
+	using size_type = container::size_type;
 
+	constexpr static const size_type npos = container::npos;
+
+private:
 	container utf8;
 
 	template<typename ContainerRef, typename Iterator>
@@ -315,8 +386,27 @@ public:
 		}
 		return {true, {}, {}};
 	}
+
+	size_type find_first_not_of(const char* s, size_type pos, size_type count) const;
+//	size_type find_first_not_of( const basic_string& str, size_type pos = 0 ) const;
+//	size_type find_first_not_of( const CharT* s, size_type pos = 0 ) const;
+//	size_type find_first_not_of( CharT ch, size_type pos = 0 ) const;
+
+	static const char* private_find(const char* haystack_begin_cp
+		, const char* haystack_end_cp, const char* needle_cp)
+	{
+//		return std::search(haystack_begin_cp, haystack_end_cp, needle_cp, needle_cp + u8char::size(needle_cp));
+	}
 };
 
-} // galik
+u8string::size_type u8string::find_first_not_of(const char* s, size_type pos, size_type count) const
+{
+//	for(; pos < size(); ++pos)
+//		if(private_find(s, ))
+//			return pos;
+	return npos;
+}
 
-#endif // GALIK_U8STRING_H
+} // hol
+
+#endif // HOL_U8STRING_H

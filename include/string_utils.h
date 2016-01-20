@@ -1,5 +1,5 @@
-#ifndef GALIK_STRING_UTILS_H_
-#define GALIK_STRING_UTILS_H_
+#ifndef HOL_STRING_UTILS_H
+#define HOL_STRING_UTILS_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -26,7 +26,7 @@
 #include <experimental/string_view>
 #include "string_view_stream.h"
 
-namespace galik {
+namespace hol {
 
 using std::experimental::string_view;
 using std::experimental::basic_string_view;
@@ -183,6 +183,27 @@ inline std::string rtrim_mute_keep(std::string& s, const char* t = ws)
 	s.erase(pos);
 	return keep;
 }
+
+// Template version
+
+template<typename StringType>
+inline StringType& ltrim_mute(StringType& s, const StringType& t = {})
+{
+//	s.erase(0, s.find_first_not_of(t));
+	return s;
+}
+
+//inline std::string& rtrim_mute(std::string& s, const char* t = ws)
+//{
+//	s.erase(s.find_last_not_of(t) + 1);
+//	return s;
+//}
+//
+//inline std::string& trim_mute(std::string& s, const char* t = ws)
+//{
+//	return ltrim_mute(rtrim_mute(s, t), t);
+//}
+
 
 // upper lower
 
@@ -361,6 +382,6 @@ std::vector<StringType> split_at_delims(StringType&& s
 	return split(std::forward<StringType>(s), [delims](Char c){return delims.find(c) != StringType::npos;}, fold);
 }
 
-} // galik
+} // hol
 
-#endif // GALIK_STRING_UTILS_H_
+#endif // HOL_STRING_UTILS_H

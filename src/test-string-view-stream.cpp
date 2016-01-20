@@ -26,7 +26,7 @@
 #include "test.h"
 #include "string_view_stream.h"
 
-using namespace galik;
+using namespace hol;
 using namespace std::literals::string_literals;
 
 const std::string json_data =

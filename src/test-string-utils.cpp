@@ -28,7 +28,7 @@
 #include "test.h"
 #include "string_utils.h"
 
-using namespace galik;
+using namespace hol;
 using namespace std::literals::string_literals;
 
 const str_map test_data =
@@ -46,36 +46,6 @@ const str_map test_data =
 };
 
 std::string get_string(const std::string& s) { return s; }
-
-//std::vector<string_view> split(const std::string& s, char delim = ' ', bool fold = true)
-//{
-//	std::vector<string_view> views;
-//
-//	decltype(s.begin()) i;
-//
-//	while((i = std::find(s.begin(), s.end(), delim)) != s.end())
-//	{
-//
-//	}
-//
-//	return views;
-//}
-//
-//std::vector<std::string> split2(const std::string& s)
-//{
-//	std::vector<std::string> v;
-//
-//    auto done = s.end();
-//    auto end = s.begin();
-//    decltype(end) pos;
-//
-//    while((pos = std::find_if(end, done, std::not1(std::ptr_fun(isspace)))) != done)
-//    {
-//        end = std::find_if(pos, done, std::ptr_fun(isspace));
-//        v.emplace_back(pos, end);
-//    }
-//    return v;
-//}
 
 int main()
 {

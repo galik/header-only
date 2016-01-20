@@ -1,5 +1,5 @@
-#ifndef GALIK_BUG_H
-#define GALIK_BUG_H
+#ifndef HOL_BUG_H
+#define HOL_BUG_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -24,7 +24,7 @@
 
 #include <string>
 
-namespace galik {
+namespace hol {
 
 #define bug(m) do{std::cout << m << std::endl;}while(0)
 #define bug_var(v) do{bug(#v ": " << v);}while(0)
@@ -33,6 +33,6 @@ struct _{ std::string m;_(const std::string& m):m(m){bug("--> " << m);}
 };
 #define bug_fun() galik::_ __(__PRETTY_FUNCTION__)
 
-} // galik
+} // hol
 
-#endif // GALIK_BUG_H
+#endif // HOL_BUG_H

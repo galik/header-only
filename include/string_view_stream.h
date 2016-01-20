@@ -1,5 +1,5 @@
-#ifndef GALIK_STRING_VIEW_STREAM_H
-#define GALIK_STRING_VIEW_STREAM_H
+#ifndef HOL_STRING_VIEW_STREAM_H
+#define HOL_STRING_VIEW_STREAM_H
 
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
@@ -29,7 +29,7 @@
 
 #include "bug.h"
 
-namespace galik {
+namespace hol {
 
 namespace ex = std::experimental;
 
@@ -62,7 +62,7 @@ public:
 
 	buf_type* setbuf(char_type* b, std::streamsize l) override
 	{
-		bug_fun();
+//		bug_fun();
 		sv = string_view_type(b, l);
 		buf_type::setg(const_cast<char_type*>(sv.data())
 			, const_cast<char_type*>(sv.data())
@@ -106,7 +106,7 @@ public:
 
 	std::streamsize xsgetn(char_type* s, std::streamsize n)
 	{
-		bug_fun();
+//		bug_fun();
 		char_type* e = buf_type::gptr() + n;
 		if(e > buf_type::egptr())
 		{
@@ -135,10 +135,7 @@ public:
 	{
 		std::basic_istream<CharType>::rdbuf(&buf);
 	}
-//	basic_string_view_stream(string_view_type sv): std::istream(nullptr), buf(sv)
-//	{
-//		std::istream::
-//	}
+
 	string_view_type get_string_view() const { return buf.get_string_view(); }
 
 };
@@ -148,6 +145,6 @@ using wstring_view_buf = basic_string_view_buf<wchar_t>;
 using string_view_stream = basic_string_view_stream<char>;
 using wstring_view_stream = basic_string_view_stream<wchar_t>;
 
-} // galik
+} // hol
 
-#endif // GALIK_STRING_VIEW_STREAM_H
+#endif // HOL_STRING_VIEW_STREAM_H
