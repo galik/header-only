@@ -31,7 +31,7 @@ namespace hol {
 struct _{ std::string m;_(const std::string& m):m(m){bug("--> " << m);}
 	~_(){bug("<-- " << m);}
 };
-#define bug_fun() galik::_ __(__PRETTY_FUNCTION__)
+#define bug_fun() hol::_ __(__PRETTY_FUNCTION__)
 
 } // hol
 

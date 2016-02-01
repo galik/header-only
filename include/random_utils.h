@@ -26,6 +26,24 @@
 
 namespace hol {
 
+/**
+ * Usage:
+ *
+ * PRNG_32S prng;
+ *
+ * if(prng.percent(20))
+ * {
+ *     // Do this 20% of the time
+ * }
+ *
+ * if(prng.chances(2, 5))
+ * {
+ *     // Do this 2 out of 5 times
+ * }
+ *
+ * int i = prng.get(2, 8); // number between 2 and 8 inclusive
+ *
+ */
 template
 	<
 	  typename Type = int
@@ -43,7 +61,7 @@ class PRNG
 	using param_type = typename Dist::param_type;
 	std::seed_seq ss;
 	Generator gen;
-	Dist dis;
+	Dist dist;
 
 public:
 	PRNG(): ss({rd{}(), rd{}(), rd{}(), rd{}()}), gen(ss) {}
@@ -54,9 +72,10 @@ public:
 	 * @param to Highest possible return value.
 	 * @return Random number in the range [from, to].
 	 */
-	Type get(Type from, Type to)
+	Type get(Type from = std::numeric_limits<Type>::lowest()
+		, Type to = std::numeric_limits<Type>::max())
 	{
-		return dis(gen, param_type{from, to});
+		return dist(gen, param_type{from, to});
 	}
 
 	/**
@@ -64,7 +83,7 @@ public:
 	 * num times out of denom.
 	 * @param num
 	 * @param denom
-	 * @return
+	 * @return true if num is greater than a random number between 1 and denom
 	 */
 	bool chances(Type num, Type denom) { return num > get(1, denom); }
 
@@ -72,26 +91,26 @@ public:
 	 * Percentage chance of success. This function returns true
 	 * num percent of the time.
 	 * @param num
-	 * @return
+	 * @return true num% of the time.
 	 */
-	bool pc(Type num) { return chances(num, 100); }
+	bool percent(Type num) { return chances(num, 100); }
 };
 
 template<typename Type = std::int32_t>
 using PRNG_32 = PRNG<Type>;
 
-using PRNG_32S = PRNG_32<std::int32_t>;
-using PRNG_32U = PRNG_32<std::uint32_t>;
-using PRNG_32F = PRNG_32<float>;
-using PRNG_32D = PRNG_32<double>;
+using PRNG_32S = PRNG_32<std::int32_t>;      // 32bit mt engine 32bit signed int
+using PRNG_32U = PRNG_32<std::uint32_t>;     // 32bit mt engine 32bit unsigned int
+using PRNG_32F = PRNG_32<float>;             // 32bit mt engine float
+using PRNG_32D = PRNG_32<double>;            // 32bit mt engine double
 
 template<typename Type = std::int64_t>
 using PRNG_64 = PRNG<Type, std::mt19937_64>;
 
-using PRNG_64S = PRNG_64<std::int64_t>;
-using PRNG_64U = PRNG_64<std::uint64_t>;
-using PRNG_64F = PRNG_64<float>;
-using PRNG_64D = PRNG_64<double>;
+using PRNG_64S = PRNG_64<std::int64_t>;      // 64bit mt engine 64bit signed int
+using PRNG_64U = PRNG_64<std::uint64_t>;     // 64bit mt engine 64bit unsigned int
+using PRNG_64F = PRNG_64<float>;             // 64bit mt engine float
+using PRNG_64D = PRNG_64<double>;            // 64bit mt engine double
 
 } // hol
 

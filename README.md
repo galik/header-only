@@ -38,3 +38,8 @@ This is a `UTF-8` string class.
 
 This is basic string manipulation functions like `trim()`.
 
+* `random_utils`
+
+This is basic random number functions
+
+

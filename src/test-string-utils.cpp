@@ -91,12 +91,14 @@ int main()
 
 		for(auto const& s: splits)
 		{
-			con("==== split: '" << s << "'");
-//			auto v = split_at_spaces(string_view(s), false);
-			auto v = split_at_delim(string_view(s), string_view(" "));
-			for(auto const& sv: v)
-				con("'" << sv << "'");
-			con("");
+//			con("==== split: '" << s << "' (string_view)");
+//			for(auto const& sv: split_at_delim(string_view(s), string_view(" ")))
+//				con("'" << sv << "'");
+//			con("");
+//			con("==== split: '" << s << "' (string)");
+//			for(auto const& sv: split_at_delim(s, string_view(" ")))
+//				con("'" << sv << "'");
+//			con("");
 		}
 	}
 	catch(const std::exception& e)

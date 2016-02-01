@@ -1,5 +1,3 @@
-#ifndef HOL_STRING_UTILS_H
-#define HOL_STRING_UTILS_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -22,221 +20,24 @@
 // SOFTWARE.
 //
 
+#include <iomanip>
+#include <iostream>
+#include <cstring>
+#include <cctype>
 #include <algorithm>
-#include <experimental/string_view>
-#include "string_view_stream.h"
+#include <regex>
+
+#include "test.h"
+//#include "string_utils.h"
+
+using namespace hol;
+using namespace std::literals::string_literals;
 
 namespace hol {
 
 using std::string;
 using std::vector;
 using std::experimental::string_view;
-
-constexpr const char* const ws = " \t\n\r\f\v";
-
-// mute
-
-/**
- * Remove leading characters from a std::string.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the beginning
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& ltrim_mute(std::string& s, const char* t = ws)
-{
-	s.erase(0, s.find_first_not_of(t));
-	return s;
-}
-
-/**
- * Remove trailing characters from a std::string.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the end
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& rtrim_mute(std::string& s, const char* t = ws)
-{
-	s.erase(s.find_last_not_of(t) + 1);
-	return s;
-}
-
-/**
- * Remove surrounding characters from a std::string.
- * @param s The string to be modified.
- * @param t The set of characters to delete from each end
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& trim_mute(std::string& s, const char* t = ws)
-{
-	return ltrim_mute(rtrim_mute(s, t), t);
-}
-
-// view
-
-inline string_view ltrim_view(string_view s, const char* t = ws)
-{
-	auto pos = s.find_first_not_of(t);
-	if(pos == string_view::npos)
-		pos = s.size();
-	s.remove_prefix(pos);
-	return s;
-}
-
-inline string_view rtrim_view(string_view s, const char* t = ws)
-{
-	auto pos = s.find_last_not_of(t) + 1;
-	if(!pos)
-		pos = s.size();
-	s.remove_suffix(s.size() - pos);
-	return s;
-}
-
-inline string_view trim_view(string_view s, const char* t = ws)
-{
-	return ltrim_view(rtrim_view(s, t), t);
-}
-
-// copy
-
-inline std::string ltrim_copy(std::string s, const char* t = ws)
-{
-	return ltrim_mute(s, t);
-}
-
-inline std::string rtrim_copy(std::string s, const char* t = ws)
-{
-	return rtrim_mute(s, t);
-}
-
-inline std::string trim_copy(std::string s, const char* t = ws)
-{
-	return trim_mute(s, t);
-}
-
-/**
- * Remove all leading characters of a given value
- * from a std::string.
- * @param s The string to be modified.
- * @param c The character value to delete.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& ltrim_mute(std::string& s, char c)
-{
-	s.erase(0, s.find_first_not_of(c));
-	return s;
-}
-
-/**
- * Remove all trailing characters of a given value
- * from a std::string.
- * @param s The string to be modified.
- * @param c The character value to delete.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& rtrim_mute(std::string& s, char c)
-{
-	s.erase(s.find_last_not_of(c) + 1);
-	return s;
-}
-
-/**
- * Remove all surrounding characters of a given value
- * from a std::string.
- * @param s The string to be modified.
- * @param c The character value to delete.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& trim_mute(std::string& s, char c)
-{
-	return ltrim_mute(rtrim_mute(s, c), c);
-}
-
-inline std::string rtrim_copy(std::string s, char c)
-{
-	return rtrim_mute(s, c);
-}
-
-inline std::string ltrim_copy(std::string s, char c)
-{
-	return ltrim_mute(s, c);
-}
-
-inline std::string trim_copy(std::string s, char c)
-{
-	return trim_mute(s, c);
-}
-
-inline std::string ltrim_mute_keep(std::string& s, const char* t = ws)
-{
-	std::string::size_type pos;
-	std::string keep = s.substr(0, (pos = s.find_first_not_of(t)));
-	s.erase(0, pos);
-	return keep;
-}
-
-inline std::string rtrim_mute_keep(std::string& s, const char* t = ws)
-{
-	std::string::size_type pos;
-	std::string keep = s.substr((pos = s.find_last_not_of(t) + 1));
-	s.erase(pos);
-	return keep;
-}
-
-// Template version
-
-template<typename StringType>
-inline StringType& ltrim_mute(StringType& s, const StringType& t = {})
-{
-//	s.erase(0, s.find_first_not_of(t));
-	return s;
-}
-
-//inline std::string& rtrim_mute(std::string& s, const char* t = ws)
-//{
-//	s.erase(s.find_last_not_of(t) + 1);
-//	return s;
-//}
-//
-//inline std::string& trim_mute(std::string& s, const char* t = ws)
-//{
-//	return ltrim_mute(rtrim_mute(s, t), t);
-//}
-
-
-// upper lower
-
-inline
-std::string& lower_mute(std::string& s)
-{
-	std::transform(s.begin(), s.end(), s.begin()
-		, std::ptr_fun<int, int>(std::tolower));
-	return s;
-}
-
-inline
-std::string& upper_mute(std::string& s)
-{
-	std::transform(s.begin(), s.end(), s.begin()
-		, std::ptr_fun<int, int>(std::toupper));
-	return s;
-}
-
-inline
-std::string lower_copy(std::string s)
-{
-	return lower_mute(s);
-}
-
-inline
-std::string upper_copy(std::string s)
-{
-	return upper_mute(s);
-}
-
-// split
 
 template<typename IterType, typename ComparatorType, typename ContainerType>
 void split(IterType pos, IterType done, ComparatorType cmp, ContainerType& v, bool fold = true)
@@ -381,7 +182,6 @@ inline
 vector<string> split_copy_at_regex(std::regex e, string_view s, std::size_t reserve_guess = 20)
 {
 	vector<string> v;
-	v.reserve(reserve_guess);
 	split_at_regex(e, s, v);
 	return v;
 }
@@ -390,7 +190,6 @@ inline
 vector<string_view> split_view_at_regex(std::regex e, string_view s, std::size_t reserve_guess = 20)
 {
 	vector<string_view> v;
-	v.reserve(reserve_guess);
 	split_at_regex(e, s, v);
 	return v;
 }
@@ -399,7 +198,6 @@ inline
 vector<string> split_copy_at_regex(string const& e, string_view s, std::size_t reserve_guess = 20)
 {
 	vector<string> v;
-	v.reserve(reserve_guess);
 	split_at_regex(std::regex(e), s, v);
 	return v;
 }
@@ -408,11 +206,99 @@ inline
 vector<string_view> split_view_at_regex(string const& e, string_view s, std::size_t reserve_guess = 20)
 {
 	vector<string_view> v;
-	v.reserve(reserve_guess);
 	split_at_regex(std::regex(e), s, v);
 	return v;
 }
 
 } // hol
 
-#endif // HOL_STRING_UTILS_H
+hol::string get_string(const hol::string& s) { return s; }
+
+struct split_test_item
+{
+	str s;
+	str_vec v;
+};
+
+bool operator==(str_vec const& lhs, svw_vec const& rhs)
+{
+	if(lhs.size() != rhs.size())
+		return false;
+	for(auto i = 0U; i < lhs.size(); ++i)
+		if(lhs[i] != rhs[i])
+			return false;
+	return true;
+}
+
+bool operator==(svw_vec const& lhs, str_vec const& rhs)
+{
+	return rhs == lhs;
+}
+
+int main()
+{
+//	for(auto const& s: split_copy_at_regex(std::regex(" "), "a b c d"))
+//		con("copy: " << s);
+//
+//	for(auto const& s: split_view_at_regex(std::regex(" "), "a b c d"))
+//		con("view: " << s);
+//
+//	return 0;
+//
+	try
+	{
+		str s;
+
+		const std::multimap<char, split_test_item> char_split_folds =
+		{
+			  {' ', {"", {}}}
+			, {' ', {"x", {"x"}}}
+			, {' ', {" x", {"x"}}}
+			, {' ', {"x ", {"x"}}}
+			, {' ', {" x ", {"x"}}}
+			, {' ', {"x  ", {"x"}}}
+			, {' ', {"  x", {"x"}}}
+			, {' ', {"  x  ", {"x"}}}
+			, {' ', {"a b", {"a", "b"}}}
+			, {' ', {" a b", {"a", "b"}}}
+			, {' ', {"a b ", {"a", "b"}}}
+			, {' ', {"  a b", {"a", "b"}}}
+			, {' ', {"a b  ", {"a", "b"}}}
+			, {' ', {"a  b", {"a", "b"}}}
+			, {' ', {"aaa bbb", {"aaa", "bbb"}}}
+			, {' ', {" aaa bbb", {"aaa", "bbb"}}}
+			, {' ', {"aaa bbb ", {"aaa", "bbb"}}}
+			, {' ', {"  aaa bbb", {"aaa", "bbb"}}}
+			, {' ', {"aaa bbb  ", {"aaa", "bbb"}}}
+			, {' ', {"aaa  bbb", {"aaa", "bbb"}}}
+		};
+
+		for(auto const& s: char_split_folds)
+		{
+			con("==== split_copy_at_delim: '" << s.second.s << "', '" << s.first << "'");
+			con((s.second.v == split_copy_at_delim(s.second.s, s.first, true)));
+//				for(auto const& p: split_copy_at_delim(s.second.s, s.first, fold))
+//					con("'" << p << "'");
+			con("");
+			con("==== split_view_at_delim: '" << s.second.s << "', '" << s.first << "'");
+			con((s.second.v == split_view_at_delim(s.second.s, s.first, true)));
+//				for(auto const& p: split_view_at_delim(s.second.s, s.first, fold))
+//					con("'" << p << "'");
+			con("");
+		}
+	}
+	catch(const std::exception& e)
+	{
+		err(e.what());
+	}
+	catch(...)
+	{
+		err("Unknown exception thrown");
+	}
+}
+
+
+
+
+
+

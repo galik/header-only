@@ -41,43 +41,31 @@ const u8string test_data[] =
 
 int main()
 {
-//	std::string sep = "  ";
-//	std::ofstream ofs("u8char-size.cpp");
-//	ofs << "constexpr static const std::vector<char> u8char_size =\n{";
-	for(int i = 0; i < 256; ++i)
-	{
-//		if(!(i % 16))
-//			ofs << '\n' << '\t';
-//		ofs << sep << int(get_lookup()[i]);
-//		sep = ", ";
-		if(u8char(char(i)).size() != get_lookup()[i])
-		{
-			con("bad: " << std::bitset<8>(i));
-			bug_var(u8char(char(i)).size());
-			bug_var(get_lookup()[i]);
-		}
-	}
-//	ofs << "\n};\n";
+//	cout << u8"\x61\xE0\xA4\xA8\xE0\xA4\xBF\xE4\xBA\x9C\xF0\x90\x82\x83" << endl;
+//	cout << u8"\u0061\u0928\u093F\u4E9C\u10083" << endl;
 
-	return 0;
+	u8string u8s = "\x61\xE0\xA4\xA8\xE0\xA4\xBF\xE4\xBA\x9C\xF0\x90\x82\x83";
 
-	u8string::report r;
+	if(u8string::report r = u8s.valid())
+		con("u8s: " << u8s.string());
 
-	for(auto&& test: test_data)
-	{
-		con("test : " << test.string());
-		r = test.valid();
-		con("valid: " << r);
-		if(!r)
-		{
-			con('\t' << test[0].size());
-			con('\t' << r.msg + " at: " + std::to_string(r.pos));
-		}
-	}
 
-	u8string u8s = u8" x ";
-
-	ltrim_mute(u8s, u8string(" "));
+//
+//	for(auto&& test: test_data)
+//	{
+//		con("test : " << test.string());
+//		r = test.valid();
+//		con("valid: " << r);
+//		if(!r)
+//		{
+//			con('\t' << test[0].size());
+//			con('\t' << r.msg + " at: " + std::to_string(r.pos));
+//		}
+//	}
+//
+//	u8string u8s = u8" x ";
+//
+//	ltrim_mute(u8s, u8string(" "));
 }
 
 

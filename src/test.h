@@ -29,14 +29,24 @@
 #include <iostream>
 #include "bug.h"
 
+#include <experimental/filesystem>
+#include <experimental/string_view>
+
 #define con(msg) do{std::cout << std::boolalpha << msg << '\n';}while(0)
 #define err(msg) do{std::cerr << msg << std::endl;}while(0)
+
+namespace xxx = std::experimental;
+namespace fs = xxx::filesystem;
 
 namespace hol {
 
 using str = std::string;
 using str_map = std::map<str, str>;
 using str_vec = std::vector<str>;
+
+using svw = xxx::string_view;
+using svw_map = std::map<svw, svw>;
+using svw_vec = std::vector<svw>;
 
 }
 
