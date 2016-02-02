@@ -23,15 +23,16 @@
 //
 
 #include <string>
+#include <iostream>
 
 namespace hol {
 
 #define bug(m) do{std::cout << m << std::endl;}while(0)
 #define bug_var(v) do{bug(#v ": " << v);}while(0)
-struct _{ std::string m;_(const std::string& m):m(m){bug("--> " << m);}
-	~_(){bug("<-- " << m);}
+struct scope_bomb{ std::string m;scope_bomb(const std::string& m):m(m){bug("--> " << m);}
+	~scope_bomb(){bug("<-- " << m);}
 };
-#define bug_fun() hol::_ __(__PRETTY_FUNCTION__)
+#define bug_fun() hol::scope_bomb scope_bomb_inst(__PRETTY_FUNCTION__)
 
 } // hol
 
