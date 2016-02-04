@@ -1,16 +1,13 @@
 
-RM = rm -f
-CPPFLAGS = -Iinclude
-CXXFLAGS = -std=c++14 -g3 -O0
-#HEADERS = $(wildcard include/*.h)
-SOURCES = $(wildcard src/*.cpp)
-OBJECTS = $(patsubst %.cpp,%.o,$(SOURCES))
-PROGS = $(patsubst %.cpp,%,$(SOURCES))
-DEPS = $(patsubst %.cpp,%.d,$(SOURCES))
+RM := rm -f
+CPPFLAGS := -Iinclude
+CXXFLAGS := -std=c++14 -g3 -O0
 
-COMPILE = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+SRCS := $(wildcard src/*.cpp)
+DEPS := $(patsubst %.cpp,%.d,$(SRCS))
+PRGS := $(patsubst %.cpp,%,$(SRCS))
 
-all: $(PROGS) $(DEPS)
+all: $(PRGS) $(DEPS)
 
 -include $(DEPS)
 
@@ -21,4 +18,5 @@ all: $(PROGS) $(DEPS)
 	@echo -e "\t@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<" | sed -re 's/\.d//g' >> $@
 
 clean:
-	rm -f $(PROGS) $(OBJECTS) $(DEPS)
+	@echo "Cleaning build files."
+	@$(RM) $(DEPS) $(PRGS)
