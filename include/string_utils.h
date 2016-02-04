@@ -22,9 +22,9 @@
 // SOFTWARE.
 //
 
+#include <regex>
 #include <algorithm>
 #include <experimental/string_view>
-#include "string_view_stream.h"
 
 namespace hol {
 

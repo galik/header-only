@@ -5,3 +5,4 @@ test-string-view-stream
 test-u8char
 test-split-utils
 test-string-utils
+*.d
