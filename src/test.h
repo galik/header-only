@@ -27,28 +27,30 @@
 #include <vector>
 #include <iomanip>
 #include <iostream>
-#include "bug.h"
 
 #include <experimental/filesystem>
 #include <experimental/string_view>
 
-#define con(msg) do{std::cout << std::boolalpha << msg << '\n';}while(0)
-#define err(msg) do{std::cerr << msg << std::endl;}while(0)
-
-namespace xxx = std::experimental;
-namespace fs = xxx::filesystem;
+#include "../hol/bug.h"
+#define OUT_B(msg) do{std::cout << std::boolalpha << msg;}while(0)
+#define OUT(msg) do{std::cout << std::boolalpha << msg << '\n';}while(0)
+#define OUT_E(msg) OUT(msg)
+#define ERR(msg) do{std::cerr << msg << std::endl;}while(0)
 
 namespace hol {
+
+namespace ex = std::experimental;
+namespace fs = ex::filesystem;
 
 using str = std::string;
 using str_map = std::map<str, str>;
 using str_vec = std::vector<str>;
 
-using svw = xxx::string_view;
+using svw = ex::string_view;
 using svw_map = std::map<svw, svw>;
 using svw_vec = std::vector<svw>;
 
-}
+} // hol
 
 #endif // HOL_TEST_H
 

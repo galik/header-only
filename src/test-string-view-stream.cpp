@@ -24,7 +24,7 @@
 #include <iostream>
 
 #include "test.h"
-#include "string_view_stream.h"
+#include "hol/string_view_stream.h"
 
 using namespace hol;
 using namespace std::literals::string_literals;
@@ -105,18 +105,13 @@ int main()
 
 //	std::string s;
 //	while(svs >> s)
-//		con(s);
+//		OUT(s);
 
 //	bug_var(svs.tellg());
 
 	ex::string_view sv;
-//	while(readto(svs, sv, '"'))
-		con(sv);
+	while(read_to(svs, sv))
+		OUT(sv);
 
 }
-
-
-
-
-
 

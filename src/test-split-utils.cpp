@@ -20,197 +20,20 @@
 // SOFTWARE.
 //
 
+#include <regex>
+#include <cctype>
 #include <iomanip>
+#include <fstream>
+#include <sstream>
 #include <iostream>
 #include <cstring>
-#include <cctype>
 #include <algorithm>
-#include <regex>
 
 #include "test.h"
-//#include "string_utils.h"
+#include "hol/string_utils.h"
 
 using namespace hol;
 using namespace std::literals::string_literals;
-
-namespace hol {
-
-using std::string;
-using std::vector;
-using std::experimental::string_view;
-
-template<typename IterType, typename ComparatorType, typename ContainerType>
-void split(IterType pos, IterType done, ComparatorType cmp, ContainerType& v, bool fold = true)
-{
-	auto end = pos;
-
-	if(fold)
-	{
-		while((pos = std::find_if_not(end, done, cmp)) != done)
-		{
-			end = std::find_if(pos, done, cmp);
-			if(end > pos)
-				v.emplace_back(pos, end - pos);
-		}
-	}
-	else
-	{
-		while((end = std::find_if(pos, done, cmp)) != done)
-		{
-			if(end > pos)
-				v.emplace_back(pos, end - pos);
-			pos = end + 1;
-		}
-
-		if(pos != done)
-			v.emplace_back(pos, end - pos);
-	}
-}
-
-template<typename ComparatorType, typename ContainerType>
-void split(string_view s, ComparatorType cmp, ContainerType& v, bool fold = true)
-{
-	split(s.data(), s.data() + s.size(), cmp, v, fold);
-}
-
-template<typename ComparatorType>
-vector<string> split_copy(string_view s, ComparatorType cmp, bool fold = true)
-{
-	vector<string> v;
-	split(s, cmp, v, fold);
-	return v;
-}
-
-template<typename ComparatorType>
-vector<string_view> split_view(string_view s, ComparatorType cmp, bool fold = true)
-{
-	vector<string_view> v;
-	split(s, cmp, v, fold);
-	return v;
-}
-
-inline
-vector<string> split_copy_at_space(string_view s, bool fold = true)
-{
-	return split_copy(s, std::ptr_fun<int, int>(std::isspace), fold);
-}
-
-inline
-vector<string_view> split_view_at_space(string_view s, bool fold = true)
-{
-	return split_view(s, std::ptr_fun<int, int>(std::isspace), fold);
-}
-
-inline
-vector<string> split_copy_at_delim(string_view s, char delim, bool fold = true)
-{
-	return split_copy(s, [delim](char c){return c == delim;}, fold);
-}
-
-inline
-vector<string_view> split_view_at_delim(string_view s, char delim, bool fold = true)
-{
-	return split_view(s, [delim](char c){return c == delim;}, fold);
-}
-
-inline
-vector<string> split_copy_at_delims(string_view s, string_view delims, bool fold = true)
-{
-	return split_copy(s, [delims](char c){return delims.find(c) != string_view::npos;}, fold);
-}
-
-inline
-vector<string_view> split_view_at_delims(string_view s, string_view delims, bool fold = true)
-{
-	return split_view(s, [delims](char c){return delims.find(c) != string_view::npos;}, fold);
-}
-
-template<typename ContainerType>
-void split_at_delim(string_view s, string_view delim, ContainerType& v)
-{
-	auto done = s.data() + s.size();
-	auto end = s.data();
-	auto pos = end;
-
-	while((end = std::search(pos, done, delim.begin(), delim.end())) != done)
-	{
-		if(end > pos)
-			v.emplace_back(pos, end - pos);
-		pos = end + delim.size();
-	}
-
-	if(pos != done)
-		if(end > pos)
-			v.emplace_back(pos, end - pos);
-}
-
-inline
-vector<string> split_copy_at_delim(string_view s, string_view delim)
-{
-	vector<string> v;
-	split_at_delim(s, delim, v);
-	return v;
-}
-
-inline
-vector<string_view> split_view_at_delim(string_view s, string_view delim)
-{
-	vector<string_view> v;
-	split_at_delim(s, delim, v);
-	return v;
-}
-
-template<typename ContainerType>
-void split_at_regex(std::regex e, string_view s, ContainerType& v)
-{
-	auto pos = s.data();
-	auto end = pos + s.size();
-	std::cmatch m;
-
-	while(std::regex_search(pos, end, m, e))
-	{
-		if(!m.empty())
-			v.emplace_back(pos, m.position());
-		pos = pos + m.position() + m.length();
-	}
-
-	if(end > pos)
-		v.emplace_back(pos, end - pos);
-}
-
-inline
-vector<string> split_copy_at_regex(std::regex e, string_view s, std::size_t reserve_guess = 20)
-{
-	vector<string> v;
-	split_at_regex(e, s, v);
-	return v;
-}
-
-inline
-vector<string_view> split_view_at_regex(std::regex e, string_view s, std::size_t reserve_guess = 20)
-{
-	vector<string_view> v;
-	split_at_regex(e, s, v);
-	return v;
-}
-
-inline
-vector<string> split_copy_at_regex(string const& e, string_view s, std::size_t reserve_guess = 20)
-{
-	vector<string> v;
-	split_at_regex(std::regex(e), s, v);
-	return v;
-}
-
-inline
-vector<string_view> split_view_at_regex(string const& e, string_view s, std::size_t reserve_guess = 20)
-{
-	vector<string_view> v;
-	split_at_regex(std::regex(e), s, v);
-	return v;
-}
-
-} // hol
 
 hol::string get_string(const hol::string& s) { return s; }
 
@@ -238,64 +61,113 @@ bool operator==(svw_vec const& lhs, str_vec const& rhs)
 int main()
 {
 //	for(auto const& s: split_copy_at_regex(std::regex(" "), "a b c d"))
-//		con("copy: " << s);
+//		OUT("copy: " << s);
 //
 //	for(auto const& s: split_view_at_regex(std::regex(" "), "a b c d"))
-//		con("view: " << s);
+//		OUT("view: " << s);
 //
 //	return 0;
-//
+
 	try
 	{
-		str s;
+//		str s;
+//
+//		const std::multimap<char, split_test_item> char_split_folds =
+//		{
+//			  {' ', {"", {}}}
+//			, {' ', {"x", {"x"}}}
+//			, {' ', {" x", {"x"}}}
+//			, {' ', {"x ", {"x"}}}
+//			, {' ', {" x ", {"x"}}}
+//			, {' ', {"x  ", {"x"}}}
+//			, {' ', {"  x", {"x"}}}
+//			, {' ', {"  x  ", {"x"}}}
+//			, {' ', {"a b", {"a", "b"}}}
+//			, {' ', {" a b", {"a", "b"}}}
+//			, {' ', {"a b ", {"a", "b"}}}
+//			, {' ', {"  a b", {"a", "b"}}}
+//			, {' ', {"a b  ", {"a", "b"}}}
+//			, {' ', {"a  b", {"a", "b"}}}
+//			, {' ', {"aaa bbb", {"aaa", "bbb"}}}
+//			, {' ', {" aaa bbb", {"aaa", "bbb"}}}
+//			, {' ', {"aaa bbb ", {"aaa", "bbb"}}}
+//			, {' ', {"  aaa bbb", {"aaa", "bbb"}}}
+//			, {' ', {"aaa bbb  ", {"aaa", "bbb"}}}
+//			, {' ', {"aaa  bbb", {"aaa", "bbb"}}}
+//		};
 
-		const std::multimap<char, split_test_item> char_split_folds =
-		{
-			  {' ', {"", {}}}
-			, {' ', {"x", {"x"}}}
-			, {' ', {" x", {"x"}}}
-			, {' ', {"x ", {"x"}}}
-			, {' ', {" x ", {"x"}}}
-			, {' ', {"x  ", {"x"}}}
-			, {' ', {"  x", {"x"}}}
-			, {' ', {"  x  ", {"x"}}}
-			, {' ', {"a b", {"a", "b"}}}
-			, {' ', {" a b", {"a", "b"}}}
-			, {' ', {"a b ", {"a", "b"}}}
-			, {' ', {"  a b", {"a", "b"}}}
-			, {' ', {"a b  ", {"a", "b"}}}
-			, {' ', {"a  b", {"a", "b"}}}
-			, {' ', {"aaa bbb", {"aaa", "bbb"}}}
-			, {' ', {" aaa bbb", {"aaa", "bbb"}}}
-			, {' ', {"aaa bbb ", {"aaa", "bbb"}}}
-			, {' ', {"  aaa bbb", {"aaa", "bbb"}}}
-			, {' ', {"aaa bbb  ", {"aaa", "bbb"}}}
-			, {' ', {"aaa  bbb", {"aaa", "bbb"}}}
-		};
+		std::ifstream ifs;
 
-		for(auto const& s: char_split_folds)
+		ifs.open("data/test-split-utils-01.txt");
+
+		str line;
+		auto line_number = 0U;
+
+		while(std::getline(ifs, line))
 		{
-			con("==== split_copy_at_delim: '" << s.second.s << "', '" << s.first << "'");
-			con((s.second.v == split_copy_at_delim(s.second.s, s.first, true)));
-//				for(auto const& p: split_copy_at_delim(s.second.s, s.first, fold))
-//					con("'" << p << "'");
-			con("");
-			con("==== split_view_at_delim: '" << s.second.s << "', '" << s.first << "'");
-			con((s.second.v == split_view_at_delim(s.second.s, s.first, true)));
-//				for(auto const& p: split_view_at_delim(s.second.s, s.first, fold))
-//					con("'" << p << "'");
-			con("");
+			++line_number;
+
+			if(trim_mute(line).empty())
+				continue;
+
+			if(line.find("delim:"))
+				continue;
+
+			// delim:
+			// delim: ' ' "aaa bbb" {"aaa" "bbb"}
+			char delim;
+			str s;
+			str_vec correct;
+
+			std::istringstream iss(line);
+			std::getline(iss, line, '\'');
+			iss.get(delim);
+			std::getline(iss, line, '"');
+			std::getline(iss, s, '"');
+			std::getline(iss, line, '{');
+			std::getline(iss, line, '}');
+
+			if(!iss)
+				throw_runtime_error("line: " << line_number << " error parsing delim:");
+
+			iss.clear();
+			iss.str(line);
+			while(std::getline(iss, line, '"') && std::getline(iss, line, '"'))
+				correct.push_back(line);
+
+			OUT("== folding ==");
+
+			split_copier split_copy;
+			OUT_B("split_copy.at_delim: '" << s << "', '" << delim << "' | ");
+			OUT_E((correct == split_copy.at_delim(s, delim)));
+
+			split_viewer split_view;
+			OUT_B("split_view.at_delim: '" << s << "', '" << delim << "' | ");
+			OUT_E((correct == split_view.at_delim(s, delim)));
+
+			OUT("== not folding ==");
+
+			split_copy.dont_fold_matches();
+			split_view.dont_fold_matches();
+
+			OUT_B("split_copy.at_delim: '" << s << "', '" << delim << "' | ");
+			OUT_E((correct == split_copy.at_delim(s, delim)));
+
+			OUT_B("split_view.at_delim: '" << s << "', '" << delim << "' | ");
+			OUT_E((correct == split_view.at_delim(s, delim)));
 		}
+
 	}
 	catch(const std::exception& e)
 	{
-		err(e.what());
+		ERR(e.what());
 	}
 	catch(...)
 	{
-		err("Unknown exception thrown");
+		ERR("Unknown exception thrown");
 	}
 }
+
 
 
 

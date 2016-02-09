@@ -26,7 +26,7 @@
 #include <cctype>
 
 #include "test.h"
-#include "string_utils.h"
+#include "hol/string_utils.h"
 
 using namespace hol;
 using namespace std::literals::string_literals;
@@ -58,19 +58,19 @@ int main()
 			s = test.first;
 
 			if(trim_mute(s) != test.second)
-				err("fail: trim_mute(): '" << s << "'");
+				ERR("fail: trim_mute(): '" << s << "'");
 			if(trim_copy(test.first) != test.second)
-				err("fail: trim_copy(): '" << trim_copy(test.first) << "'");
+				ERR("fail: trim_copy(): '" << trim_copy(test.first) << "'");
 			if(trim_view(test.first) != test.second)
-				err("fail: trim_view(): '" << trim_view(test.first) << "'");
+				ERR("fail: trim_view(): '" << trim_view(test.first) << "'");
 
 			if(trim_copy(get_string(test.first)) != test.second)
-				err("fail: trim_copy(): '" << trim_copy(test.first) << "'");
+				ERR("fail: trim_copy(): '" << trim_copy(test.first) << "'");
 			if(trim_view(get_string(test.first)) != test.second)
-				err("fail: trim_view(): '" << trim_view(test.first) << "'");
+				ERR("fail: trim_view(): '" << trim_view(test.first) << "'");
 		}
 
-		con("split");
+		OUT("split");
 
 		const str_vec splits =
 		{
@@ -91,28 +91,23 @@ int main()
 
 		for(auto const& s: splits)
 		{
-//			con("==== split: '" << s << "' (string_view)");
+//			OUT("==== split: '" << s << "' (string_view)");
 //			for(auto const& sv: split_at_delim(string_view(s), string_view(" ")))
-//				con("'" << sv << "'");
-//			con("");
-//			con("==== split: '" << s << "' (string)");
+//				OUT("'" << sv << "'");
+//			OUT("");
+//			OUT("==== split: '" << s << "' (string)");
 //			for(auto const& sv: split_at_delim(s, string_view(" ")))
-//				con("'" << sv << "'");
-//			con("");
+//				OUT("'" << sv << "'");
+//			OUT("");
 		}
 	}
 	catch(const std::exception& e)
 	{
-		err(e.what());
+		ERR(e.what());
 	}
 	catch(...)
 	{
-		err("Unknown exception thrown");
+		ERR("Unknown exception thrown");
 	}
 }
-
-
-
-
-
 

@@ -1,21 +1,20 @@
+-include Makefile.local
 
 RM := rm -f
-CPPFLAGS := -Iinclude
-CXXFLAGS := -std=c++14 -g3 -O0
+CPPFLAGS := -MMD -MP -I. $(CPPFLAGS)
+CXXFLAGS := -std=c++14 $(CXXFLAGS)
 
 SRCS := $(wildcard src/*.cpp)
 DEPS := $(patsubst %.cpp,%.d,$(SRCS))
 PRGS := $(patsubst %.cpp,%,$(SRCS))
 
-all: $(PRGS) $(DEPS)
+all: $(PRGS)
 
 -include $(DEPS)
 
-%.d: %.cpp
-	@echo "D: $@"
-	@$(CXX) -MM $(CXXFLAGS) $(CPPFLAGS) $< | sed -re 's/([-a-zA-Z0-9]+)\.o/src\/\1/g' > $@
-	@echo -e "\t@echo C: $@" | sed -re 's/\.d//g' >> $@
-	@echo -e "\t@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<" | sed -re 's/\.d//g' >> $@
+%: %.cpp
+	@echo "C: $@"
+	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 clean:
 	@echo "Cleaning build files."

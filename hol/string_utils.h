@@ -238,180 +238,129 @@ std::string upper_copy(std::string s)
 
 // split
 
-template<typename IterType, typename ComparatorType, typename ContainerType>
-void split(IterType pos, IterType done, ComparatorType cmp, ContainerType& v, bool fold = true)
+template<typename String = string_view>
+class splitter
 {
-	auto end = pos;
+public:
+	using string_type = String;
+	using vector_type = vector<string_type>;
 
-	if(fold)
+private:
+	bool fold = true;
+	std::size_t reserve = 20;
+
+	template<typename Iterator, typename Comparator>
+	vector_type at(Iterator pos, Iterator done, Comparator cmp)
 	{
-		while((pos = std::find_if_not(end, done, cmp)) != done)
+		vector_type v;
+		v.reserve(reserve);
+
+		auto end = pos;
+
+		if(fold)
 		{
-			end = std::find_if(pos, done, cmp);
-			if(end > pos)
+			while((pos = std::find_if_not(end, done, cmp)) != done)
+			{
+				end = std::find_if(pos, done, cmp);
+				if(end > pos)
+					v.emplace_back(pos, end - pos);
+			}
+		}
+		else
+		{
+			while((end = std::find_if(pos, done, cmp)) != done)
+			{
+				if(end > pos)
+					v.emplace_back(pos, end - pos);
+				pos = end + 1;
+			}
+
+			if(pos != done)
 				v.emplace_back(pos, end - pos);
 		}
+
+		return v;
 	}
-	else
+
+	template<typename Comparator>
+	vector_type at(string_view s, Comparator cmp)
 	{
-		while((end = std::find_if(pos, done, cmp)) != done)
+		return at(s.data(), s.data() + s.size(), cmp);
+	}
+
+public:
+	void fold_matches() { fold = true; }
+	void dont_fold_matches() { fold = false; }
+	void reserve_at_least(std::size_t reserve) { this->reserve = reserve; }
+
+	vector_type at_space(string_view s)
+	{
+		return at(s, std::ptr_fun<int, int>(std::isspace));
+	}
+
+	vector_type at_delim(string_view s, char delim)
+	{
+		return at(s, [delim](char c){return c == delim;});
+	}
+
+	vector_type at_delims(string_view s, string_view delims)
+	{
+		return at(s, [delims](char c){return delims.find(c) != string_view::npos;});
+	}
+
+	vector_type at_delim(string_view s, string_view delim)
+	{
+		vector_type v;
+		v.reserve(reserve);
+
+		auto done = s.data() + s.size();
+		auto end = s.data();
+		auto pos = end;
+
+		while((end = std::search(pos, done, delim.begin(), delim.end())) != done)
 		{
 			if(end > pos)
 				v.emplace_back(pos, end - pos);
-			pos = end + 1;
+			pos = end + delim.size();
 		}
 
 		if(pos != done)
-			v.emplace_back(pos, end - pos);
+			if(end > pos)
+				v.emplace_back(pos, end - pos);
+
+		return v;
 	}
-}
 
-template<typename ComparatorType, typename ContainerType>
-void split(string_view s, ComparatorType cmp, ContainerType& v, bool fold = true)
-{
-	split(s.data(), s.data() + s.size(), cmp, v, fold);
-}
-
-template<typename ComparatorType>
-vector<string> split_copy(string_view s, ComparatorType cmp, bool fold = true)
-{
-	vector<string> v;
-	split(s, cmp, v, fold);
-	return v;
-}
-
-template<typename ComparatorType>
-vector<string_view> split_view(string_view s, ComparatorType cmp, bool fold = true)
-{
-	vector<string_view> v;
-	split(s, cmp, v, fold);
-	return v;
-}
-
-inline
-vector<string> split_copy_at_space(string_view s, bool fold = true)
-{
-	return split_copy(s, std::ptr_fun<int, int>(std::isspace), fold);
-}
-
-inline
-vector<string_view> split_view_at_space(string_view s, bool fold = true)
-{
-	return split_view(s, std::ptr_fun<int, int>(std::isspace), fold);
-}
-
-inline
-vector<string> split_copy_at_delim(string_view s, char delim, bool fold = true)
-{
-	return split_copy(s, [delim](char c){return c == delim;}, fold);
-}
-
-inline
-vector<string_view> split_view_at_delim(string_view s, char delim, bool fold = true)
-{
-	return split_view(s, [delim](char c){return c == delim;}, fold);
-}
-
-inline
-vector<string> split_copy_at_delims(string_view s, string_view delims, bool fold = true)
-{
-	return split_copy(s, [delims](char c){return delims.find(c) != string_view::npos;}, fold);
-}
-
-inline
-vector<string_view> split_view_at_delims(string_view s, string_view delims, bool fold = true)
-{
-	return split_view(s, [delims](char c){return delims.find(c) != string_view::npos;}, fold);
-}
-
-template<typename ContainerType>
-void split_at_delim(string_view s, string_view delim, ContainerType& v)
-{
-	auto done = s.data() + s.size();
-	auto end = s.data();
-	auto pos = end;
-
-	while((end = std::search(pos, done, delim.begin(), delim.end())) != done)
+	vector_type at_regex(string_view s, std::regex e)
 	{
+		vector_type v;
+		v.reserve(reserve);
+
+		auto pos = s.data();
+		auto end = pos + s.size();
+		std::cmatch m;
+
+		while(std::regex_search(pos, end, m, e))
+		{
+			if(!m.empty())
+				v.emplace_back(pos, m.position());
+			pos = pos + m.position() + m.length();
+		}
+
 		if(end > pos)
 			v.emplace_back(pos, end - pos);
-		pos = end + delim.size();
+
+		return v;
 	}
 
-	if(pos != done)
-		if(end > pos)
-			v.emplace_back(pos, end - pos);
-}
-
-inline
-vector<string> split_copy_at_delim(string_view s, string_view delim)
-{
-	vector<string> v;
-	split_at_delim(s, delim, v);
-	return v;
-}
-
-inline
-vector<string_view> split_view_at_delim(string_view s, string_view delim)
-{
-	vector<string_view> v;
-	split_at_delim(s, delim, v);
-	return v;
-}
-
-template<typename ContainerType>
-void split_at_regex(std::regex e, string_view s, ContainerType& v)
-{
-	auto pos = s.data();
-	auto end = pos + s.size();
-	std::cmatch m;
-
-	while(std::regex_search(pos, end, m, e))
+	vector_type at_regex(string_view s, string const& e)
 	{
-		if(!m.empty())
-			v.emplace_back(pos, m.position());
-		pos = pos + m.position() + m.length();
+		return at_regex(s, std::regex(e));
 	}
+};
 
-	if(end > pos)
-		v.emplace_back(pos, end - pos);
-}
-
-inline
-vector<string> split_copy_at_regex(std::regex e, string_view s, std::size_t reserve_guess = 20)
-{
-	vector<string> v;
-	v.reserve(reserve_guess);
-	split_at_regex(e, s, v);
-	return v;
-}
-
-inline
-vector<string_view> split_view_at_regex(std::regex e, string_view s, std::size_t reserve_guess = 20)
-{
-	vector<string_view> v;
-	v.reserve(reserve_guess);
-	split_at_regex(e, s, v);
-	return v;
-}
-
-inline
-vector<string> split_copy_at_regex(string const& e, string_view s, std::size_t reserve_guess = 20)
-{
-	vector<string> v;
-	v.reserve(reserve_guess);
-	split_at_regex(std::regex(e), s, v);
-	return v;
-}
-
-inline
-vector<string_view> split_view_at_regex(string const& e, string_view s, std::size_t reserve_guess = 20)
-{
-	vector<string_view> v;
-	v.reserve(reserve_guess);
-	split_at_regex(std::regex(e), s, v);
-	return v;
-}
+using split_copier = splitter<string>;
+using split_viewer = splitter<string_view>;
 
 } // hol
 

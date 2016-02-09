@@ -1,0 +1,7 @@
+#
+# Copy this file as Makefile.local to provide
+# specific build flags 
+#
+
+CPPFLAGS :=
+CXXFLAGS := -g3 -O0

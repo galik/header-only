@@ -1,0 +1,20 @@
+delim: ' ' "" {}
+delim: ' ' "x" {"x"}
+delim: ' ' " x" {"x"}
+delim: ' ' "x " {"x"}
+delim: ' ' " x " {"x"}
+delim: ' ' "x  " {"x"}
+delim: ' ' "  x" {"x"}
+delim: ' ' "  x  " {"x"}
+delim: ' ' "a b" {"a" "b"}
+delim: ' ' " a b" {"a" "b"}
+delim: ' ' "a b " {"a" "b"}
+delim: ' ' "  a b" {"a" "b"}
+delim: ' ' "a b  " {"a" "b"}
+delim: ' ' "a  b" {"a" "b"}
+delim: ' ' "aaa bbb" {"aaa" "bbb"}
+delim: ' ' " aaa bbb" {"aaa" "bbb"}
+delim: ' ' "aaa bbb " {"aaa" "bbb"}
+delim: ' ' "  aaa bbb" {"aaa" "bbb"}
+delim: ' ' "aaa bbb  " {"aaa" "bbb"}
+delim: ' ' "aaa  bbb" {"aaa" "bbb"}
