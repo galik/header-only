@@ -51,7 +51,11 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <functional>
+
 namespace hol {
+
+static std::function<std::string(std::string)> edit_bug_fun = [](std::string s){return s;};
 
 #ifdef NDEBUG
 #define bug(m) do{}while(0)
@@ -91,7 +95,7 @@ struct scope_bomb
 		bug("<-- " << m);
 	}
 };
-#define bug_fun() hol::scope_bomb scope_bomb_inst(__PRETTY_FUNCTION__)
+#define bug_fun() hol::scope_bomb scope_bomb_inst(hol::edit_bug_fun(__PRETTY_FUNCTION__))
 #endif
 
 } // hol

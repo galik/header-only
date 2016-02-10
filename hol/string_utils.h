@@ -25,6 +25,7 @@
 #include <regex>
 #include <algorithm>
 #include <experimental/string_view>
+#include "../gsl/string_span.h"
 
 namespace hol {
 
@@ -32,179 +33,280 @@ using std::string;
 using std::vector;
 using std::experimental::string_view;
 
-constexpr const char* const ws = " \t\n\r\f\v";
-
-// mute
-
-/**
- * Remove leading characters from a std::string.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the beginning
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& ltrim_mute(std::string& s, const char* t = ws)
-{
-	s.erase(0, s.find_first_not_of(t));
-	return s;
-}
-
-/**
- * Remove trailing characters from a std::string.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the end
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& rtrim_mute(std::string& s, const char* t = ws)
-{
-	s.erase(s.find_last_not_of(t) + 1);
-	return s;
-}
-
-/**
- * Remove surrounding characters from a std::string.
- * @param s The string to be modified.
- * @param t The set of characters to delete from each end
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& trim_mute(std::string& s, const char* t = ws)
-{
-	return ltrim_mute(rtrim_mute(s, t), t);
-}
-
-// view
-
-inline string_view ltrim_view(string_view s, const char* t = ws)
-{
-	auto pos = s.find_first_not_of(t);
-	if(pos == string_view::npos)
-		pos = s.size();
-	s.remove_prefix(pos);
-	return s;
-}
-
-inline string_view rtrim_view(string_view s, const char* t = ws)
-{
-	auto pos = s.find_last_not_of(t) + 1;
-	if(!pos)
-		pos = s.size();
-	s.remove_suffix(s.size() - pos);
-	return s;
-}
-
-inline string_view trim_view(string_view s, const char* t = ws)
-{
-	return ltrim_view(rtrim_view(s, t), t);
-}
-
-// copy
-
-inline std::string ltrim_copy(std::string s, const char* t = ws)
-{
-	return ltrim_mute(s, t);
-}
-
-inline std::string rtrim_copy(std::string s, const char* t = ws)
-{
-	return rtrim_mute(s, t);
-}
-
-inline std::string trim_copy(std::string s, const char* t = ws)
-{
-	return trim_mute(s, t);
-}
-
-/**
- * Remove all leading characters of a given value
- * from a std::string.
- * @param s The string to be modified.
- * @param c The character value to delete.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& ltrim_mute(std::string& s, char c)
-{
-	s.erase(0, s.find_first_not_of(c));
-	return s;
-}
-
-/**
- * Remove all trailing characters of a given value
- * from a std::string.
- * @param s The string to be modified.
- * @param c The character value to delete.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& rtrim_mute(std::string& s, char c)
-{
-	s.erase(s.find_last_not_of(c) + 1);
-	return s;
-}
-
-/**
- * Remove all surrounding characters of a given value
- * from a std::string.
- * @param s The string to be modified.
- * @param c The character value to delete.
- * @return The same string passed in as a parameter reference.
- */
-inline std::string& trim_mute(std::string& s, char c)
-{
-	return ltrim_mute(rtrim_mute(s, c), c);
-}
-
-inline std::string rtrim_copy(std::string s, char c)
-{
-	return rtrim_mute(s, c);
-}
-
-inline std::string ltrim_copy(std::string s, char c)
-{
-	return ltrim_mute(s, c);
-}
-
-inline std::string trim_copy(std::string s, char c)
-{
-	return trim_mute(s, c);
-}
-
-inline std::string ltrim_mute_keep(std::string& s, const char* t = ws)
-{
-	std::string::size_type pos;
-	std::string keep = s.substr(0, (pos = s.find_first_not_of(t)));
-	s.erase(0, pos);
-	return keep;
-}
-
-inline std::string rtrim_mute_keep(std::string& s, const char* t = ws)
-{
-	std::string::size_type pos;
-	std::string keep = s.substr((pos = s.find_last_not_of(t) + 1));
-	s.erase(pos);
-	return keep;
-}
-
-// Template version
-
-template<typename StringType>
-inline StringType& ltrim_mute(StringType& s, const StringType& t = {})
-{
+//constexpr const char* const ws = " \t\n\r\f\v";
+//
+//// mute
+//
+///**
+// * Remove leading characters from a std::string.
+// * @param s The std::string to be modified.
+// * @param t The set of characters to delete from the beginning
+// * of the string.
+// * @return The same string passed in as a parameter reference.
+// */
+//inline std::string& ltrim_mute(std::string& s, const char* t = ws)
+//{
 //	s.erase(0, s.find_first_not_of(t));
-	return s;
-}
-
+//	return s;
+//}
+//
+///**
+// * Remove trailing characters from a std::string.
+// * @param s The std::string to be modified.
+// * @param t The set of characters to delete from the end
+// * of the string.
+// * @return The same string passed in as a parameter reference.
+// */
 //inline std::string& rtrim_mute(std::string& s, const char* t = ws)
 //{
 //	s.erase(s.find_last_not_of(t) + 1);
 //	return s;
 //}
 //
+///**
+// * Remove surrounding characters from a std::string.
+// * @param s The string to be modified.
+// * @param t The set of characters to delete from each end
+// * of the string.
+// * @return The same string passed in as a parameter reference.
+// */
 //inline std::string& trim_mute(std::string& s, const char* t = ws)
 //{
 //	return ltrim_mute(rtrim_mute(s, t), t);
 //}
+//
+//// view
+//
+//inline string_view ltrim_view(string_view s, const char* t = ws)
+//{
+//	auto pos = s.find_first_not_of(t);
+//	if(pos == string_view::npos)
+//		pos = s.size();
+//	s.remove_prefix(pos);
+//	return s;
+//}
+//
+//inline string_view rtrim_view(string_view s, const char* t = ws)
+//{
+//	auto pos = s.find_last_not_of(t) + 1;
+//	if(!pos)
+//		pos = s.size();
+//	s.remove_suffix(s.size() - pos);
+//	return s;
+//}
+//
+//inline string_view trim_view(string_view s, const char* t = ws)
+//{
+//	return ltrim_view(rtrim_view(s, t), t);
+//}
+//
+//// copy
+//
+//inline std::string ltrim_copy(std::string s, const char* t = ws)
+//{
+//	return ltrim_mute(s, t);
+//}
+//
+//inline std::string rtrim_copy(std::string s, const char* t = ws)
+//{
+//	return rtrim_mute(s, t);
+//}
+//
+//inline std::string trim_copy(std::string s, const char* t = ws)
+//{
+//	return trim_mute(s, t);
+//}
+//
+///**
+// * Remove all leading characters of a given value
+// * from a std::string.
+// * @param s The string to be modified.
+// * @param c The character value to delete.
+// * @return The same string passed in as a parameter reference.
+// */
+//inline std::string& ltrim_mute(std::string& s, char c)
+//{
+//	s.erase(0, s.find_first_not_of(c));
+//	return s;
+//}
+//
+///**
+// * Remove all trailing characters of a given value
+// * from a std::string.
+// * @param s The string to be modified.
+// * @param c The character value to delete.
+// * @return The same string passed in as a parameter reference.
+// */
+//inline std::string& rtrim_mute(std::string& s, char c)
+//{
+//	s.erase(s.find_last_not_of(c) + 1);
+//	return s;
+//}
+//
+///**
+// * Remove all surrounding characters of a given value
+// * from a std::string.
+// * @param s The string to be modified.
+// * @param c The character value to delete.
+// * @return The same string passed in as a parameter reference.
+// */
+//inline std::string& trim_mute(std::string& s, char c)
+//{
+//	return ltrim_mute(rtrim_mute(s, c), c);
+//}
+//
+//inline std::string rtrim_copy(std::string s, char c)
+//{
+//	return rtrim_mute(s, c);
+//}
+//
+//inline std::string ltrim_copy(std::string s, char c)
+//{
+//	return ltrim_mute(s, c);
+//}
+//
+//inline std::string trim_copy(std::string s, char c)
+//{
+//	return trim_mute(s, c);
+//}
+//
+//inline std::string ltrim_mute_keep(std::string& s, const char* t = ws)
+//{
+//	std::string::size_type pos;
+//	std::string keep = s.substr(0, (pos = s.find_first_not_of(t)));
+//	s.erase(0, pos);
+//	return keep;
+//}
+//
+//inline std::string rtrim_mute_keep(std::string& s, const char* t = ws)
+//{
+//	std::string::size_type pos;
+//	std::string keep = s.substr((pos = s.find_last_not_of(t) + 1));
+//	s.erase(pos);
+//	return keep;
+//}
+//
+//// Template version
+//
+//template<typename StringType>
+//inline StringType& ltrim_mute(StringType& s, const StringType& t = {})
+//{
+////	s.erase(0, s.find_first_not_of(t));
+//	return s;
+//}
+//
+////inline std::string& rtrim_mute(std::string& s, const char* t = ws)
+////{
+////	s.erase(s.find_last_not_of(t) + 1);
+////	return s;
+////}
+////
+////inline std::string& trim_mute(std::string& s, const char* t = ws)
+////{
+////	return ltrim_mute(rtrim_mute(s, t), t);
+////}
 
+struct mute
+{
+	using string_type = std::string&;
+	using return_type = string_type;
+};
+struct copy
+{
+	using string_type = ex::string_view;
+	using return_type = std::string;
+	using vector_type = std::vector<return_type>;
+};
+struct view
+{
+	using string_type = ex::string_view;
+	using return_type = string_type;
+	using vector_type = std::vector<string_type>;
+};
+struct span
+{
+	using string_type = gsl::string_span<>;
+	using return_type = string_type;
+	using vector_type = std::vector<string_type>;
+};
+
+template<typename Mode>
+class trimmer
+{
+	static_assert
+	(
+		   std::is_same<Mode, mute>::value
+		|| std::is_same<Mode, copy>::value
+		|| std::is_same<Mode, view>::value
+		|| std::is_same<Mode, span>::value
+		, "Mode template parameter must be mute, copy, view or span"
+	);
+
+public:
+	using mode = Mode;
+	using string_type = typename mode::string_type;
+	using return_type = typename mode::return_type;
+
+private:
+	static constexpr const char* const ws = " \t\n\r\f\v";
+	string shed_l = ws;
+	string shed_r = ws;
+
+	return_type left(string_type s, mute) const
+	{
+		s.erase(0, s.find_first_not_of(shed_l.c_str()));
+		return s;
+	}
+
+	return_type left(string_type s, view) const
+	{
+		auto pos = s.find_first_not_of(shed_l.c_str());
+		if(pos == string_view::npos)
+			pos = s.size();
+		s.remove_prefix(pos);
+		return {s.data(), s.size()};
+	}
+
+	return_type left(string_type s, copy) const
+	{
+		return left(s, view());
+	}
+
+	return_type right(string_type s, mute) const
+	{
+		s.erase(s.find_last_not_of(shed_r.c_str()) + 1);
+		return s;
+	}
+
+	return_type right(string_type s, view) const
+	{
+		auto pos = s.find_last_not_of(shed_r.c_str()) + 1;
+		if(!pos)
+			pos = s.size();
+		s.remove_suffix(s.size() - pos);
+		return {s.data(), s.size()};
+	}
+
+	return_type right(string_type s, copy) const
+	{
+		return right(s, view());
+	}
+
+public:
+
+	void remove(string const& characters) const { shed_l = shed_r = characters; }
+	void remove_from_left(string const& characters) const { shed_l = characters; }
+	void remove_from_right(string const& characters) const { shed_r = characters; }
+
+	return_type left(string_type s) const { return left(s, Mode()); }
+	return_type right(string_type s) const { return right(s, Mode()); }
+	return_type round(string_type s) const { return left(right(s, Mode()), Mode()); }
+};
+
+using trim_mutator = trimmer<mute>;
+using trim_copier = trimmer<copy>;
+using trim_viewer = trimmer<view>;
+using trim_spanner = trimmer<span>;
 
 // upper lower
 
@@ -238,12 +340,21 @@ std::string upper_copy(std::string s)
 
 // split
 
-template<typename String = string_view>
+template<typename Mode>
 class splitter
 {
+	static_assert
+	(
+		   std::is_same<Mode, copy>::value
+		|| std::is_same<Mode, view>::value
+		|| std::is_same<Mode, span>::value
+		, "Mode template parameter must be copy, view or span"
+	);
+
 public:
-	using string_type = String;
-	using vector_type = vector<string_type>;
+	using mode = Mode;
+	using string_type = ex::string_view;
+	using vector_type = typename mode::vector_type;
 
 private:
 	bool fold = true;
@@ -283,7 +394,7 @@ private:
 	}
 
 	template<typename Comparator>
-	vector_type at(string_view s, Comparator cmp)
+	vector_type at(string_type s, Comparator cmp)
 	{
 		return at(s.data(), s.data() + s.size(), cmp);
 	}
@@ -293,22 +404,22 @@ public:
 	void dont_fold_matches() { fold = false; }
 	void reserve_at_least(std::size_t reserve) { this->reserve = reserve; }
 
-	vector_type at_space(string_view s)
+	vector_type at_space(string_type s)
 	{
 		return at(s, std::ptr_fun<int, int>(std::isspace));
 	}
 
-	vector_type at_delim(string_view s, char delim)
+	vector_type at_delim(string_type s, char delim)
 	{
 		return at(s, [delim](char c){return c == delim;});
 	}
 
-	vector_type at_delims(string_view s, string_view delims)
+	vector_type at_delims(string_type s, string_view delims)
 	{
 		return at(s, [delims](char c){return delims.find(c) != string_view::npos;});
 	}
 
-	vector_type at_delim(string_view s, string_view delim)
+	vector_type at_delim(string_type s, string_view delim)
 	{
 		vector_type v;
 		v.reserve(reserve);
@@ -331,7 +442,7 @@ public:
 		return v;
 	}
 
-	vector_type at_regex(string_view s, std::regex e)
+	vector_type at_regex(string_type s, std::regex e)
 	{
 		vector_type v;
 		v.reserve(reserve);
@@ -353,14 +464,15 @@ public:
 		return v;
 	}
 
-	vector_type at_regex(string_view s, string const& e)
+	vector_type at_regex(string_type s, string const& e)
 	{
 		return at_regex(s, std::regex(e));
 	}
 };
 
-using split_copier = splitter<string>;
-using split_viewer = splitter<string_view>;
+using split_copier = splitter<copy>;
+using split_viewer = splitter<view>;
+using split_spanner = splitter<span>;
 
 } // hol
 

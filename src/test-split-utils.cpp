@@ -35,6 +35,11 @@
 using namespace hol;
 using namespace std::literals::string_literals;
 
+namespace hol {
+
+
+} // hol
+
 hol::string get_string(const hol::string& s) { return s; }
 
 struct split_test_item
@@ -96,6 +101,9 @@ int main()
 //			, {' ', {"aaa  bbb", {"aaa", "bbb"}}}
 //		};
 
+		trim_mutator trim_mute;
+
+
 		std::ifstream ifs;
 
 		ifs.open("data/test-split-utils-01.txt");
@@ -107,7 +115,7 @@ int main()
 		{
 			++line_number;
 
-			if(trim_mute(line).empty())
+			if(trim_mute.round(line).empty())
 				continue;
 
 			if(line.find("delim:"))

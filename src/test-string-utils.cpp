@@ -51,23 +51,27 @@ int main()
 {
 	try
 	{
+		trim_mutator trim_mute;
+		trim_copier trim_copy;
+		trim_viewer trim_view;
+
 		std::string s;
 
 		for(auto const& test: test_data)
 		{
 			s = test.first;
 
-			if(trim_mute(s) != test.second)
+			if(trim_mute.round(s) != test.second)
 				ERR("fail: trim_mute(): '" << s << "'");
-			if(trim_copy(test.first) != test.second)
-				ERR("fail: trim_copy(): '" << trim_copy(test.first) << "'");
-			if(trim_view(test.first) != test.second)
-				ERR("fail: trim_view(): '" << trim_view(test.first) << "'");
+			if(trim_copy.round(test.first) != test.second)
+				ERR("fail: trim_copy(): '" << trim_copy.round(test.first) << "'");
+			if(trim_view.round(test.first) != test.second)
+				ERR("fail: trim_view(): '" << trim_view.round(test.first) << "'");
 
-			if(trim_copy(get_string(test.first)) != test.second)
-				ERR("fail: trim_copy(): '" << trim_copy(test.first) << "'");
-			if(trim_view(get_string(test.first)) != test.second)
-				ERR("fail: trim_view(): '" << trim_view(test.first) << "'");
+			if(trim_copy.round(get_string(test.first)) != test.second)
+				ERR("fail: trim_copy(): '" << trim_copy.round(test.first) << "'");
+			if(trim_view.round(get_string(test.first)) != test.second)
+				ERR("fail: trim_view(): '" << trim_view.round(test.first) << "'");
 		}
 
 		OUT("split");
