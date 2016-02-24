@@ -23,9 +23,10 @@
 //
 
 #include <regex>
+#include <string>
+#include <cstring>
 #include <algorithm>
 #include <experimental/string_view>
-#include "../gsl/string_span.h"
 
 namespace hol {
 
@@ -33,203 +34,66 @@ using std::string;
 using std::vector;
 using std::experimental::string_view;
 
-//constexpr const char* const ws = " \t\n\r\f\v";
-//
-//// mute
-//
-///**
-// * Remove leading characters from a std::string.
-// * @param s The std::string to be modified.
-// * @param t The set of characters to delete from the beginning
-// * of the string.
-// * @return The same string passed in as a parameter reference.
-// */
-//inline std::string& ltrim_mute(std::string& s, const char* t = ws)
-//{
-//	s.erase(0, s.find_first_not_of(t));
-//	return s;
-//}
-//
-///**
-// * Remove trailing characters from a std::string.
-// * @param s The std::string to be modified.
-// * @param t The set of characters to delete from the end
-// * of the string.
-// * @return The same string passed in as a parameter reference.
-// */
-//inline std::string& rtrim_mute(std::string& s, const char* t = ws)
-//{
-//	s.erase(s.find_last_not_of(t) + 1);
-//	return s;
-//}
-//
-///**
-// * Remove surrounding characters from a std::string.
-// * @param s The string to be modified.
-// * @param t The set of characters to delete from each end
-// * of the string.
-// * @return The same string passed in as a parameter reference.
-// */
-//inline std::string& trim_mute(std::string& s, const char* t = ws)
-//{
-//	return ltrim_mute(rtrim_mute(s, t), t);
-//}
-//
-//// view
-//
-//inline string_view ltrim_view(string_view s, const char* t = ws)
-//{
-//	auto pos = s.find_first_not_of(t);
-//	if(pos == string_view::npos)
-//		pos = s.size();
-//	s.remove_prefix(pos);
-//	return s;
-//}
-//
-//inline string_view rtrim_view(string_view s, const char* t = ws)
-//{
-//	auto pos = s.find_last_not_of(t) + 1;
-//	if(!pos)
-//		pos = s.size();
-//	s.remove_suffix(s.size() - pos);
-//	return s;
-//}
-//
-//inline string_view trim_view(string_view s, const char* t = ws)
-//{
-//	return ltrim_view(rtrim_view(s, t), t);
-//}
-//
-//// copy
-//
-//inline std::string ltrim_copy(std::string s, const char* t = ws)
-//{
-//	return ltrim_mute(s, t);
-//}
-//
-//inline std::string rtrim_copy(std::string s, const char* t = ws)
-//{
-//	return rtrim_mute(s, t);
-//}
-//
-//inline std::string trim_copy(std::string s, const char* t = ws)
-//{
-//	return trim_mute(s, t);
-//}
-//
-///**
-// * Remove all leading characters of a given value
-// * from a std::string.
-// * @param s The string to be modified.
-// * @param c The character value to delete.
-// * @return The same string passed in as a parameter reference.
-// */
-//inline std::string& ltrim_mute(std::string& s, char c)
-//{
-//	s.erase(0, s.find_first_not_of(c));
-//	return s;
-//}
-//
-///**
-// * Remove all trailing characters of a given value
-// * from a std::string.
-// * @param s The string to be modified.
-// * @param c The character value to delete.
-// * @return The same string passed in as a parameter reference.
-// */
-//inline std::string& rtrim_mute(std::string& s, char c)
-//{
-//	s.erase(s.find_last_not_of(c) + 1);
-//	return s;
-//}
-//
-///**
-// * Remove all surrounding characters of a given value
-// * from a std::string.
-// * @param s The string to be modified.
-// * @param c The character value to delete.
-// * @return The same string passed in as a parameter reference.
-// */
-//inline std::string& trim_mute(std::string& s, char c)
-//{
-//	return ltrim_mute(rtrim_mute(s, c), c);
-//}
-//
-//inline std::string rtrim_copy(std::string s, char c)
-//{
-//	return rtrim_mute(s, c);
-//}
-//
-//inline std::string ltrim_copy(std::string s, char c)
-//{
-//	return ltrim_mute(s, c);
-//}
-//
-//inline std::string trim_copy(std::string s, char c)
-//{
-//	return trim_mute(s, c);
-//}
-//
-//inline std::string ltrim_mute_keep(std::string& s, const char* t = ws)
-//{
-//	std::string::size_type pos;
-//	std::string keep = s.substr(0, (pos = s.find_first_not_of(t)));
-//	s.erase(0, pos);
-//	return keep;
-//}
-//
-//inline std::string rtrim_mute_keep(std::string& s, const char* t = ws)
-//{
-//	std::string::size_type pos;
-//	std::string keep = s.substr((pos = s.find_last_not_of(t) + 1));
-//	s.erase(pos);
-//	return keep;
-//}
-//
-//// Template version
-//
-//template<typename StringType>
-//inline StringType& ltrim_mute(StringType& s, const StringType& t = {})
-//{
-////	s.erase(0, s.find_first_not_of(t));
-//	return s;
-//}
-//
-////inline std::string& rtrim_mute(std::string& s, const char* t = ws)
-////{
-////	s.erase(s.find_last_not_of(t) + 1);
-////	return s;
-////}
-////
-////inline std::string& trim_mute(std::string& s, const char* t = ws)
-////{
-////	return ltrim_mute(rtrim_mute(s, t), t);
-////}
+inline
+std::string& replace_all(std::string& s, const std::string& from, const std::string& to)
+{
+	if(!from.empty())
+		for(size_t pos = 0; (pos = s.find(from, pos)) != std::string::npos; pos += to.size())
+			s.replace(pos, from.size(), to);
+	return s;
+}
+
+// string operator modes
 
 struct mute
 {
 	using string_type = std::string&;
 	using return_type = string_type;
 };
+
 struct copy
 {
-	using string_type = ex::string_view;
+	using string_type = std::experimental::string_view;
 	using return_type = std::string;
 	using vector_type = std::vector<return_type>;
 };
+
 struct view
 {
-	using string_type = ex::string_view;
-	using return_type = string_type;
-	using vector_type = std::vector<string_type>;
-};
-struct span
-{
-	using string_type = gsl::string_span<>;
+	using string_type = std::experimental::string_view;
 	using return_type = string_type;
 	using vector_type = std::vector<string_type>;
 };
 
+//struct span
+//{
+//	using string_type = gsl::string_span<>;
+//	using return_type = string_type;
+//	using vector_type = std::vector<string_type>;
+//};
+
+/**
+ * Generic class for trimming characters from the left and
+ * right hand sides of a string. This class works differently
+ * with different Mode parameters.
+ * <pre>
+ * Mode = mute (mutating)
+ *     Accepts a std::string& parameter and modifies the
+ *     passed in std::string, returning a reference to the
+ *     same string.
+ *
+ * Mode = copy (copying)
+ *     Accepts a string_view parameter and returns a std::string
+ *     that is a copy of the passed in string_view, with the
+ *     configured characters removed.
+ *
+ * Mode = view (viewing)
+ *     Accepts a string_view parameter and returns a string_view
+ *     that is a copy of the passed in string_view, with the
+ *     configured characters removed.
+ *
+ * </pre>
+ */
 template<typename Mode>
 class trimmer
 {
@@ -238,7 +102,7 @@ class trimmer
 		   std::is_same<Mode, mute>::value
 		|| std::is_same<Mode, copy>::value
 		|| std::is_same<Mode, view>::value
-		|| std::is_same<Mode, span>::value
+//		|| std::is_same<Mode, span>::value
 		, "Mode template parameter must be mute, copy, view or span"
 	);
 
@@ -260,11 +124,12 @@ private:
 
 	return_type left(string_type s, view) const
 	{
-		auto pos = s.find_first_not_of(shed_l.c_str());
-		if(pos == string_view::npos)
-			pos = s.size();
-		s.remove_prefix(pos);
-		return {s.data(), s.size()};
+		if(auto pos = s.find_first_not_of(shed_l.c_str()) + 1)
+		{
+			s.remove_prefix(pos - 1);
+			return {s.data(), s.size()};
+		}
+		return {};
 	}
 
 	return_type left(string_type s, copy) const
@@ -280,10 +145,8 @@ private:
 
 	return_type right(string_type s, view) const
 	{
-		auto pos = s.find_last_not_of(shed_r.c_str()) + 1;
-		if(!pos)
-			pos = s.size();
-		s.remove_suffix(s.size() - pos);
+		if(auto pos = s.find_last_not_of(shed_r.c_str()) + 1)
+			s.remove_suffix(s.size() - pos);
 		return {s.data(), s.size()};
 	}
 
@@ -294,19 +157,53 @@ private:
 
 public:
 
-	void remove(string const& characters) const { shed_l = shed_r = characters; }
-	void remove_from_left(string const& characters) const { shed_l = characters; }
-	void remove_from_right(string const& characters) const { shed_r = characters; }
+	/**
+	 * Configure which characters will be removed from both the
+	 * left and the right of the string.
+	 * @param characters The characters to be removed.
+	 */
+	void remove(string const& characters) { shed_l = shed_r = characters; }
 
+	/**
+	 * Configure which characters will be removed from the
+	 * left the string.
+	 * @param characters The characters to be removed.
+	 */
+	void remove_from_left(string const& characters) { shed_l = characters; }
+
+	/**
+	 * Configure which characters will be removed from the
+	 * right the string.
+	 * @param characters The characters to be removed.
+	 */
+	void remove_from_right(string const& characters) { shed_r = characters; }
+
+	/**
+	 * Remove characters from the left of the string.
+	 * @param s The string to remove characters from.
+	 * @return The string with trimmed characters removed.
+	 */
 	return_type left(string_type s) const { return left(s, Mode()); }
+
+	/**
+	 * Remove characters from the right of the string.
+	 * @param s The string to remove characters from.
+	 * @return The string with trimmed characters removed.
+	 */
 	return_type right(string_type s) const { return right(s, Mode()); }
+
+	/**
+	 * Remove characters from the left and the right of the string.
+	 * @param s The string to remove characters from.
+	 * @return The string with trimmed characters removed.
+	 */
 	return_type round(string_type s) const { return left(right(s, Mode()), Mode()); }
 };
 
 using trim_mutator = trimmer<mute>;
 using trim_copier = trimmer<copy>;
 using trim_viewer = trimmer<view>;
-using trim_spanner = trimmer<span>;
+//using trim_spanner = trimmer<span>;
 
 // upper lower
 
@@ -347,13 +244,13 @@ class splitter
 	(
 		   std::is_same<Mode, copy>::value
 		|| std::is_same<Mode, view>::value
-		|| std::is_same<Mode, span>::value
+//		|| std::is_same<Mode, span>::value
 		, "Mode template parameter must be copy, view or span"
 	);
 
 public:
 	using mode = Mode;
-	using string_type = ex::string_view;
+	using string_type = std::experimental::string_view;
 	using vector_type = typename mode::vector_type;
 
 private:
@@ -472,7 +369,7 @@ public:
 
 using split_copier = splitter<copy>;
 using split_viewer = splitter<view>;
-using split_spanner = splitter<span>;
+//using split_spanner = splitter<span>;
 
 } // hol
 

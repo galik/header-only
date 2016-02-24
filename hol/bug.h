@@ -55,17 +55,29 @@
 
 namespace hol {
 
-static std::function<std::string(std::string)> edit_bug_fun = [](std::string s){return s;};
+inline
+auto& get_edit_bug_fun()
+{
+	static std::function<std::string(std::string)> edit_bug_fun = [](std::string s){return s;};
+	return edit_bug_fun;
+}
 
 #ifdef NDEBUG
 #define bug(m) do{}while(0)
 #define bug_var(v) do{}while(0)
 #define bug_cnt(c) do{}while(0)
-#define throw_runtime_error(msg) do{ \
+#define bug_itr(c) do{}while(0)
+
+#define hol_throw_exception(exc, message) \
+	throw exc(message)
+
+#define hol_throw_runtime_error(msg) do{ \
 	std::ostringstream oss; \
 	oss << msg; \
 	throw std::runtime_error(oss.str());}while(0)
+
 struct scope_bomb{};
+
 #define bug_fun() hol::scope_bomb scope_bomb_inst
 
 #else
@@ -79,10 +91,25 @@ struct scope_bomb{};
 		for(auto&& v_c:c) \
 			{bug((i<100?" ":"") << (i<10?" ":"") << i << ": " << v_c);++i;} \
 	}while(0)
-#define throw_runtime_error(msg) do{ \
+
+#define bug_itr(c, b, e) \
+	do{ \
+		bug(#c ": " << c.size()); \
+		int n=0; \
+		for(auto i = b; i != e; ++i) \
+			{bug((*i<100?" ":"") << (*i<10?" ":"") << n << ": " << *i);++n;} \
+	}while(0)
+
+#define hol_throw_exception(exc, msg) do{ \
+std::ostringstream oss; \
+oss << __FILE__ << ":" << __LINE__ << ":1 error: " << msg; \
+throw exc(oss.str());}while(0)
+
+#define hol_throw_runtime_error(msg) do{ \
 	std::ostringstream oss; \
 	oss << __FILE__ << ":" << __LINE__ << ":1 error: " << msg; \
 	throw std::runtime_error(oss.str());}while(0)
+
 struct scope_bomb
 {
 	std::string m;
@@ -95,7 +122,7 @@ struct scope_bomb
 		bug("<-- " << m);
 	}
 };
-#define bug_fun() hol::scope_bomb scope_bomb_inst(hol::edit_bug_fun(__PRETTY_FUNCTION__))
+#define bug_fun() hol::scope_bomb scope_bomb_inst(hol::get_edit_bug_fun()(__PRETTY_FUNCTION__))
 #endif
 
 } // hol

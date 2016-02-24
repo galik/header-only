@@ -61,13 +61,6 @@ private:
 	value_type max {};
 	FunctionType step;
 
-//	bool inc_eq(sequence_iterator& iter) const { return n >= iter.n; }
-//	bool dec_eq(sequence_iterator& iter) const { return n <= iter.n; }
-//
-//	bool increasing() const { return n < max; }
-//	bool decreasing() const { return n > max; }
-//	bool stationary() const { return !increasing() && !decreasing(); }
-
 public:
 	/**
 	 * Generates a member of a number sequence on each iteration
@@ -103,7 +96,12 @@ public:
 		}
 		return *this;
 	}
-	sequence_iterator operator++(int) { sequence_iterator iter(*this); ++(*this); return iter; }
+	sequence_iterator operator++(int)
+	{
+		sequence_iterator copy(*this);
+		++(*this);
+		return copy;
+	}
 };
 
 template<typename NumericType, typename FunctionType>
@@ -137,7 +135,8 @@ public:
 	 * @param step The function to generate a successive element
 	 * from a previous element's value
 	 */
-	sequence(value_type b, value_type n, FunctionType step = IncrementBy<NumericType>(1))
+	sequence(value_type b, value_type n
+		, FunctionType step = IncrementBy<NumericType>(1))
 	: b(b), n(n), step(step)
 	{
 	}

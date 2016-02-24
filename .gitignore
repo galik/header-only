@@ -7,5 +7,5 @@ test-split-utils
 test-string-utils
 *.d
 /Makefile.local
-/gsl/
+/gsl/*
 

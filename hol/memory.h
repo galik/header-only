@@ -34,9 +34,11 @@ private:
 	element_type* p;
 
 public:
+	access_ptr(): p(nullptr) {}
+	access_ptr(element_type* p): p(p) {}
+	access_ptr(const access_ptr& ptr): p(ptr.p) {}
 	access_ptr(std::unique_ptr<element_type>& ptr): p(ptr.get()) {}
 	access_ptr(std::shared_ptr<element_type>& ptr): p(ptr.get()) {}
-	access_ptr(const access_ptr& ptr): p(ptr.p) {}
 
 	access_ptr& operator=(access_ptr ptr)
 	{

@@ -26,6 +26,102 @@
 
 namespace hol {
 
+template<typename Integer = std::uint32_t>
+class xorshift_engine
+{
+public:
+	using result_type = Integer;
+
+private:
+	// 18446744073709551557
+	static const result_type default_seed = 2147483647;
+
+	result_type x, y, z, w;
+
+public:
+	explicit xorshift_engine(result_type value = default_seed) noexcept
+	{
+		seed(value);
+	}
+
+	template<typename Sseq>
+	explicit xorshift_engine(Sseq& seq)
+	{
+		seed(seq);
+	}
+
+	void seed(result_type value = default_seed) noexcept
+	{
+		x = y = z = w = value;
+	}
+
+	template<typename Sseq>
+	void seed(Sseq& seq)
+	{
+		result_type seeds[4];
+		seq.generate(std::begin(seeds), std::end(seeds));
+		x = seeds[0];
+		y = seeds[1];
+		z = seeds[2];
+		w = seeds[3];
+	}
+
+	auto operator()()
+	{
+		Integer t = x;
+		t ^= t << 11;
+		t ^= t >> 8;
+		x = y;
+		y = z;
+		z = w;
+		w ^= w >> 19;
+		w ^= t;
+		return w;
+	}
+
+	void discard(unsigned long long z) { while(z--) (*this)(); }
+
+	static constexpr result_type min() { return std::numeric_limits<result_type>::min(); }
+	static constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
+
+	template<typename UIntType>
+	friend
+	bool operator==(const xorshift_engine<UIntType>& lhs,
+	                const xorshift_engine<UIntType>& rhs)
+	{
+		return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.w == rhs.w;
+	}
+
+	template<typename UIntType>
+	friend
+	bool operator!=(const xorshift_engine<UIntType>& lhs,
+	               const xorshift_engine<UIntType>& rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	template<typename CharT, typename Traits, typename UIntType>
+	friend
+	std::basic_ostream<CharT, Traits>&
+	operator<<(std::basic_ostream<CharT,Traits>& os,
+		const xorshift_engine<UIntType>& e)
+	{
+		return os << e.x << ' ' << e.y << ' ' << e.z << ' ' << e.w;
+	}
+
+	template<typename CharT, typename Traits, typename UIntType>
+	friend
+	std::basic_istream<CharT, Traits>&
+	operator>>(std::basic_istream<CharT,Traits>& is,
+		xorshift_engine<UIntType>& e)
+	{
+		return is >> e.x >> e.y >> e.z >> e.w;
+	}
+};
+
+using xorshift128 = xorshift_engine<std::uint32_t>;
+using xorshift256 = xorshift_engine<std::uint64_t>;
+
 /**
  * Usage:
  *

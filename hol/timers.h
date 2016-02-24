@@ -24,104 +24,79 @@
 
 namespace hol {
 
+template<typename TimerImpl>
 class Timer
 {
-	using clk = std::chrono::steady_clock;
-	using microseconds = std::chrono::microseconds;
-	using nanoseconds = std::chrono::nanoseconds;
+	using timer_impl = TimerImpl;
 
-	clk::time_point tsb;
-	clk::time_point tse;
+	timer_impl timer;
+	unsigned precision;
 
 public:
+	Timer(unsigned precision = 6): precision(precision) {}
 
-	void clear() { tsb = tse = clk::now(); }
-	void start() { tsb = clk::now(); }
-	void stop() { tse = clk::now(); }
+	void clear() { timer.clear(); }
+	void start() { timer.start(); }
+	void stop()  { timer.stop(); }
 
-	friend std::ostream& operator<<(std::ostream& o, const Timer& timer)
+	friend std::ostream& operator<<(std::ostream& o, const Timer<timer_impl>& timer)
 	{
-		return o << timer.secs();
+		return o << std::fixed << std::setprecision(timer.precision) << timer.secs();
 	}
 
 	auto nsecs() const
 	{
-		return std::chrono::duration_cast<nanoseconds>(tse - tsb).count();
+		return timer.nsecs();
 	}
 
 	double usecs() const
 	{
-		return nsecs() / 1000.0;
+		return timer.nsecs() / 1000.0;
 	}
 
 	double msecs() const
 	{
-		return nsecs() / 1000000.0;
+		return timer.nsecs() / 1000000.0;
 	}
 
 	double secs() const
 	{
-		return nsecs() / 1000000000.0;
+		return timer.nsecs() / 1000000000.0;
 	}
-
-	// return time difference in seconds
-//	double secs() const
-//	{
-//		if(tse <= tsb)
-//			return 0.0;
-//		auto d = std::chrono::duration_cast<microseconds>(tse - tsb);
-//		return d.count() / 1000000.0;
-//	}
 };
+
+class StdTimerImpl
+{
+	std::chrono::steady_clock::time_point tsb;
+	std::chrono::steady_clock::time_point tse;
+
+public:
+	void clear() { start(); tse = tsb; }
+	void start() { tsb = std::chrono::steady_clock::now(); }
+	void stop()  { tse = std::chrono::steady_clock::now(); }
+
+	auto nsecs() const
+	{
+		using namespace std::chrono;
+		return duration_cast<nanoseconds>(tse - tsb).count();
+	}
+};
+
+using StdTimer = Timer<StdTimerImpl>;
 
 #ifdef __unix__
 
 #include <time.h>
 
-class PosixTimer
+class PosixTimerImpl
 {
-	struct clock_type {};
-	struct precision_type {};
-	template<typename T, typename ID>
-	struct helper
-	{
-		ID id;
-		T p;
-		helper(T p = {}): p(p) {}
-		operator T() const { return p; }
-	};
-public:
-
-	using clock = helper<decltype(CLOCK_MONOTONIC), clock_type>;
-	using precision = helper<unsigned, precision_type>;
-
-private:
-	decltype(CLOCK_MONOTONIC) clk;
 	timespec tsb;
 	timespec tse;
-	precision p = 6;
 
 public:
-	PosixTimer()
-	: PosixTimer(clock(CLOCK_MONOTONIC), precision(6)) {}
-
-	explicit PosixTimer(clock clk)
-	: PosixTimer(clk, precision(6)) {}
-
-	explicit PosixTimer(precision p)
-	: PosixTimer(clock(CLOCK_MONOTONIC), p) {}
-
-	explicit PosixTimer(clock clk, precision p)
-	: clk(clk), p(p) {}
-
 	void clear() { start(); tse = tsb; }
-	void start() { clock_gettime(clk, &tsb); }
-	void stop() { clock_gettime(clk, &tse); }
-
-	friend std::ostream& operator<<(std::ostream& o, const PosixTimer& timer)
-	{
-		return o << std::fixed << std::setprecision(timer.p) << timer.secs();
-	}
+	void start() { clock_gettime(CLOCK_MONOTONIC, &tsb); }
+	void stop() { clock_gettime(CLOCK_MONOTONIC, &tse); }
 
 	auto nsecs() const
 	{
@@ -129,22 +104,9 @@ public:
 		auto e = (tse.tv_sec * 1000000000) + tse.tv_nsec;
 		return e - b;
 	}
-
-	double usecs() const
-	{
-		return nsecs() / 1000.0;
-	}
-
-	double msecs() const
-	{
-		return nsecs() / 1000000.0;
-	}
-
-	double secs() const
-	{
-		return nsecs() / 1000000000.0;
-	}
 };
+
+using PosixTimer = Timer<PosixTimerImpl>;
 
 #endif
 
