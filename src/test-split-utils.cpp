@@ -136,7 +136,7 @@ int main()
 			std::getline(iss, line, '}');
 
 			if(!iss)
-				throw_runtime_error("line: " << line_number << " error parsing delim:");
+				hol_throw_runtime_error("line: " << line_number << " error parsing delim:");
 
 			iss.clear();
 			iss.str(line);

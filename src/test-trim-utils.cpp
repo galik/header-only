@@ -92,7 +92,7 @@ result_vec generic_trimmer_tests(Trimmer trim, str const& name, auto N = 1ULL)
 		{
 			str l, r;
 			if(!sgl(sgl(sgl(sgl(std::istringstream(line) >> l, l, '"'), l, '"'), r, '"'), r, '"'))
-				throw_exception(std::runtime_error, "bad format line: " << line_number);
+				hol_throw_exception(std::runtime_error, "bad format line: " << line_number);
 
 			trim.remove_from_left(l);
 			trim.remove_from_right(r);
@@ -102,7 +102,7 @@ result_vec generic_trimmer_tests(Trimmer trim, str const& name, auto N = 1ULL)
 
 			str from, to;
 			if(!sgl(sgl(sgl(sgl(std::istringstream(line) >> from, from, '"'), from, '"'), to, '"'), to, '"'))
-				throw_exception(std::runtime_error, "bad format line: " << line_number);
+				hol_throw_exception(std::runtime_error, "bad format line: " << line_number);
 
 			result r {name, id++};
 			r.successful();

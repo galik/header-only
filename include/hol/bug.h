@@ -44,14 +44,18 @@
  *
  *     // ...
  * }
+ *
  */
 
 #include <string>
+#include <cstring>
 #include <sstream>
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
-
 #include <functional>
+
+#include "stl.h"
 
 namespace hol {
 
@@ -83,10 +87,11 @@ struct scope_bomb{};
 #else
 
 #define bug(m) do{std::cout << m << std::endl;}while(0)
-#define bug_var(v) do{bug(#v ": " << v);}while(0)
+#define bug_var(v) do{std::cout << #v ": " << std::boolalpha << v << std::endl;}while(0)
+
 #define bug_cnt(c) \
 	do{ \
-		bug(#c ": " << c.size()); \
+		std::cout << #c ": " << std::size(c) << std::endl; \
 		int i=0; \
 		for(auto&& v_c:c) \
 			{bug((i<100?" ":"") << (i<10?" ":"") << i << ": " << v_c);++i;} \
@@ -123,7 +128,15 @@ struct scope_bomb
 	}
 };
 #define bug_fun() hol::scope_bomb scope_bomb_inst(hol::get_edit_bug_fun()(__PRETTY_FUNCTION__))
+
 #endif
+
+class errno_error
+: public std::runtime_error
+{
+public:
+	errno_error(): std::runtime_error(std::strerror(errno)) {}
+};
 
 } // hol
 

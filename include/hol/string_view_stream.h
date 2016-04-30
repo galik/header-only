@@ -50,7 +50,7 @@ class basic_string_view_buf
 public:
 	basic_string_view_buf(string_view_type sv): sv(sv)
 	{
-		bug_fun();
+//		bug_fun();
 		buf_type::setg(const_cast<char_type*>(sv.data())
 			, const_cast<char_type*>(sv.data())
 				, const_cast<char_type*>(sv.data()) + sv.size());
@@ -146,5 +146,16 @@ using string_view_stream = basic_string_view_stream<char>;
 using wstring_view_stream = basic_string_view_stream<wchar_t>;
 
 } // hol
+
+template<typename CharType>
+hol::basic_string_view_stream<CharType>& operator>>(hol::basic_string_view_stream<CharType>& isv, hol::ex::string_view& sv)
+{
+	sv = isv.get_string_view();
+	auto size = sv.size();
+	sv.remove_prefix(isv.tellg());
+	isv.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
+	sv.remove_suffix(isv.size() - isv.tellg());
+	return isv;
+}
 
 #endif // HOL_STRING_VIEW_STREAM_H

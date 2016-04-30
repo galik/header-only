@@ -79,9 +79,16 @@ using char16_pair = std::array<char16_t, 2>;
 //	return u8char_size;
 //}
 
+// BOM EF BB BF Ob 1110 1111 01011 01011 01011 1111
+
 class u8char
 {
 	friend class u8string;
+
+public:
+	static const u8char BOM;
+
+private:
 
 	enum u8mask
 	{
@@ -214,6 +221,8 @@ public:
 	const char* end() const { return cp + size(cp); }
 };
 
+const u8char u8char::BOM = u8char("\xEF\xBB\xBF");
+
 class u8string
 {
 public:
@@ -248,7 +257,7 @@ private:
 
 		operator u8char() const { return u8char(&*i); }
 
-		std::size_t size() const { return u8char::size(*i); }
+		size_type size() const { return u8char::size(*i); }
 		std::string string() const { return {&*i, &*(i + size())}; }
 		char32_t char32() const { return u8char::char32(&*i); }
 	};
@@ -306,9 +315,9 @@ private:
 	};
 
 	// number of utf8 characters
-	static std::size_t size(const char* s)
+	static size_type size(const char* s)
 	{
-		std::size_t n = 0;
+		size_type n = 0;
 		for(; *s; s += u8char::size(s))
 			++n;
 		return n;

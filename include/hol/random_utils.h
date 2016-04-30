@@ -23,6 +23,7 @@
 //
 
 #include <random>
+#include <limits>
 
 namespace hol {
 
@@ -36,7 +37,8 @@ private:
 	// 18446744073709551557
 	static const result_type default_seed = 2147483647;
 
-	result_type x, y, z, w;
+	result_type n[5];
+	enum {x, y, z, w, t};
 
 public:
 	explicit xorshift_engine(result_type value = default_seed) noexcept
@@ -52,31 +54,26 @@ public:
 
 	void seed(result_type value = default_seed) noexcept
 	{
-		x = y = z = w = value;
+		n[x] = n[y] = n[z] = n[w] = value;
 	}
 
 	template<typename Sseq>
 	void seed(Sseq& seq)
 	{
-		result_type seeds[4];
-		seq.generate(std::begin(seeds), std::end(seeds));
-		x = seeds[0];
-		y = seeds[1];
-		z = seeds[2];
-		w = seeds[3];
+		seq.generate(std::begin(n), std::end(n));
 	}
 
 	auto operator()()
 	{
-		Integer t = x;
-		t ^= t << 11;
-		t ^= t >> 8;
-		x = y;
-		y = z;
-		z = w;
-		w ^= w >> 19;
-		w ^= t;
-		return w;
+		n[t] = n[x];
+		n[t] ^= n[t] << 11;
+		n[t] ^= n[t] >> 8;
+		n[x] = n[y];
+		n[y] = n[z];
+		n[z] = n[w];
+		n[w] ^= n[w] >> 19;
+		n[w] ^= n[t];
+		return n[w];
 	}
 
 	void discard(unsigned long long z) { while(z--) (*this)(); }
@@ -89,7 +86,10 @@ public:
 	bool operator==(const xorshift_engine<UIntType>& lhs,
 	                const xorshift_engine<UIntType>& rhs)
 	{
-		return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.w == rhs.w;
+		return lhs.n[x] == rhs.n[x]
+			&& lhs.n[y] == rhs.n[y]
+			&& lhs.n[z] == rhs.n[z]
+			&& lhs.n[w] == rhs.n[w];
 	}
 
 	template<typename UIntType>
@@ -106,7 +106,7 @@ public:
 	operator<<(std::basic_ostream<CharT,Traits>& os,
 		const xorshift_engine<UIntType>& e)
 	{
-		return os << e.x << ' ' << e.y << ' ' << e.z << ' ' << e.w;
+		return os << e.n[x] << ' ' << e.n[y] << ' ' << e.n[z] << ' ' << e.n[w];
 	}
 
 	template<typename CharT, typename Traits, typename UIntType>
@@ -115,7 +115,7 @@ public:
 	operator>>(std::basic_istream<CharT,Traits>& is,
 		xorshift_engine<UIntType>& e)
 	{
-		return is >> e.x >> e.y >> e.z >> e.w;
+		return is >> e.n[x] >> e.n[y] >> e.n[z] >> e.n[w];
 	}
 };
 
@@ -207,6 +207,39 @@ using PRNG_64S = PRNG_64<std::int64_t>;      // 64bit mt engine 64bit signed int
 using PRNG_64U = PRNG_64<std::uint64_t>;     // 64bit mt engine 64bit unsigned int
 using PRNG_64F = PRNG_64<float>;             // 64bit mt engine float
 using PRNG_64D = PRNG_64<double>;            // 64bit mt engine double
+
+//TODO: make PRNG use these tools?
+template<typename Generator = std::mt19937>
+struct random_tools
+{
+	using rd = std::random_device;
+	std::seed_seq ss = {{rd{}(), rd{}(), rd{}(), rd{}()}};
+	Generator gen;
+	random_tools(): gen(ss) {}
+};
+
+template<typename Numeric>
+Numeric random(Numeric from, Numeric to)
+{
+	thread_local random_tools<> tools;
+
+	using dist_type = typename std::conditional
+	<
+		std::is_integral<Numeric>::value
+		, std::uniform_int_distribution<Numeric>
+		, std::uniform_real_distribution<Numeric>
+	>::type;
+
+	thread_local static dist_type dist;
+
+	return dist(tools.gen, typename dist_type::param_type{from, to});
+}
+
+template<typename Numeric>
+Numeric random(Numeric to = std::numeric_limits<Numeric>::max())
+{
+	return random({}, to);
+}
 
 } // hol
 

@@ -22,13 +22,20 @@
 // SOFTWARE.
 //
 
+#include <chrono>
+#include <ostream>
+#include <iomanip>
+
 namespace hol {
 
 template<typename TimerImpl>
 class Timer
 {
+public:
 	using timer_impl = TimerImpl;
+	using value_type = decltype(timer_impl().nsecs());
 
+private:
 	timer_impl timer;
 	unsigned precision;
 
