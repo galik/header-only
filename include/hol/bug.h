@@ -47,6 +47,7 @@
  *
  */
 
+#include <cerrno>
 #include <string>
 #include <cstring>
 #include <sstream>
@@ -79,6 +80,8 @@ auto& get_edit_bug_fun()
 	std::ostringstream oss; \
 	oss << msg; \
 	throw std::runtime_error(oss.str());}while(0)
+
+#define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno));
 
 struct scope_bomb{};
 
@@ -115,17 +118,14 @@ throw exc(oss.str());}while(0)
 	oss << __FILE__ << ":" << __LINE__ << ":1 error: " << msg; \
 	throw std::runtime_error(oss.str());}while(0)
 
+#define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno));
+
 struct scope_bomb
 {
 	std::string m;
-	scope_bomb(const std::string& m): m(m)
-	{
-		bug("--> " << m);
-	}
-	~scope_bomb()
-	{
-		bug("<-- " << m);
-	}
+	scope_bomb(const std::string& m)
+	       : m(m) { bug("--> " << m); }
+	~scope_bomb() { bug("<-- " << m); }
 };
 #define bug_fun() hol::scope_bomb scope_bomb_inst(hol::get_edit_bug_fun()(__PRETTY_FUNCTION__))
 

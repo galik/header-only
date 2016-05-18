@@ -22,6 +22,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <algorithm>
 
 #include "test.h"
 #include "hol/string_view_stream.h"
@@ -29,35 +30,9 @@
 using namespace hol;
 using namespace std::literals::string_literals;
 
-const std::string json_data =
-R"~(
-{
-    "glossary": {
-        "title": "example glossary",
-		"GlossDiv": {
-            "title": "S",
-			"GlossList": {
-                "GlossEntry": {
-                    "ID": "SGML",
-					"SortAs": "SGML",
-					"GlossTerm": "Standard Generalized Markup Language",
-					"Acronym": "SGML",
-					"Abbrev": "ISO 8879:1986",
-					"GlossDef": {
-                        "para": "A meta-markup language, used to create markup languages such as DocBook.",
-						"GlossSeeAlso": ["GML", "XML"]
-                    },
-					"GlossSee": "markup"
-                }
-            }
-        }
-    }
-}
-)~";
-
 string_view_stream& read_to(string_view_stream& svs, ex::string_view& sv, char delim = '\n')
 {
-	sv = svs.get_string_view();
+	sv = svs.string_view();
 	auto size = sv.size();
 	sv.remove_prefix(svs.tellg());
 	svs.ignore(std::numeric_limits<std::streamsize>::max(), delim);
@@ -97,21 +72,124 @@ string_view_stream& read_enclosed(string_view_stream& svs
 	return svs;
 }
 
+namespace hol {
+//string_view_stream& getline(string_view_stream& svs, ex::string_view& sv, char delim = '\n')
+//{
+//	sv = svs.string_view();
+//	auto size = sv.size();
+//	sv.remove_prefix(svs.tellg());
+//	svs.ignore(std::numeric_limits<std::streamsize>::max(), delim);
+//	sv.remove_suffix(size - svs.tellg());
+//	return svs;
+//}
+} // hol
+
+const std::string test_data =
+R"~(
+the quick brown fox
+1, 3, 5, 7, 9
+2.5 9.7 -100.9
+ahdgrus
+jumped over the lazy dog
+)~";
+
+//bool getline(hol::string_view& svs, hol::string_view& sv, char delim = '\n')
+//{
+//	if(svs.empty())
+//		return false;
+//
+//	size_t pos = 0;
+//	for(; pos < svs.size() && svs[pos] != delim; ++pos) {}
+//
+//	sv = svs.substr(0, pos);
+//	svs = svs.substr(std::min(pos + 1, svs.size()));
+//
+//	return true;
+//}
+
+//bool operator>>(hol::string_view& svs, hol::string_view& sv)
+//{
+//	return getline(svs, sv, ' ');
+//}
+
+
+hol::string_view& getline(hol::string_view& svs, hol::string_view& sv, char delim = '\n')
+{
+	if(!svs.data() || svs.empty())
+		return (svs = hol::string_view(nullptr, 0));
+
+	size_t pos = 0;
+	for(; pos < svs.size() && svs[pos] != delim; ++pos) {}
+
+	sv = svs.substr(0, pos);
+	svs = svs.substr(std::min(pos + 1, svs.size()));
+
+	return svs;
+}
+
+hol::string_view& operator>>(hol::string_view& svs, hol::string_view& sv)
+{
+	return getline(svs, sv, ' ');
+}
+
+//hol::string_view& operator>>(hol::string_view& svs, int& sv)
+//{
+//
+//	return getline(svs, sv, ' ');
+//}
+
+//bool operator>>(hol::string_view& svs, decltype(std::ws()))
+//{
+//	return getline(svs, sv, ' ');
+//}
+
 int main()
 {
-	string_view_stream svs(json_data);
+	try
+	{
 
-//	svs.seekg(10);
+//		string_view sv = string_view(nullptr, 0);
+//
+//		bug_var((void*)sv.data());
+//		bug_var(sv);
+//		bug_var((bool)sv.data());
+//		bug_var("yay");
+//
+//
+//		return 0;
 
-//	std::string s;
-//	while(svs >> s)
-//		OUT(s);
+		hol::string_view svs = test_data;
 
-//	bug_var(svs.tellg());
+		int i;
+		double d;
+		std::string s;
+		hol::string_view sv;
 
-	ex::string_view sv;
-	while(read_to(svs, sv))
-		OUT(sv);
+		if(!getline(svs, sv).data())
+			hol_throw_runtime_error("fail readline");
 
+		if(!getline(svs, sv).data())
+			hol_throw_runtime_error("fail readline");
+
+		OUT("sv: " << sv);
+
+//		string_view_stream svs2(sv);
+//		string_view sv2;
+//		while(svs2 >> sv2)
+//			OUT("sv2: " << sv2);
+
+		string_view sv2;
+		while((sv >> sv2).data())
+			OUT("sv2: " << sv2);
+
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+	catch(...)
+	{
+		std::cerr << "unknown exception" << '\n';
+	}
 }
 

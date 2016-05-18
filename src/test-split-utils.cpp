@@ -30,7 +30,8 @@
 #include <algorithm>
 
 #include "test.h"
-#include "hol/string_utils.h"
+#include "hol/utility_trimmers.h"
+#include "hol/utility_splitters.h"
 
 using namespace hol;
 using namespace std::literals::string_literals;
@@ -40,7 +41,7 @@ namespace hol {
 
 } // hol
 
-hol::string get_string(const hol::string& s) { return s; }
+std::string get_string(const std::string& s) { return s; }
 
 struct split_test_item
 {

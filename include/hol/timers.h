@@ -117,6 +117,55 @@ using PosixTimer = Timer<PosixTimerImpl>;
 
 #endif
 
+class wait_timer
+{
+	using clock = std::chrono::steady_clock;
+
+	clock::duration time_to_wait;
+	clock::time_point timeout = clock::now();
+
+public:
+	wait_timer(std::chrono::milliseconds ms)
+	: time_to_wait(ms), timeout(clock::now() + ms) {}
+
+	void wait()
+	{
+		while(clock::now() < timeout)
+			std::this_thread::sleep_until(timeout);
+		timeout += time_to_wait; // reset timer
+	}
+
+	/**
+	 * Adjust the wait time without resetting the
+	 * time base.
+	 * @param ms New wait time.
+	 */
+	void wait(std::chrono::milliseconds ms)
+	{
+		if(time_to_wait != ms)
+		{
+			auto difference = ms - time_to_wait;
+			timeout += difference;
+			time_to_wait = ms;
+		}
+		wait();
+	}
+
+	/**
+	 * Reset the time-base by setting the timeout
+	 * counter to now + ms (without affecting the frame position)
+	 * @param ms
+	 */
+	void reset(std::chrono::milliseconds ms)
+	{
+		auto now = clock::now();
+		auto difference = now - timeout;
+		auto frames = difference / ms;
+		timeout += (frames * ms);
+		time_to_wait = ms;
+	}
+};
+
 } // hol
 
 

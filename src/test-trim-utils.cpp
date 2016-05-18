@@ -26,7 +26,7 @@
 #include <iostream>
 
 #include "test.h"
-#include "hol/string_utils.h"
+#include "hol/utility_trimmers.h"
 
 using namespace hol;
 using namespace std::literals::string_literals;

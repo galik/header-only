@@ -32,7 +32,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-#if defined(HOL_USE_STRING_VIEW)
+#ifdef HOL_USE_STRING_VIEW
 #	include <experimental/string_view>
 #endif
 
@@ -40,10 +40,8 @@
 
 namespace hol {
 
-using std::string;
-using std::vector;
-#if defined(HOL_USE_STRING_VIEW)
-using std::experimental::string_view;
+#ifdef HOL_USE_STRING_VIEW
+using string_view = std::experimental::string_view;
 #endif
 
 inline
@@ -54,199 +52,6 @@ std::string& replace_all(std::string& s, const std::string& from, const std::str
 			s.replace(pos, from.size(), to);
 	return s;
 }
-
-// string operator modes
-
-struct mute
-{
-	using string_type = std::string&;
-	using return_type = string_type;
-};
-
-struct copy
-{
-#if defined(HOL_USE_STRING_VIEW)
-	using string_type = std::experimental::string_view;
-#else
-	using string_type = std::string const&;
-#endif
-	using return_type = std::string;
-	using vector_type = std::vector<return_type>;
-};
-
-#if defined(HOL_USE_STRING_VIEW)
-struct view
-{
-	using string_type = std::experimental::string_view;
-	using return_type = string_type;
-	using vector_type = std::vector<string_type>;
-};
-#endif
-
-#if defined(HOL_USE_GSL_SPAN)
-struct span
-{
-	using string_type = gsl::string_span<>;
-	using return_type = string_type;
-	using vector_type = std::vector<string_type>;
-};
-#endif
-
-/**
- * Generic class for trimming characters from the left and
- * right hand sides of a string. This class works differently
- * with different Mode parameters.
- * <pre>
- * Mode = mute (mutating)
- *     Accepts a std::string& parameter and modifies the
- *     passed in std::string, returning a reference to the
- *     same string.
- *
- * Mode = copy (copying)
- *     Accepts a string_view parameter and returns a std::string
- *     that is a copy of the passed in string_view, with the
- *     configured characters removed.
- */
-#if defined(HOL_USE_STRING_VIEW)
- /**
-  * Mode = view (viewing)
-  *     Accepts a string_view parameter and returns a string_view
-  *     that is a copy of the passed in string_view, with the
-  *     configured characters removed.
-  */
-#endif
-#if defined(HOL_USE_GSL_SPAN)
- /**
-  * Mode = span (spanning)
-  *     Accepts a gsl::string_span parameter and returns a string_span
-  *     that is a copy of the passed in string_span, with the
-  *     configured characters removed.
-  */
-#endif
-/**
- *
- * </pre>
- */
-template<typename Mode>
-class trimmer
-{
-	static_assert
-	(
-		   std::is_same<Mode, mute>::value
-		|| std::is_same<Mode, copy>::value
-#if defined(HOL_USE_STRING_VIEW)
-		|| std::is_same<Mode, view>::value
-#endif
-#if defined(HOL_USE_GSL_SPAN)
-		|| std::is_same<Mode, span>::value
-#endif
-		, "Mode template parameter must be mute, copy, view or span"
-	);
-
-public:
-	using mode = Mode;
-	using string_type = typename mode::string_type;
-	using return_type = typename mode::return_type;
-
-private:
-	static constexpr const char* const ws = " \t\n\r\f\v";
-	string shed_l = ws;
-	string shed_r = ws;
-
-	return_type left(string_type s, mute) const
-	{
-		s.erase(0, s.find_first_not_of(shed_l.c_str()));
-		return s;
-	}
-
-	return_type left(string_type s, view) const
-	{
-		if(auto pos = s.find_first_not_of(shed_l.c_str()) + 1)
-		{
-			s.remove_prefix(pos - 1);
-			return {s.data(), s.size()};
-		}
-		return {};
-	}
-
-	return_type left(string_type s, copy) const
-	{
-		return left(s, view());
-	}
-
-	return_type right(string_type s, mute) const
-	{
-		s.erase(s.find_last_not_of(shed_r.c_str()) + 1);
-		return s;
-	}
-
-	return_type right(string_type s, view) const
-	{
-		if(auto pos = s.find_last_not_of(shed_r.c_str()) + 1)
-			s.remove_suffix(s.size() - pos);
-		return {s.data(), s.size()};
-	}
-
-	return_type right(string_type s, copy) const
-	{
-		return right(s, view());
-	}
-
-public:
-
-	/**
-	 * Configure which characters will be removed from both the
-	 * left and the right of the string.
-	 * @param characters The characters to be removed.
-	 */
-	void remove(string const& characters) { shed_l = shed_r = characters; }
-
-	/**
-	 * Configure which characters will be removed from the
-	 * left the string.
-	 * @param characters The characters to be removed.
-	 */
-	void remove_from_left(string const& characters) { shed_l = characters; }
-
-	/**
-	 * Configure which characters will be removed from the
-	 * right the string.
-	 * @param characters The characters to be removed.
-	 */
-	void remove_from_right(string const& characters) { shed_r = characters; }
-
-	/**
-	 * Remove characters from the left of the string.
-	 * @param s The string to remove characters from.
-	 * @return The string with trimmed characters removed.
-	 */
-	return_type left(string_type s) const { return left(s, Mode()); }
-
-	/**
-	 * Remove characters from the right of the string.
-	 * @param s The string to remove characters from.
-	 * @return The string with trimmed characters removed.
-	 */
-	return_type right(string_type s) const { return right(s, Mode()); }
-
-	/**
-	 * Remove characters from the left and the right of the string.
-	 * @param s The string to remove characters from.
-	 * @return The string with trimmed characters removed.
-	 */
-	return_type round(string_type s) const { return left(right(s, Mode()), Mode()); }
-
-	return_type operator()(string_type s) const { return round(s); }
-};
-
-using trim_mutator = trimmer<mute>;
-using trim_copier = trimmer<copy>;
-#if defined(HOL_USE_STRING_VIEW)
-using trim_viewer = trimmer<view>;
-#endif
-#if defined(HOL_USE_GSL_SPAN)
-using trim_spanner = trimmer<span>;
-#endif
 
 // upper lower
 
@@ -277,170 +82,6 @@ std::string upper_copy(std::string s)
 {
 	return upper_mute(s);
 }
-
-// split
-
-template<typename Mode>
-class splitter
-{
-	static_assert
-	(
-		   std::is_same<Mode, copy>::value
-		|| std::is_same<Mode, view>::value
-//		|| std::is_same<Mode, span>::value
-		, "Mode template parameter must be copy, view or span"
-	);
-
-public:
-	using mode = Mode;
-	using string_type = std::experimental::string_view;
-	using vector_type = typename mode::vector_type;
-
-	struct config
-	{
-		bool fold = true;
-		bool strict = false;
-		std::size_t reserve = 20;
-		void fold_matches() { fold = true; }
-		void dont_fold_matches() { fold = false; }
-		void reserve_at_least(std::size_t reserve) { this->reserve = reserve; }
-	};
-
-	void configure(config const& cfg)
-	{
-		this->cfg = cfg;
-	}
-
-	config& configure()
-	{
-		return cfg;
-	}
-
-	config configuration() const { return cfg; }
-
-private:
-//	bool fold = true;
-//	bool strict = false;
-//	std::size_t reserve = 20;
-
-	config cfg;
-
-	template<typename Iterator, typename Comparator>
-	vector_type at(Iterator pos, Iterator done, Comparator cmp)
-	{
-		vector_type v;
-		v.reserve(cfg.reserve);
-
-		auto end = pos;
-
-		if(cfg.fold)
-		{
-			while((pos = std::find_if_not(end, done, cmp)) != done)
-			{
-				end = std::find_if(pos, done, cmp);
-				if(end > pos)
-					v.emplace_back(pos, end - pos);
-			}
-		}
-		else
-		{
-			while((end = std::find_if(pos, done, cmp)) != done)
-			{
-				if(end > pos)
-					v.emplace_back(pos, end - pos);
-				pos = end + 1;
-			}
-
-			if(pos != done)
-				v.emplace_back(pos, end - pos);
-		}
-
-		return v;
-	}
-
-	template<typename Comparator>
-	vector_type at(string_type s, Comparator cmp)
-	{
-		return at(s.data(), s.data() + s.size(), cmp);
-	}
-
-public:
-	void fold_matches() { cfg.fold_matches(); }
-	void dont_fold_matches() { cfg.dont_fold_matches(); }
-	void reserve_at_least(std::size_t reserve) { cfg.reserve_at_least(reserve); }
-
-	vector_type at_space(string_type s)
-	{
-		return at(s, std::ptr_fun<int, int>(std::isspace));
-	}
-
-	vector_type at_delim(string_type s, char delim)
-	{
-		return at(s, [delim](char c){return c == delim;});
-	}
-
-	vector_type at_delims(string_type s, string_view delims)
-	{
-		return at(s, [delims](char c){return delims.find(c) != string_view::npos;});
-	}
-
-	vector_type at_delim(string_type s, string_view delim)
-	{
-		if(delim.empty())
-			return {};
-
-		vector_type v;
-		v.reserve(cfg.reserve);
-
-		auto done = s.data() + s.size();
-		auto end = s.data();
-		auto pos = end;
-
-		while((end = std::search(pos, done, delim.begin(), delim.end())) != done)
-		{
-			if(end > pos)
-				v.emplace_back(pos, end - pos);
-			pos = end + delim.size();
-		}
-
-		if(pos != done)
-			if(end > pos)
-				v.emplace_back(pos, end - pos);
-
-		return v;
-	}
-
-	vector_type at_regex(string_type s, std::regex const& e)
-	{
-		vector_type v;
-		v.reserve(cfg.reserve);
-
-		auto pos = s.data();
-		auto end = pos + s.size();
-		std::cmatch m;
-
-		while(std::regex_search(pos, end, m, e))
-		{
-			if(!m.empty())
-				v.emplace_back(pos, m.position());
-			pos = pos + m.position() + m.length();
-		}
-
-		if(end > pos)
-			v.emplace_back(pos, end - pos);
-
-		return v;
-	}
-
-	vector_type at_regex(string_type s, string const& e)
-	{
-		return at_regex(s, std::regex(e));
-	}
-};
-
-using split_copier = splitter<copy>;
-using split_viewer = splitter<view>;
-//using split_spanner = splitter<span>;
 
 class output_separator
 {
@@ -532,8 +173,7 @@ inline std::string& trim_mute(std::string& s, const char* t = ws)
  */
 inline std::string trim_left_mute(std::string&& s, const char* t = ws)
 {
-	s.erase(0, s.find_first_not_of(t));
-	return s;
+	return trim_left_mute(s, t);
 }
 
 /**
@@ -545,8 +185,7 @@ inline std::string trim_left_mute(std::string&& s, const char* t = ws)
  */
 inline std::string trim_right_mute(std::string&& s, const char* t = ws)
 {
-	s.erase(s.find_last_not_of(t) + 1);
-	return s;
+	return trim_right_mute(s, t);
 }
 
 /**
@@ -575,6 +214,8 @@ inline std::string trim_copy(std::string s, const char* t = ws)
 {
 	return trim_mute(s, t);
 }
+
+#ifdef HOL_USE_STRING_VIEW
 //views
 inline string_view trim_left_view(string_view s, const char* t = ws)
 {
@@ -598,40 +239,36 @@ inline string_view trim_view(string_view s, const char* t = ws)
 	return trim_left_view(trim_right_view(s, t), t);
 }
 
-/**
- * Remove all leading characters of a given value
- * from a str.
- * @param s The string to be modified.
- * @param c The character value to delete.
- * @return The same string passed in as a parameter reference.
- */
+#endif
+
 inline std::string& trim_left_mute(std::string& s, char c)
 {
 	s.erase(0, s.find_first_not_of(c));
 	return s;
 }
 
-/**
- * Remove all trailing characters of a given value
- * from a str.
- * @param s The string to be modified.
- * @param c The character value to delete.
- * @return The same string passed in as a parameter reference.
- */
 inline std::string& trim_right_mute(std::string& s, char c)
 {
 	s.erase(s.find_last_not_of(c) + 1);
 	return s;
 }
 
-/**
- * Remove all surrounding characters of a given value
- * from a str.
- * @param s The string to be modified.
- * @param c The character value to delete.
- * @return The same string passed in as a parameter reference.
- */
 inline std::string& trim_mute(std::string& s, char c)
+{
+	return trim_left_mute(trim_right_mute(s, c), c);
+}
+
+inline std::string& trim_left_mute(std::string&& s, char c)
+{
+	return trim_left_mute(s, c);
+}
+
+inline std::string& trim_right_mute(std::string&& s, char c)
+{
+	return trim_right_mute(s, c);
+}
+
+inline std::string& trim_mute(std::string&& s, char c)
 {
 	return trim_left_mute(trim_right_mute(s, c), c);
 }
@@ -842,20 +479,19 @@ auto make_range(std::string const& s, std::regex const& e)
 // --------------------------------------------------------------------
 
 inline
-std::string load_file(const std::string& filepath, std::ios::openmode mode = std::ios::in)
+std::string load_file(const std::string& filepath)
 {
-	mode |= std::ios::in;
-	mode &= ~std::ios::out;
-
-	std::ifstream ifs(filepath, mode);
+	std::ifstream ifs(filepath, mode, std::ios::binary);
 
 	if(!ifs)
 		throw std::runtime_error(std::strerror(errno));
 
-	std::stringstream ss;
-	ss << ifs.rdbuf();
+	char buf[1024];
+	std::string s;
+	while(ifs.read(buf, sizeof(buf)))
+		s.append(buf,  ifs.gcount());
 
-	return ss.str();
+	return s;
 }
 
 } // hol

@@ -27,11 +27,14 @@
 #include <streambuf>
 #include <experimental/string_view>
 
-#include "../hol/bug.h"
+#include "bug.h"
 
 namespace hol {
 
 namespace ex = std::experimental;
+
+using string_view = ex::string_view;
+using wstring_view = ex::wstring_view;
 
 template<typename CharType>
 class basic_string_view_buf
@@ -56,7 +59,7 @@ public:
 				, const_cast<char_type*>(sv.data()) + sv.size());
 	}
 
-	string_view_type get_string_view() const { return sv; }
+	string_view_type string_view() const { return sv; }
 
 	void imbue(const std::locale& loc) override { this->loc = loc; }
 
@@ -136,7 +139,7 @@ public:
 		std::basic_istream<CharType>::rdbuf(&buf);
 	}
 
-	string_view_type get_string_view() const { return buf.get_string_view(); }
+	string_view_type string_view() const { return buf.string_view(); }
 
 };
 
@@ -150,11 +153,31 @@ using wstring_view_stream = basic_string_view_stream<wchar_t>;
 template<typename CharType>
 hol::basic_string_view_stream<CharType>& operator>>(hol::basic_string_view_stream<CharType>& isv, hol::ex::string_view& sv)
 {
-	sv = isv.get_string_view();
-	auto size = sv.size();
-	sv.remove_prefix(isv.tellg());
-	isv.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
-	sv.remove_suffix(isv.size() - isv.tellg());
+//	bug_fun();
+
+	auto pos = isv.tellg();
+	if(pos == isv.string_view().size())
+	{
+		isv.setstate(std::ios::eofbit);
+		return isv;
+	}
+
+//	bug_var(pos);
+//	bug_var(isv.string_view().substr(pos));
+
+	//isv.ignore(std::numeric_limits<std::streamsize>::max() - 1, ' ');
+
+	while(isv.tellg() != isv.string_view().size())
+		isv.ignore();
+
+//	bug_var(bool(isv));
+//	bug_var((isv.rdstate()&std::ios::goodbit));
+//	bug_var((isv.rdstate()&std::ios::badbit));
+//	bug_var((isv.rdstate()&std::ios::eofbit));
+//	bug_var((isv.rdstate()&std::ios::failbit));
+	sv = isv.string_view().substr(pos, isv.tellg() - pos -1);
+//	isv.clear();
+
 	return isv;
 }
 
