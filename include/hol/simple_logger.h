@@ -96,6 +96,12 @@ class log_out
 		return L >= level() && cfg.enabled ? cfg.out : nullptr;
 	}
 
+	template<typename Level>
+	static void set_enable(Level L, bool state)
+	{
+		config(L).enabled = state;
+	}
+
 public:
 	static void stream(std::ostream& os)
 	{
@@ -156,12 +162,6 @@ public:
 	static std::string format(LOG L)
 	{
 		return config(L).format;
-	}
-
-	template<typename Level>
-	static void set_enable(Level L, bool state)
-	{
-		config(L).enabled = state;
 	}
 
 	template<typename Level>
