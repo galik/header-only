@@ -3,6 +3,7 @@
 /*
  *  Created on: May 22, 2016
  *      Author: galik
+ *     Version: 1.0.0
  */
 
 #include <ctime>
@@ -235,18 +236,11 @@ public:
 
 	template<typename T>
 	Logger& operator<<(const T& v)
-//	Logger& print(const T& v)
 	{
 		ss << v;
 		return *this;
 	}
 };
-
-//template<typename T>
-//Logger operator<<(Logger&& logger, const T& v)
-//{
-//	return std::move(logger.print(v));
-//}
 
 template<typename T>
 Logger operator<<(const LOG& level, const T& v)
@@ -256,16 +250,4 @@ Logger operator<<(const LOG& level, const T& v)
 
 }} // hol::simple_logger
 
-//template<typename T>
-//hol::simple_logger::Logger operator<<(hol::simple_logger::Logger&& logger, const T& v)
-//{
-//	return std::move(logger.print(v));
-//}
-//
-//template<typename T>
-//hol::simple_logger::Logger operator<<(const hol::simple_logger::LOG& level, const T& v)
-//{
-//	return hol::simple_logger::Logger(level, v);
-//}
-//
 #endif // HOL_SIMPLE_LOGGER_H
