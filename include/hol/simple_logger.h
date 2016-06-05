@@ -5,8 +5,12 @@
  *      Author: galik
  */
 
-#include <iostream>
+#include <ctime>
+#include <mutex>
+#include <string>
 #include <iomanip>
+#include <sstream>
+#include <iostream>
 
 /**
  * Usage:
@@ -40,7 +44,7 @@ inline std::tm localtime_xp(std::time_t timer)
 	return bt;
 }
 
-enum class LOG: unsigned {I, W, E, X, COUNT};
+enum class LOG: unsigned {D, I, W, E, X, COUNT};
 
 constexpr auto COUNT = static_cast<unsigned>(LOG::COUNT);
 constexpr auto DEFAULT_FORMAT = "%F %T| ";
@@ -54,29 +58,28 @@ class log_out
 		short precision = -1;
 		bool boolalpha = true;
 		std::ostream* out = &std::cout;
-		std::string level;
+		std::string level_name;
 		std::string format = DEFAULT_FORMAT;
+		bool enabled = true;
 	};
 
 	static config_type& config(LOG L)
 	{
 		thread_local config_type cfg[COUNT] =
 		{
-			{-1,1,&std::cout,"I: "}
-		,	{-1,1,&std::cout,"W: "}
-		,	{-1,1,&std::cout,"E: "}
-		, 	{-1,1,&std::cout,"X: "}
+			  {-1, 1, &std::cout, "D: ", DEFAULT_FORMAT, true}
+			, {-1, 1, &std::cout, "I: ", DEFAULT_FORMAT, true}
+			, {-1, 1, &std::cout, "W: ", DEFAULT_FORMAT, true}
+			, {-1, 1, &std::cout, "E: ", DEFAULT_FORMAT, true}
+			, {-1, 1, &std::cout, "X: ", DEFAULT_FORMAT, true}
 		};
 		return cfg[static_cast<unsigned>(L)];
 	}
 
-//	static std::ostream* output(std::ostream* os = nullptr)
 	static void output(std::ostream* os = nullptr)
 	{
-		output(LOG::I, os);
-		output(LOG::W, os);
-		output(LOG::E, os);
-		output(LOG::X, os);
+		for(auto L = 0U; L < COUNT; ++L)
+			output(static_cast<LOG>(L), os);
 	}
 
 	static std::ostream* output(LOG L, std::ostream* os = nullptr)
@@ -90,21 +93,14 @@ class log_out
 				os->precision(cfg.precision);
 		}
 
-		return cfg.out;
+		return L >= level() && cfg.enabled ? cfg.out : nullptr;
 	}
 
 public:
-//	static void stream(std::ostream& os)
-//	{
-//		output(&os);
-//	}
-
 	static void stream(std::ostream& os)
 	{
-		output(LOG::I, &os);
-		output(LOG::W, &os);
-		output(LOG::E, &os);
-		output(LOG::X, &os);
+		for(auto L = 0U; L < COUNT; ++L)
+			output(static_cast<LOG>(L), &os);
 	}
 
 	static void stream(LOG L, std::ostream& os)
@@ -114,10 +110,8 @@ public:
 
 	static void precision(short precision)
 	{
-		log_out::precision(LOG::I, precision);
-		log_out::precision(LOG::W, precision);
-		log_out::precision(LOG::E, precision);
-		log_out::precision(LOG::X, precision);
+		for(auto L = 0U; L < COUNT; ++L)
+			log_out::precision(static_cast<LOG>(L), precision);
 	}
 
 	static void precision(LOG L, short precision)
@@ -126,22 +120,32 @@ public:
 		config(L).out->precision(precision);
 	}
 
-	static auto level(LOG L)
+	static auto level_name(LOG L)
 	{
-		return config(L).level;
+		return config(L).level_name;
 	}
 
-	static void level(LOG L, std::string level)
+	static void level_name(LOG L, std::string name)
 	{
-		config(L).level = level;
+		config(L).level_name = name;
+	}
+
+	static LOG level(LOG L = LOG::COUNT)
+	{
+		static LOG min_level = LOG::I;
+
+		auto level = min_level;
+
+		if(L != LOG::COUNT)
+			min_level = L;
+
+		return level;
 	}
 
 	static void format(const std::string& fmt = DEFAULT_FORMAT)
 	{
-		log_out::format(LOG::I, fmt);
-		log_out::format(LOG::W, fmt);
-		log_out::format(LOG::E, fmt);
-		log_out::format(LOG::X, fmt);
+		for(auto L = 0U; L < COUNT; ++L)
+			log_out::format(static_cast<LOG>(L), fmt);
 	}
 
 	static void format(LOG L, const std::string& fmt)
@@ -153,11 +157,43 @@ public:
 	{
 		return config(L).format;
 	}
+
+	template<typename Level>
+	static void set_enable(Level L, bool state)
+	{
+		config(L).enabled = state;
+	}
+
+	template<typename Level>
+	static void enable(Level L)
+	{
+		set_enable(L, true);
+	}
+
+	template<typename Level, typename... Levels>
+	static void enable(Level L, Levels... Ls)
+	{
+		enable(L);
+		enable(Ls...);
+	}
+
+	template<typename Level>
+	static void disable(Level L)
+	{
+		set_enable(L, false);
+	}
+
+	template<typename Level, typename... Levels>
+	static void disable(Level L, Levels... Ls)
+	{
+		disable(L);
+		disable(Ls...);
+	}
 };
 
 class Logger
 {
-	LOG ll;
+	LOG L;
 	std::stringstream ss;
 	std::ostream* out = nullptr;
 	const std::string fmt;
@@ -170,36 +206,47 @@ class Logger
 		return {buf, std::strftime(buf, sizeof(buf), fmt.c_str(), &bt)};
 	}
 
-	std::string level() const { return log_out::level(ll); }
+	std::string level_name() const { return log_out::level_name(L); }
 
 public:
 	Logger(Logger&& logger)
-	: ll(logger.ll), ss(std::move(logger.ss)), out(logger.out), fmt(logger.fmt)
+	: L(logger.L), ss(std::move(logger.ss)), out(logger.out), fmt(logger.fmt)
 	{
 		logger.out = nullptr;
 	}
 
 	template<typename T>
-	Logger(LOG level, const T& v): ll(level), out(log_out::output(level)), fmt(log_out::format(ll)) { ss << v; }
+	Logger(LOG level, const T& v)
+	: L(level), out(log_out::output(level)), fmt(log_out::format(L))
+	{
+		ss << v;
+	}
+
 	~Logger()
 	{
-		if(out)
-		{
-			if(log_out::config(ll).boolalpha)
-				(*out) << std::boolalpha;
-			(*out) << stamp() << level() << ss.str() << '\n';
-		}
+		if(!out)
+			return;
+
+		if(log_out::config(L).boolalpha)
+			(*out) << std::boolalpha;
+
+		(*out) << stamp() << level_name() << ss.str() << '\n';
 	}
 
 	template<typename T>
-	Logger& print(const T& v) { ss << v; return *this; }
+	Logger& operator<<(const T& v)
+//	Logger& print(const T& v)
+	{
+		ss << v;
+		return *this;
+	}
 };
 
-template<typename T>
-Logger operator<<(Logger&& logger, const T& v)
-{
-	return std::move(logger.print(v));
-}
+//template<typename T>
+//Logger operator<<(Logger&& logger, const T& v)
+//{
+//	return std::move(logger.print(v));
+//}
 
 template<typename T>
 Logger operator<<(const LOG& level, const T& v)
@@ -209,4 +256,16 @@ Logger operator<<(const LOG& level, const T& v)
 
 }} // hol::simple_logger
 
+//template<typename T>
+//hol::simple_logger::Logger operator<<(hol::simple_logger::Logger&& logger, const T& v)
+//{
+//	return std::move(logger.print(v));
+//}
+//
+//template<typename T>
+//hol::simple_logger::Logger operator<<(const hol::simple_logger::LOG& level, const T& v)
+//{
+//	return hol::simple_logger::Logger(level, v);
+//}
+//
 #endif // HOL_SIMPLE_LOGGER_H
