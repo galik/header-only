@@ -3,7 +3,7 @@
 /*
  *  Created on: May 22, 2016
  *      Author: galik
- *     Version: 1.0.0
+ *     Version: 1.1.0
  */
 
 #include <ctime>
@@ -52,19 +52,6 @@ enum class LOG: unsigned {D, I, W, E, X, COUNT};
 
 constexpr auto COUNT = static_cast<unsigned>(LOG::COUNT);
 constexpr auto DEFAULT_FORMAT = "%F %T| ";
-
-//template<typename LockType>
-//struct LockTrace
-//{
-//	LockType l;
-//	LockTrace() {bug_fun();bug_var(this);}
-//	LockTrace(std::shared_timed_mutex& mtx): l(mtx) {bug_fun();bug_var(this);}
-//	LockTrace(LockTrace&& lt): l(std::move(lt.l)) {bug_fun();bug_var(this);}
-//	~LockTrace() {bug_fun();bug_var(this);}
-//
-//	void lock() {bug_fun();bug_var(this); l.lock(); }
-//	void unlock() {bug_fun();bug_var(this); l.unlock(); }
-//};
 
 class log_out
 {
