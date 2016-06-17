@@ -23,8 +23,8 @@
 //
 
 // TODO: remove this when condition is
-// fully appled to all uses
-#define HOL_USE_STRING_VIEW
+// fully applied to all uses
+//#define HOL_USE_STRING_VIEW
 
 #include <regex>
 #include <string>
@@ -35,8 +35,6 @@
 #ifdef HOL_USE_STRING_VIEW
 #	include <experimental/string_view>
 #endif
-
-#include "stl.h"
 
 namespace hol {
 
@@ -380,12 +378,6 @@ std::vector<std::wstring> split(
 	return basic_split(s, delim, fold, strict);
 }
 
-inline
-auto make_range(std::string const& s, std::regex const& e)
-{
-	return hol::stl::make_range(std::sregex_iterator(s.begin(), s.end(), e), std::sregex_iterator());
-}
-
 // --------------------------------------------------------------------
 // string conversions
 // --------------------------------------------------------------------
@@ -481,7 +473,7 @@ auto make_range(std::string const& s, std::regex const& e)
 inline
 std::string load_file(const std::string& filepath)
 {
-	std::ifstream ifs(filepath, mode, std::ios::binary);
+	std::ifstream ifs(filepath, std::ios::binary);
 
 	if(!ifs)
 		throw std::runtime_error(std::strerror(errno));
