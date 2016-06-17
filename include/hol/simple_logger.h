@@ -1,10 +1,26 @@
 #ifndef HOL_SIMPLE_LOGGER_H
 #define HOL_SIMPLE_LOGGER_H
-/*
- *  Created on: May 22, 2016
- *      Author: galik
- *     Version: 1.1.0
- */
+//
+// Copyright (c) 2016 Galik <galik.bool@gmail.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+// of the Software, and to permit persons to whom the Software is furnished to do
+// so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
 
 #include <ctime>
 #include <mutex>
@@ -14,7 +30,7 @@
 #include <iostream>
 #include <shared_mutex>
 
-#include <hol/bug.h>
+//#include "bug.h"
 
 /**
  * Usage:
@@ -318,7 +334,7 @@ public:
 class Logger
 {
 	LOG L;
-	std::stringstream ss;
+	std::ostringstream ss;
 	log_out::config_type cfg;
 	decltype(log_out::lock_for_reading(LOG::COUNT)) lock;
 
@@ -344,6 +360,9 @@ public:
 			auto lock = log_out::lock_for_reading(L);
 			cfg = log_out::config(L);
 		}
+
+//		using std::operator<<;
+//		operator<<(dynamic_cast<std::ostream&>(ss), v);
 		ss << v;
 	}
 
@@ -370,13 +389,20 @@ public:
 		return *this;
 	}
 };
-
-template<typename T>
-Logger operator<<(const LOG& level, const T& v)
-{
-	return Logger(level, v);
-}
+//
+//template<typename T>
+//Logger operator<<(const LOG& level, const T& v)
+//{
+//	return Logger(level, v);
+//}
 
 }} // hol::simple_logger
+
+
+template<typename T>
+hol::simple_logger::Logger operator<<(const hol::simple_logger::LOG& level, const T& v)
+{
+	return hol::simple_logger::Logger(level, v);
+}
 
 #endif // HOL_SIMPLE_LOGGER_H
