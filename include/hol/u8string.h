@@ -23,6 +23,12 @@
 // SOFTWARE.
 //
 
+// ======================================
+// STATUS: experimental/unfinished
+//
+// Do not use
+//
+
 #include <array>
 #include <string>
 #include <cstring>
@@ -207,7 +213,7 @@ public:
 	char32_t char32() const { return char32(cp); }
 	unsigned char16(char16_pair& cp16) const { return char16(cp, cp16); }
 
-	bool operator==(const u8char& u8c) const { return u8c.size() == size() && !strncmp(u8c.cp, cp, size()); }
+	bool operator==(const u8char& u8c) const { return strncmp(u8c.cp, cp, size()); }
 	bool operator!=(const u8char& u8c) const { return !(*this == u8c); }
 
 	u8char& operator=(const char* cp) noexcept { assign(cp); return *this; }
