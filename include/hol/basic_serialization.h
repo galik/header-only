@@ -90,7 +90,7 @@ std::istream& deserialize(std::istream& is, std::string& s)
 	return is.read(&s[0], n);
 }
 
-}
+} // bin
 
 }} // hol::basic_serialization
 
