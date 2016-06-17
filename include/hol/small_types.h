@@ -91,9 +91,18 @@ using sofs = std::ofstream;      // (s)standard (o)utput (f)ile   (s)tream
 // while(std::getline(std::getline(is, key, '='), val)
 //     m[key] = val;
 //
+
 namespace functions {
-static const auto& sgl = static_cast<std::istream&(*)(std::istream&,std::string&,char)>(std::getline);
+
+inline std::istream& sgl(std::istream& i, std::string& s, char c = '\n')
+{
+	return std::getline(i, s, c);
 }
+inline std::istream& sgl(std::istream&& i, std::string& s, char c = '\n')
+{
+	return sgl(i, s, c);
+}
+} // functions
 
 } // files
 
