@@ -26,6 +26,11 @@
 #include <istream>
 #include <ostream>
 
+#include <list>
+#include <vector>
+
+#include "bug.h"
+
 namespace hol { namespace basic_serialization {
 
 namespace txt {
@@ -44,18 +49,72 @@ std::ostream& serialize(std::ostream& os, std::string const& s)
 template<typename T>
 std::istream& deserialize(std::istream& is, T& v)
 {
-	return is >> v;
+	is >> v;
+	return is;
 }
 
 std::istream& deserialize(std::istream& is, std::string& s)
 {
-	std::string::size_type n;
-
+	std::size_t n {};
 	if(!deserialize(is, n))
 		return is;
 
 	s.resize(n);
-	return is.read(&s[0], n);
+	return is.ignore().read(&s[0], n);
+}
+
+template<typename Container>
+std::ostream& serialize_container(std::ostream& os, Container& c)
+{
+	std::size_t n = c.size();
+	serialize(os, n);
+	for(auto const& v: c)
+		os << v;
+	return os;
+}
+
+template<typename Container>
+std::istream& deserialize_container(std::istream& is, Container& c)
+{
+	std::size_t n {};
+
+	if(!(is >> n))
+		return is;
+
+	c.clear();
+	std::insert_iterator<Container> ii(c, c.end());
+
+	typename Container::value_type v;
+
+	while(n--)
+		if(is >> v)
+			*ii++ = v;
+
+	return is;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, std::vector<T> const& c)
+{
+	return serialize_container(os, c);
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, std::list<T> const& c)
+{
+	return serialize_container(os, c);
+}
+
+template<typename T>
+std::istream& operator>>(std::istream& is, std::vector<T>& c)
+{
+	return deserialize_container(is, c);
+}
+
+template<typename T>
+std::istream& operator>>(std::istream& is, std::list<T>& c)
+{
+	return deserialize_container(is, c);
 }
 
 } // txt
@@ -81,13 +140,64 @@ std::istream& deserialize(std::istream& is, T& v)
 
 std::istream& deserialize(std::istream& is, std::string& s)
 {
-	std::string::size_type n;
-
+	std::size_t n {};
 	if(!deserialize(is, n))
 		return is;
 
 	s.resize(n);
 	return is.read(&s[0], n);
+}
+
+template<typename Container>
+std::ostream& serialize_container(std::ostream& os, Container& c)
+{
+	std::size_t n = c.size();
+	serialize(os, n);
+	for(auto const& v: c)
+		os << v;
+	return os;
+}
+
+
+template<typename Container>
+std::istream& deserialize_container(std::istream& is, Container& c)
+{
+	std::size_t n {};
+	if(!deserialize(is, n))
+		return is;
+
+	c.clear();
+	std::insert_iterator<Container> ii(c, c.end());
+
+	typename Container::value_type v;
+	while(n--)
+		if(is >> v)
+			*ii++ = v;
+	return is;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, std::vector<T> const& c)
+{
+	return serialize_container(os, c);
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, std::list<T> const& c)
+{
+	return serialize_container(os, c);
+}
+
+template<typename T>
+std::istream& operator>>(std::istream& is, std::vector<T>& c)
+{
+	return deserialize_container(is, c);
+}
+
+template<typename T>
+std::istream& operator>>(std::istream& is, std::list<T>& c)
+{
+	return deserialize_container(is, c);
 }
 
 } // bin
