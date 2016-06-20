@@ -22,6 +22,82 @@
 // SOFTWARE.
 //
 
+/**
+ * Basic Serialization Library
+ *
+ * Example usage:
+ *
+
+ #include <hol/bug.h>
+ #include <hol/basic_serialization.h>
+
+class MyType
+{
+	int value;
+	double factor;
+	std::string type;
+
+public:
+	MyType()
+	: value(0), factor(0.0), type("none") {}
+	MyType(int value, double factor, const std::string& type)
+	: value(value), factor(factor), type(type) {}
+
+	// Serialized output
+	friend std::ostream& operator<<(std::ostream& os, const MyType& m)
+	{
+		using namespace hol::basic_serialization::txt;
+		serialize(os, m.value);
+		serialize(os, m.factor);
+		serialize(os, m.type);
+		return os;
+	}
+
+	// Serialized input
+	friend std::istream& operator>>(std::istream& is, MyType& m)
+	{
+		using namespace hol::basic_serialization::txt;
+		deserialize(is, m.value);
+		deserialize(is, m.factor);
+		deserialize(is, m.type);
+		return is;
+	}
+};
+
+int main()
+{
+	std::vector<MyType> v {{ 1, 2.7, "one" }, { 4, 5.1, "two" }, { 3, 0.6, "three" }};
+
+	{
+		using namespace hol::basic_serialization::txt;
+		bug_cnt(v);
+	}
+
+	std::stringstream ss;
+
+	{
+		using namespace hol::basic_serialization::txt;
+		ss << v;
+	}
+
+	bug_var(ss.str());
+
+	std::vector<MyType> v2;
+
+	{
+		using namespace hol::basic_serialization::txt;
+		ss >> v2;
+	}
+
+	{
+		using namespace hol::basic_serialization::txt;
+		bug_cnt(v2);
+	}
+
+}
+ *
+ */
+
 #include <string>
 #include <istream>
 #include <ostream>
