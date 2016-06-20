@@ -168,8 +168,23 @@ public:
 	 * @param to Highest possible return value.
 	 * @return Random number in the range [from, to].
 	 */
-	Type get(Type from = std::numeric_limits<Type>::lowest()
-		, Type to = std::numeric_limits<Type>::max())
+//	Type get(Type from = std::numeric_limits<Type>::lowest()
+//		, Type to = std::numeric_limits<Type>::max())
+//	{
+//		return dist(gen, param_type{from, to});
+//	}
+
+	Type get()
+	{
+		return get(std::numeric_limits<Type>::lowest(), std::numeric_limits<Type>::max());
+	}
+
+	Type get(Type to)
+	{
+		return get(std::numeric_limits<Type>::min(), to);
+	}
+
+	Type get(Type from, Type to)
 	{
 		return dist(gen, param_type{from, to});
 	}
