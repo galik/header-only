@@ -1,5 +1,5 @@
-#ifndef HOL_STRING_UTILS_H
-#define HOL_STRING_UTILS_H
+#ifndef HOL_UNICODE_UTILS_H
+#define HOL_UNICODE_UTILS_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -142,4 +142,4 @@ std::wstring utf8_to_w(std::string const& utf8)
 
 } // hol
 
-#endif // HOL_STRING_UTILS_H
+#endif // HOL_UNICODE_UTILS_H
