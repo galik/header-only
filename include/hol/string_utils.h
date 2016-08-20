@@ -28,6 +28,9 @@
 
 #include <regex>
 #include <string>
+#include <vector>
+#include <locale>
+#include <codecvt>
 #include <cstring>
 #include <fstream>
 #include <sstream>
@@ -296,6 +299,7 @@ template
 >
 auto basic_split(
 	StringType const& s
+	, VectorType& v
 	, StringType2 const& delim_in
 	, bool fold = true
 	, bool strict = false) -> VectorType
@@ -305,7 +309,7 @@ auto basic_split(
 
 	StringType delim = delim_in;
 
-	VectorType v;
+//	VectorType v;
 //	v.reserve(reserve);
 
 	if(delim.empty())
@@ -347,6 +351,22 @@ auto basic_split(
 	return v;
 }
 
+template
+<
+	typename StringType = std::string
+	, typename StringType2 = std::string
+	, typename VectorType = std::vector<StringType>
+>
+auto basic_split(
+	StringType const& s
+	, StringType2 const& delim_in
+	, bool fold = true
+	, bool strict = false) -> VectorType
+{
+	VectorType v;
+	return basic_split(s, v, delim_in, fold, strict);
+}
+
 /**
  *
  * @param s The string that is to be divided into pieces surrounding
@@ -369,6 +389,17 @@ std::vector<std::string> split(
 }
 
 inline
+std::vector<std::string> split(
+	std::string const& s
+	, std::vector<std::string>& v
+	, std::string const& delim = " "
+	, bool fold = true
+	, bool strict = false)
+{
+	return basic_split(s, v, delim, fold, strict);
+}
+
+inline
 std::vector<std::wstring> split(
 	std::wstring const& s
 	, std::wstring const& delim = L" "
@@ -376,6 +407,17 @@ std::vector<std::wstring> split(
 	, bool strict = false)
 {
 	return basic_split(s, delim, fold, strict);
+}
+
+inline
+std::vector<std::wstring> split(
+	std::wstring const& s
+	, std::vector<std::wstring>& v
+	, std::wstring const& delim = L" "
+	, bool fold = true
+	, bool strict = false)
+{
+	return basic_split(s, v, delim, fold, strict);
 }
 
 // --------------------------------------------------------------------
@@ -485,6 +527,40 @@ std::string load_file(const std::string& filepath)
 
 	return s;
 }
+
+//std::string to_utf8(std::wstring w)
+//{
+//    return std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(w);
+//}
+//
+//std::wstring from_utf8(std::string s)
+//{
+//    return std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().from_bytes(s);
+//}
+
+/**
+ * Self-erasing buffer
+ */
+class secret
+{
+	std::vector<char> buff;
+
+	static void opaque_fill(char* data, std::size_t size)
+	{
+		std::fill(data, data + size, '\0');
+	}
+
+	// call through function pointer can't be optimized away
+	// because it can't be inlined
+	void (*fill)(char*, std::size_t) = &opaque_fill;
+
+public:
+	secret(std::size_t size): buff(size, '\0') {}
+	~secret() { fill(data(), size()); }
+
+	char* data() { return buff.data(); }
+	std::size_t size() { return buff.size(); }
+};
 
 } // hol
 

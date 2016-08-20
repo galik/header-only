@@ -58,10 +58,10 @@ using str_map = std::map<str, str>;
 
 namespace regex {
 
-using reg_itr = std::sregex_iterator;
-using creg_itr = std::cregex_iterator;
-static const reg_itr reg_itr_end{};
-static const creg_itr creg_itr_end{};
+using sreg_iter = std::sregex_iterator;
+using creg_iter = std::cregex_iterator;
+static const sreg_iter sreg_iter_end{};
+static const creg_iter creg_iter_end{};
 
 } // regex
 

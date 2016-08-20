@@ -248,6 +248,8 @@ public:
 	Handle release();
 	void reset();
 	void reset(Handle h);
+
+	operator bool() const { return owner; }
 };
 
 template<typename Handle, typename Cleaner>
@@ -277,6 +279,7 @@ unique_handle<Handle, Cleaner>::operator=(
 	this->h = handle.h;
 	this->owner = handle.owner;
 	handle.owner = false;
+	return *this;
 }
 
 template<typename Handle, typename Cleaner>

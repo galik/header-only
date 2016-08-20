@@ -26,6 +26,10 @@ Everything in this repository is released under the **MIT** license as follows:
 
 # The Library
 
+* `basic_serialization`
+
+This makes serializing simple objects easier by providing basic serialization functions.
+
 * `string_stream_view`
 
 This is a `std::istream` that wraps a `std::experimental::string_view` as its internal buffer.

@@ -42,6 +42,23 @@
  *
  */
 
+/**
+ * Configure
+ *
+ * 	LOG::E << "test the logger";
+ *
+ *	log_out::level_name(LOG::E, "ERROR: ");
+ *
+ *	LOG::E << "test the logger";
+ *
+ *	std::ofstream ofs("test.txt");
+ *
+ *	log_out::stream(ofs); // now logs to file
+ *
+ *	LOG::E << "test the logger";
+ *
+ */
+
 namespace hol { namespace simple_logger {
 
 /**
@@ -260,19 +277,39 @@ public:
 		return level;
 	}
 
-	static void format(const std::string& fmt = DEFAULT_FORMAT)
+	static void format_time(const std::string& fmt = DEFAULT_FORMAT)
 	{
 		for(auto L = 0U; L < COUNT; ++L)
-			format(static_cast<LOG>(L), fmt);
+			format_time_for(static_cast<LOG>(L), fmt);
 	}
 
-	static void format(LOG L, const std::string& fmt)
+	static void format_time_for(LOG L, const std::string& fmt)
 	{
 		auto lock = lock_for_writing(L);
 		config(L).format = fmt;
 	}
 
-	static std::string format(LOG L)
+	static void display_time_stamp()
+	{
+		format_time(DEFAULT_FORMAT);
+	}
+
+	static void display_time_stamp_for(LOG L)
+	{
+		format_time_for(L, DEFAULT_FORMAT);
+	}
+
+	static void turn_off_time_stamp()
+	{
+		format_time("");
+	}
+
+	static void turn_off_time_stamp_for(LOG L)
+	{
+		format_time_for(L, "");
+	}
+
+	static std::string time_format(LOG L)
 	{
 		auto lock = lock_for_reading(L);
 		return config(L).format;
@@ -397,7 +434,6 @@ public:
 //}
 
 }} // hol::simple_logger
-
 
 template<typename T>
 hol::simple_logger::Logger operator<<(const hol::simple_logger::LOG& level, const T& v)

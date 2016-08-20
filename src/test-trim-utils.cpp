@@ -24,6 +24,8 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
+#include <numeric>
 
 #include "test.h"
 #include "hol/utility_trimmers.h"
