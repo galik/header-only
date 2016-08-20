@@ -234,7 +234,6 @@ std::ostream& serialize_container(std::ostream& os, Container& c)
 	return os;
 }
 
-
 template<typename Container>
 std::istream& deserialize_container(std::istream& is, Container& c)
 {
