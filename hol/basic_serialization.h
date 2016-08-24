@@ -22,6 +22,27 @@
 // SOFTWARE.
 //
 
+// -- Current Version -------------------------------
+#define HOL_BASIC_SERIALIZATION_VERSION_MAJ 0
+#define HOL_BASIC_SERIALIZATION_VERSION_MIN 1
+#define HOL_BASIC_SERIALIZATION_VERSION_FIX 0
+
+#define HOL_BASIC_SERIALIZATION_VERSION \
+( \
+	HOL_BASIC_SERIALIZATION_VERSION_MAJ * 10000 \
+	+ HOL_BASIC_SERIALIZATION_VERSION_MIN * 100 \
+	+ HOL_BASIC_SERIALIZATION_VERSION_FIX \
+)
+// --------------------------------------------------
+
+// set default library version
+#ifndef HOL_USEING_BASIC_SERIALIZATION_VERSION
+#define HOL_USEING_BASIC_SERIALIZATION_VERSION HOL_BASIC_SERIALIZATION_VERSION
+#endif
+
+// version 0.1.0
+#if HOL_USEING_BASIC_SERIALIZATION_VERSION == 100
+
 /**
  * Basic Serialization Library
  *
@@ -276,7 +297,9 @@ std::istream& operator>>(std::istream& is, std::list<T>& c)
 }
 
 } // bin
+} // basic_serialization
+} // hol
 
-}} // hol::basic_serialization
+#endif // version 0.1.0 (100)
 
 #endif // HOL_BASIC_SERIALIZATION_H
