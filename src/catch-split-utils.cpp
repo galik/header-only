@@ -25,8 +25,8 @@
 
 #include <string>
 #include <vector>
-#include "hol/string_utils.h"
-#include "hol/utility_splitters.h"
+#include <hol/string_utils.h>
+#include <hol/experimental/utility_splitters.h>
 
 TEST_CASE("strings be splitted", "string_utils")
 {

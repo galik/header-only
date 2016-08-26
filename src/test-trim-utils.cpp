@@ -28,7 +28,7 @@
 #include <numeric>
 
 #include "test.h"
-#include "hol/utility_trimmers.h"
+#include <hol/experimental/utility_trimmers.h>
 
 using namespace hol;
 using namespace std::literals::string_literals;

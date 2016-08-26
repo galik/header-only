@@ -25,9 +25,9 @@
 
 #include <string>
 #include <vector>
-#include "hol/config.h"
-#include "hol/string_utils.h"
-#include "hol/utility_splitters.h"
+#include <hol/experimental/config.h>
+#include <hol/string_utils.h>
+#include <hol/experimental/utility_splitters.h>
 
 using str_vec = std::vector<std::string>;
 

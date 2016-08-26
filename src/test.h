@@ -33,7 +33,7 @@
 #include <experimental/filesystem>
 #include <experimental/string_view>
 
-#include "../include/hol/bug.h"
+#include <hol/bug.h>
 #define OUT_B(msg) do{std::cout << std::boolalpha << msg;}while(0)
 #define OUT(msg) do{std::cout << std::boolalpha << msg << std::endl;}while(0)
 #define OUT_E(msg) OUT(msg)

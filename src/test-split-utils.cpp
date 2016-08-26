@@ -30,8 +30,8 @@
 #include <algorithm>
 
 #include "test.h"
-#include "hol/utility_trimmers.h"
-#include "hol/utility_splitters.h"
+#include <hol/experimental/utility_trimmers.h>
+#include <hol/experimental/utility_splitters.h>
 
 using namespace hol;
 using namespace std::literals::string_literals;

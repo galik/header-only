@@ -56,7 +56,7 @@
 #include <stdexcept>
 #include <functional>
 
-#include "stl.h"
+//#include "stl.h"
 
 namespace hol {
 
@@ -94,7 +94,7 @@ struct scope_bomb{};
 
 #define bug_cnt(c) \
 	do{ \
-		std::cout << #c ": " << std::size(c) << std::endl; \
+		std::cout << #c ": " << c.size() << std::endl; \
 		int i=0; \
 		for(auto&& v_c:c) \
 			{bug((i<100?" ":"") << (i<10?" ":"") << i << ": " << v_c);++i;} \

@@ -43,6 +43,7 @@ namespace basic {
 
 using str = std::string;
 using siz = std::size_t;
+using uns = unsigned;
 
 } // basic
 
@@ -80,10 +81,9 @@ using sifs = std::ifstream;      // (s)standard (i)nput  (f)ile   (s)tream
 using sofs = std::ofstream;      // (s)standard (o)utput (f)ile   (s)tream
 
 // sometimes it is cumbersome to have long filenames for building
-// stream parsers
-// short names allows thing like
+// stream parsers, short names facilitate things like
 //
-// while(sgl(sgl(is, key, '='), val)
+// while(sgl(sgl(is, key, '='), val))
 //     m[key] = val;
 //
 // rather than
@@ -102,10 +102,10 @@ inline std::istream& sgl(std::istream&& i, std::string& s, char c = '\n')
 {
 	return sgl(i, s, c);
 }
+
 } // functions
-
-} // files
-
-}} // hol::small_types
+} // ios
+} // small_types
+} // hol
 
 #endif // HOL_SMALL_TYPES_H

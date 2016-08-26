@@ -51,25 +51,10 @@ public:
 		return o << std::fixed << std::setprecision(timer.precision) << timer.secs();
 	}
 
-	auto nsecs() const
-	{
-		return timer.nsecs();
-	}
-
-	double usecs() const
-	{
-		return timer.nsecs() / 1000.0;
-	}
-
-	double msecs() const
-	{
-		return timer.nsecs() / 1000000.0;
-	}
-
-	double secs() const
-	{
-		return timer.nsecs() / 1000000000.0;
-	}
+	auto   nsecs() const { return timer.nsecs(); }
+	double usecs() const { return timer.nsecs() / 1000.0; }
+	double msecs() const { return timer.nsecs() / 1000000.0; }
+	double  secs() const { return timer.nsecs() / 1000000000.0; }
 };
 
 class StdTimerImpl
