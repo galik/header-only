@@ -127,7 +127,7 @@ int main()
 #include <list>
 #include <vector>
 
-#include "bug.h"
+//#include "bug.h"
 
 namespace hol { namespace basic_serialization {
 
@@ -142,10 +142,10 @@ struct serialized_ptr
 
 	bool operator<(serialized_ptr const& r) const { return ptr < r.ptr; }
 
-	friend std::ostream& operator<<(std::ostream& s, serialized_ptr const& r)
-	{
-		return s << '{' << r.ptr << ", " << r.id << '}';
-	}
+//	friend std::ostream& operator<<(std::ostream& s, serialized_ptr const& r)
+//	{
+//		return s << '{' << r.ptr << ", " << r.id << '}';
+//	}
 };
 
 class serialization_context
@@ -176,7 +176,6 @@ public:
 		}
 
 		id = m.emplace(ptr, n++).first->id;
-
 		return false;
 	}
 
@@ -241,7 +240,7 @@ std::istream& deserialize(std::istream& is, T& v)
 inline
 std::istream& deserialize(std::istream& is, std::string& s)
 {
-	std::size_t n {};
+	std::size_t n;
 	if(!deserialize(is, n))
 		return is;
 
@@ -262,8 +261,7 @@ std::ostream& serialize_container(std::ostream& os, Container& c)
 template<typename Container>
 std::istream& deserialize_container(std::istream& is, Container& c)
 {
-	std::size_t n {};
-
+	std::size_t n;
 	if(!(is >> n))
 		return is;
 
@@ -286,6 +284,12 @@ std::ostream& operator<<(std::ostream& os, std::vector<T> const& c)
 }
 
 template<typename T>
+std::ostream& operator<<(std::ostream& os, std::deque<T> const& c)
+{
+	return serialize_container(os, c);
+}
+
+template<typename T>
 std::ostream& operator<<(std::ostream& os, std::list<T> const& c)
 {
 	return serialize_container(os, c);
@@ -293,6 +297,12 @@ std::ostream& operator<<(std::ostream& os, std::list<T> const& c)
 
 template<typename T>
 std::istream& operator>>(std::istream& is, std::vector<T>& c)
+{
+	return deserialize_container(is, c);
+}
+
+template<typename T>
+std::istream& operator>>(std::istream& is, std::deque<T>& c)
 {
 	return deserialize_container(is, c);
 }
