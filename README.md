@@ -46,4 +46,125 @@ This is basic string manipulation functions like `trim()`.
 
 This is basic random number functions
 
+##Basic Serialization
 
+Simple object serialization in both text and binary mode
+
+Example usage:
+
+```cpp
+#include <hol/bug.h>
+#include <hol/basic_serialization.h>
+
+struct OtherType
+{
+	class SerializeMe* sm;
+	int i1;
+	int i2;
+
+	OtherType(): sm(nullptr), i1(1), i2(2) {}
+
+	friend std::ostream& operator<<(std::ostream& s, OtherType const& me)
+	{
+		using namespace hol::basic_serialization::txt;
+		serialize_ptr(s, me.sm);
+		serialize(s, me.i1);
+		serialize(s, me.i2);
+
+		return s;
+	}
+
+	friend std::istream& operator>>(std::istream& s, OtherType& me)
+	{
+		using namespace hol::basic_serialization::txt;
+		deserialize_ptr(s, me.sm);
+		deserialize(s, me.i1);
+		deserialize(s, me.i2);
+
+		return s;
+	}
+};
+
+struct SerializeMe
+{
+	int i;
+	OtherType* otp1;
+	std::string s;
+	OtherType* otp2;
+
+	friend std::ostream& operator<<(std::ostream& s, SerializeMe const& me)
+	{
+		using namespace hol::basic_serialization::txt;
+		serialize(s, me.i);
+		serialize_ptr(s, me.otp1);
+		serialize(s, me.s);
+		serialize_ptr(s, me.otp2);
+
+		return s;
+	}
+
+	friend std::istream& operator>>(std::istream& s, SerializeMe& me)
+	{
+		using namespace hol::basic_serialization::txt;
+		deserialize(s, me.i);
+		deserialize_ptr(s, me.otp1);
+		deserialize(s, me.s);
+		deserialize_ptr(s, me.otp2);
+
+		return s;
+	}
+};
+
+int main()
+{
+	SerializeMe me;
+	me.i = 4;
+	me.s = "hello";
+	me.otp1 = new OtherType;
+	me.otp2 = new OtherType;
+	me.otp1->sm = &me;
+	if(me.otp1)
+	{
+		me.otp1->i1 = 3;
+		me.otp1->i2 = 5;
+	}
+	if(me.otp2)
+	{
+		me.otp2->i1 = 6;
+		me.otp2->i2 = 12;
+	}
+	
+	std::stringstream ss;
+
+	using namespace hol::basic_serialization::txt;
+	serialization_init();
+	ss << me;
+
+	bug_var(ss.str());
+
+	SerializeMe you;
+
+	using namespace hol::basic_serialization::txt;
+	serialization_init();
+	ss >> you;
+
+	bug_var(you.i);
+	bug_var(you.s);
+	if(me.otp1)
+	{
+		bug_var(you.otp1->i1);
+		bug_var(you.otp1->i2);
+	}
+	if(me.otp2)
+	{
+		bug_var(you.otp2->i1);
+		bug_var(you.otp2->i2);
+	}
+
+	bug_var(you.otp1->sm->i);
+	bug_var(you.otp1->sm->s);
+
+	bug_var(you.otp1->sm->otp1->i1);
+	bug_var(you.otp1->sm->otp2);
+}
+```
