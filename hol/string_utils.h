@@ -27,9 +27,11 @@
 //#define HOL_USE_STRING_VIEW
 
 #include <regex>
+#include <cerrno>
 #include <string>
 #include <vector>
 #include <locale>
+#include <cstdlib> // std::strtol
 #include <codecvt>
 #include <cstring>
 #include <fstream>
@@ -45,16 +47,51 @@ namespace hol {
 using string_view = std::experimental::string_view;
 #endif
 
-inline
-std::string& replace_all(std::string& s, const std::string& from, const std::string& to)
+// replace_all
+
+//inline
+//std::string& replace_all(std::string& s, const std::string& from, const std::string& to)
+//{
+//	if(!from.empty())
+//		for(size_t pos = 0; (pos = s.find(from, pos)) != std::string::npos; pos += to.size())
+//			s.replace(pos, from.size(), to);
+//	return s;
+//}
+
+template<typename CharT>
+std::basic_string<CharT>& replace_all(
+	std::basic_string<CharT>& s,
+	const std::basic_string<CharT>& from,
+	const std::basic_string<CharT>& to)
 {
 	if(!from.empty())
-		for(size_t pos = 0; (pos = s.find(from, pos)) != std::string::npos; pos += to.size())
+	{
+		std::size_t pos = 0;
+		while((pos = s.find(from, pos)) != std::basic_string<CharT>::npos)
+		{
 			s.replace(pos, from.size(), to);
+			pos += to.size();
+		}
+	}
 	return s;
 }
 
-// upper lower
+inline
+std::string& replace_all(std::string& s,
+	const std::string& from, const std::string& to)
+{
+	return replace_all<char>(s, from, to);
+}
+
+
+inline
+std::wstring& replace_all(std::wstring& s,
+	const std::wstring& from, const std::wstring& to)
+{
+	return replace_all<wchar_t>(s, from, to);
+}
+
+// upper and lower
 
 inline
 std::string& lower_mute(std::string& s)
@@ -84,42 +121,169 @@ std::string upper_copy(std::string s)
 	return upper_mute(s);
 }
 
-class output_separator
+constexpr char const* generic_empty_string(char)
 {
-	char const* init;
-	char const* s;
-	char const* const next;
+	return "";
+}
+
+constexpr wchar_t const* generic_empty_string(wchar_t)
+{
+	return L"";
+}
+
+constexpr char const* generic_space(char)
+{
+	return " ";
+}
+
+constexpr wchar_t const* generic_space(wchar_t)
+{
+	return L" ";
+}
+
+/**
+ * Usage:
+ *
+ * output_separator sep;
+ *
+ * for(auto const& s: v)
+ *     std::cout << sep << s;
+ * std::cout << '\n';
+ *
+ */
+template<typename CharT>
+class basic_output_separator
+{
+	CharT const* init;
+	CharT const* s;
+	CharT const* next;
 
 public:
-	output_separator(): init(""), s(init), next(" ") {}
-	output_separator(char const* next): init(""), s(init), next(next) {}
-	output_separator(char const* init, char const* next): init(init), s(init), next(next) {}
-	output_separator(output_separator const& sep): s(sep.s), next(sep.next) {}
+	basic_output_separator(): init(generic_empty_string(CharT())), s(init), next(generic_space(CharT())) {}
+	basic_output_separator(CharT const* next): init(generic_empty_string(CharT())), s(init), next(next) {}
+	basic_output_separator(CharT const* init, CharT const* next): init(init), s(init), next(next) {}
+	basic_output_separator(basic_output_separator const& sep): s(sep.s), next(sep.next) {}
 
-	friend std::ostream& operator<<(std::ostream& os, output_separator& sep)
+	template<typename CharU>
+	friend std::basic_ostream<CharU>& operator<<(std::basic_ostream<CharU>& os,
+		basic_output_separator<CharU>& sep)
 	{
 		os << sep.s;
 		sep.s = sep.next;
 		return os;
 	}
 
-	friend std::string operator+(std::string const& s, output_separator& sep)
+	/**
+	 * The first time this is called after construction or calling reset()
+	 * this function appends the output_separator's initial state to the string,
+	 * thereafter the second state is appended. By  default the initial state is
+	 * empty and the second state is a single space.
+	 *
+	 * @param s The std::string to be appended to
+	 * @param sep The output_separator object to be appended to the string.
+	 * @return A new std::string with the first or second state of the
+	 * output_separator appended to the input std::string
+	 */
+	template<typename CharU>
+	friend std::basic_string<CharU> operator+(std::basic_string<CharU> const& s,
+		basic_output_separator<CharU>& sep)
 	{
-		std::string r = s + sep.s;
+		std::basic_string<CharU> r = s + sep.s;
 		sep.s = sep.next;
 		return r;
 	}
 
-	friend std::string operator+(output_separator& sep, std::string const& s)
+	/**
+	 * The first time this is called after construction or calling reset()
+	 * this function prepends the output_separator's initial state to the string,
+	 * thereafter the second state is prepended. By  default the initial state is
+	 * empty and the second state is a single space.
+	 *
+	 * @param s The std::string to be prepended to
+	 * @param sep The output_separator object to be prepended to the string.
+	 * @return A new std::string with the first or second state of the
+	 * output_separator prepended to the input std::string
+	 */
+	template<typename CharU>
+	friend std::basic_string<CharU> operator+(basic_output_separator<CharU>& sep,
+		std::basic_string<CharU> const& s)
 	{
-		std::string r = sep.s + s;
+		std::basic_string<CharU> r = sep.s + s;
 		sep.s = sep.next;
 		return r;
 	}
 
+	/**
+	 * The first time this is called after construction or calling reset()
+	 * this function appends the output_separator's initial state to the string,
+	 * thereafter the second state is appended. By  default the initial state is
+	 * empty and the second state is a single space.
+	 *
+	 * @param s The std::string to be appended to
+	 * @param sep The output_separator object to be appended to the string.
+	 * @return A new std::string with the first or second state of the
+	 * output_separator appended to the input std::string
+	 */
+	template<typename CharU>
+	friend std::basic_string<CharU> operator+(CharU const* s,
+		basic_output_separator<CharU>& sep)
+	{
+		std::basic_string<CharT> r{s};
+		r += sep.s;
+		sep.s = sep.next;
+		return r;
+	}
+
+	/**
+	 * The first time this is called after construction or calling reset()
+	 * this function prepends the output_separator's initial state to the string,
+	 * thereafter the second state is prepended. By  default the initial state is
+	 * empty and the second state is a single space.
+	 *
+	 * @param s The std::string to be prepended to
+	 * @param sep The output_separator object to be prepended to the string.
+	 * @return A new std::string with the first or second state of the
+	 * output_separator prepended to the input std::string
+	 */
+	template<typename CharU>
+	friend std::basic_string<CharU> operator+(basic_output_separator<CharU>& sep,
+		CharU const* s)
+	{
+		std::basic_string<CharU> r{sep.s};
+		r += s;
+		sep.s = sep.next;
+		return r;
+	}
+
+	/**
+	 * Reset the optput_separator to its initial state so that
+	 * the next output function will receive the initial state and
+	 * thereafter the second state.
+	 */
 	void reset() { this->s = init; }
-	void reset(char const* s) { this->s = init = s; }
+
+	/**
+	 * Reset the optput_separator to a new initial state `init` so that
+	 * the next output function will receive the new initial state and
+	 * thereafter the previously configured second state.
+	 */
+	void reset(CharT const* init) { this->s = this->init = init; }
+
+	/**
+	 * Reset the optput_separator to a new initial state `init` and
+	 * with a new second state `ext` so that the next output function
+	 * will receive the new initial state and
+	 * thereafter the newly configured second state.
+	 */
+	void reset(CharT const* init, CharT const* next)
+	{
+		this->s = this->init = init;
+		this->next = next;
+	}
 };
+
+using output_separator = basic_output_separator<char>;
+using woutput_separator = basic_output_separator<wchar_t>;
 
 // trimming functions
 
@@ -510,22 +674,51 @@ std::vector<std::wstring> split(
 //	return s_to_test(s.c_str(), end);
 //}
 
+long strtol_safe(const char* ptr, const char*& end, int base)
+{
+	return std::strtol(ptr, const_cast<char**>(&end), base);
+}
+
 // --------------------------------------------------------------------
 
-inline
-std::string load_file(const std::string& filepath)
+//inline
+//std::string load_file(const std::string& filepath)
+//{
+//	std::ifstream ifs(filepath, std::ios::binary);
+//
+//	if(!ifs)
+//		throw std::runtime_error(std::strerror(errno));
+//
+//	char buf[1024];
+//	std::string s;
+//	while(ifs.read(buf, sizeof(buf)))
+//		s.append(buf,  ifs.gcount());
+//
+//	return s;
+//}
+
+template<std::size_t N, typename CharT = char, typename Alloc = std::allocator<CharT>>
+std::vector<CharT, Alloc> load_file(std::string const& filepath)
 {
-	std::ifstream ifs(filepath, std::ios::binary);
+	std::basic_ifstream<CharT> ifs(filepath, std::ios::binary|std::ios::ate);
 
 	if(!ifs)
 		throw std::runtime_error(std::strerror(errno));
 
-	char buf[1024];
-	std::string s;
-	while(ifs.read(buf, sizeof(buf)))
-		s.append(buf,  ifs.gcount());
+	std::vector<CharT, Alloc> v;
+	v.reserve(ifs.tellg());
+	ifs.seekg(0);
 
-	return s;
+	for(CharT buf[N]; ifs.read(buf, N);)
+		v.insert(v.end(), buf,  buf + ifs.gcount());
+
+	return v;
+}
+
+template<typename CharT = char, typename Alloc = std::allocator<CharT>>
+std::vector<CharT, Alloc> load_file(std::string const& filepath)
+{
+	return load_file<2048, CharT,Alloc>(filepath);
 }
 
 //std::string to_utf8(std::wstring w)
