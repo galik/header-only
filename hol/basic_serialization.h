@@ -123,6 +123,7 @@ int main()
 #include <istream>
 #include <ostream>
 
+#include <set>
 #include <list>
 #include <vector>
 
@@ -130,7 +131,93 @@ int main()
 
 namespace hol { namespace basic_serialization {
 
+namespace detail {
+
+struct serialized_ptr
+{
+	void* ptr;
+	std::size_t id;
+
+	serialized_ptr(void* ptr, std::size_t id): ptr(ptr), id(id) {}
+
+	bool operator<(serialized_ptr const& r) const { return ptr < r.ptr; }
+
+	friend std::ostream& operator<<(std::ostream& s, serialized_ptr const& r)
+	{
+		return s << '{' << r.ptr << ", " << r.id << '}';
+	}
+};
+
+class serialization_context
+{
+	std::size_t n = 0;
+	std::set<serialized_ptr> m;
+
+public:
+
+	void start() { clear(); }
+	void clear() { m.clear(); n = 0; }
+
+	/**
+	 *
+	 * @param ptr
+	 * @param pos
+	 * @return true - a previous pointer was found else false
+	 */
+	bool push(void* ptr, std::size_t& id)
+	{
+		auto found = std::find_if(m.begin(), m.end(),
+			[ptr](serialized_ptr const& r){return r.ptr == ptr;});
+
+		if(found != m.end())
+		{
+			id = found->id;
+			return true;
+		}
+
+		id = m.emplace(ptr, n++).first->id;
+
+		return false;
+	}
+
+	void push(void* ptr)
+	{
+		m.emplace(ptr, n++);
+	}
+
+	bool pull(std::size_t id, void*& ptr)
+	{
+		auto found = std::find_if(m.begin(), m.end(),
+			[id](serialized_ptr const& r){return r.id == id;});
+
+		if(found != m.end())
+		{
+			ptr = found->ptr;
+			return true;
+		}
+
+		return false;
+	}
+};
+
+inline
+serialization_context& get_serialization_ctx()
+{
+	thread_local static serialization_context ctx;
+	return ctx;
+}
+
+inline
+void serialization_init()
+{
+	get_serialization_ctx().start();
+}
+
+} // detail
+
 namespace txt {
+
+using detail::serialization_init;
 
 template<typename T>
 std::ostream& serialize(std::ostream& os, T const& v)
@@ -138,6 +225,7 @@ std::ostream& serialize(std::ostream& os, T const& v)
 	return os << ' ' << v;
 }
 
+inline
 std::ostream& serialize(std::ostream& os, std::string const& s)
 {
 	return (serialize(os, s.size()) << ' ').write(s.data(), s.size());
@@ -150,6 +238,7 @@ std::istream& deserialize(std::istream& is, T& v)
 	return is;
 }
 
+inline
 std::istream& deserialize(std::istream& is, std::string& s)
 {
 	std::size_t n {};
@@ -212,6 +301,53 @@ template<typename T>
 std::istream& operator>>(std::istream& is, std::list<T>& c)
 {
 	return deserialize_container(is, c);
+}
+
+template<typename Ptr>
+std::ostream& serialize_ptr(std::ostream& s, const Ptr& ptr)
+{
+	std::size_t pos;
+	if(!ptr)
+		serialize(s, 'N');
+	else if(detail::get_serialization_ctx().push(ptr, pos))
+		serialize(serialize(s, 'R'), pos);
+	else
+		serialize(serialize(s, 'P'), *ptr);
+
+	return s;
+}
+
+template<typename Ptr>
+std::istream& deserialize_ptr(std::istream& s, Ptr& ptr)
+{
+	char c;
+	deserialize(s, c);
+
+	if(c == 'N')
+		ptr = nullptr;
+	else if(c == 'P')
+	{
+		ptr = new typename std::remove_pointer<Ptr>::type;
+		detail::get_serialization_ctx().push(ptr);
+		deserialize(s, *ptr);
+	}
+	else if(c == 'R')
+	{
+		std::size_t pos;
+		deserialize(s, pos);
+
+		void* vp;
+		if(!detail::get_serialization_ctx().pull(pos, vp))
+			throw std::runtime_error("deserialization error, pointer not found");
+
+		ptr = (Ptr) vp;
+	}
+	else
+	{
+		throw std::runtime_error("deserialization error, expected reference");
+	}
+
+	return s;
 }
 
 } // txt
