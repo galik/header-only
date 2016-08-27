@@ -20,6 +20,9 @@
 // SOFTWARE.
 //
 
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
+
 #include <regex>
 #include <cctype>
 #include <iomanip>
@@ -33,138 +36,149 @@
 #include <hol/random_utils.h>
 #include <hol/basic_serialization.h>
 
-class Serial
+TEST_CASE("Basic Serialization [txt]", "[basic types]")
 {
-public:
-	int i;
-	long l;
-	std::string s;
-	double d;
+	using namespace hol::basic_serialization::txt;
 
-public:
-	Serial()
-	: i(0), l(0), s(""), d(0) {}
-	Serial(int i, long l, std::string const& s, double d)
-	: i(i), l(l), s(s), d(d) {}
-
-	bool operator==(Serial const& v) const
+	SECTION("positive ints")
 	{
-//		return i == v.i && l == v.l && s == v.s && d == v.d;
-		return i == v.i && l == v.l && s == v.s;
-	}
-
-	friend std::ostream& operator<<(std::ostream& os, Serial const& s)
-	{
-//		using namespace hol::basic_serialization::bin;
-		using namespace hol::basic_serialization::txt;
-
-		serialize(os, s.i);
-		serialize(os, s.l);
-		serialize(os, s.s);
-		serialize(os, s.d);
-		return os;
-	}
-	friend std::istream& operator>>(std::istream& is, Serial& s)
-	{
-//		using namespace hol::basic_serialization::bin;
-		using namespace hol::basic_serialization::txt;
-
-		deserialize(is, s.i);
-		deserialize(is, s.l);
-		deserialize(is, s.s);
-		deserialize(is, s.d);
-		return is;
-	}
-};
-
-Serial random_serial()
-{
-	thread_local static std::mt19937 mt{std::random_device{}()};
-	thread_local static std::uniform_int_distribution<int> uid{0, 30};
-	thread_local static std::uniform_int_distribution<long> uld{0, 90};
-	thread_local static std::uniform_real_distribution<double> udd{0.0, 1.0};
-	return {uid(mt), uld(mt), "stuff", udd(mt)};
-}
-
-template<typename Numeric>
-std::vector<Numeric> get_random_data(const size_t n, const Numeric from, const Numeric to)
-{
-	thread_local static hol::PRNG<Numeric> prng;
-	std::vector<Numeric> v(n);
-	std::generate(v.begin(), v.end(), [&]{return prng.get(from, to);});
-	return v;
-}
-
-enum
-{
-	a_char,
-	a_short,
-	a_int,
-	a_long,
-	a_longlong,
-	a_float,
-	a_double,
-	a_longdouble,
-	a_size,
-};
-
-int main()
-{
-	try
-	{
-		hol::PRNG_32U rng;
+		short s = 1;
+		int i = 2;
+		long l = 3;
+		long long ll = 4;
 
 		std::stringstream ss;
 
-		switch(rng.get(a_size))
-		{
-//			case a_char: serialize(ss, )
-		}
+		serialize(ss, s);
+		REQUIRE(ss.str() == " 1");
 
+		serialize(ss, i);
+		REQUIRE(ss.str() == " 1 2");
 
+		serialize(ss, l);
+		REQUIRE(ss.str() == " 1 2 3");
 
-		return 0;
+		serialize(ss, ll);
+		REQUIRE(ss.str() == " 1 2 3 4");
 
+		REQUIRE(deserialize(ss, ll));
+		REQUIRE(ll == 1);
 
-		std::vector<Serial> v;
-		for(int i = 0; i < 10; ++i)
-			v.push_back(random_serial());
+		REQUIRE(deserialize(ss, l));
+		REQUIRE(l == 2);
 
-		{
-			using namespace hol::basic_serialization::txt;
-			std::cout << v << '\n';
-		}
+		REQUIRE(deserialize(ss, i));
+		REQUIRE(i == 3);
 
-		{
-	//		using namespace hol::basic_serialization::bin;
-			using namespace hol::basic_serialization::txt;
-			ss << v;
-		}
-
-		std::list<Serial> l;
-
-		{
-	//		using namespace hol::basic_serialization::bin;
-			using namespace hol::basic_serialization::txt;
-			ss >> l;
-		}
-
-		bug("----------------------------");
-
-		{
-			using namespace hol::basic_serialization::txt;
-			std::cout << l << '\n';
-		}
-
-		std::cout << std::boolalpha << ' ' << std::equal(v.begin(), v.end(), l.begin()) << '\n';
+		REQUIRE(deserialize(ss, s));
+		REQUIRE(s == 4);
 	}
-	catch(const std::exception& e)
+
+	SECTION("negative ints")
 	{
-		ERR(e.what());
+		short s = -1;
+		int i = -2;
+		long l = -3;
+		long long ll = -4;
+
+		std::stringstream ss;
+
+		serialize(ss, s);
+		REQUIRE(ss.str() == " -1");
+
+		serialize(ss, i);
+		REQUIRE(ss.str() == " -1 -2");
+
+		serialize(ss, l);
+		REQUIRE(ss.str() == " -1 -2 -3");
+
+		serialize(ss, ll);
+		REQUIRE(ss.str() == " -1 -2 -3 -4");
+
+		deserialize(ss, ll);
+		REQUIRE(ll == -1);
+
+		deserialize(ss, l);
+		REQUIRE(l == -2);
+
+		deserialize(ss, i);
+		REQUIRE(i == -3);
+
+		deserialize(ss, s);
+		REQUIRE(s == -4);
 	}
-	catch(...)
+
+	SECTION("floats")
 	{
-		ERR("Unknown exception thrown");
+		float f = 0.3f;
+		double d = 0.5;
+
+		std::stringstream ss;
+
+		serialize(ss, f);
+		REQUIRE(ss.str() == " 0.3");
+
+		serialize(ss, d);
+		REQUIRE(ss.str() == " 0.3 0.5");
+	}
+
+	SECTION("std::string")
+	{
+		std::string s = "serialize me";
+
+		std::stringstream ss;
+
+		serialize(ss, s);
+		REQUIRE(ss.str() == " 12 serialize me");
+
+		deserialize(ss, s);
+		REQUIRE(s == "serialize me");
+
+		ss.str("");
+		s = "";
+
+		serialize(ss, s);
+		REQUIRE(ss.str() == " 0 ");
+
+		deserialize(ss, s);
+		REQUIRE(s.empty());
+	}
+
+	SECTION("std::pair")
+	{
+		std::pair<std::string, int> p;
+
+		std::stringstream ss;
+
+		p = {"P", 3};
+
+		serialize(ss, p);
+		REQUIRE(ss.str() == " 1 P 3");
+
+		std::pair<const std::string, int> cp {"CP", 9};
+
+		ss.str("");
+
+		serialize(ss, cp);
+		REQUIRE(ss.str() == " 2 CP 9");
+	}
+
+	SECTION("std::map")
+	{
+		std::map<std::string, int> m;
+
+		std::stringstream ss;
+
+		m["A"] = 2;
+
+		serialize(ss, m);
+		REQUIRE(ss.str() == " 1 1 A 2");
+
+		m.clear();
+
+		REQUIRE(deserialize(ss, m));
+		REQUIRE(m.find("A") != m.end());
+		REQUIRE(m["A"] == 2);
 	}
 }
 

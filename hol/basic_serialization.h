@@ -127,7 +127,7 @@ int main()
 #include <list>
 #include <vector>
 
-//#include "bug.h"
+#include "bug.h"
 
 namespace hol { namespace basic_serialization {
 
@@ -181,7 +181,8 @@ public:
 
 	void push(void* ptr)
 	{
-		m.emplace(ptr, n++);
+		if(m.emplace(ptr, n++).second)
+			hol_throw_runtime_error("pushing same pointer twice");
 	}
 
 	bool pull(std::size_t id, void*& ptr)
@@ -218,6 +219,42 @@ namespace txt {
 
 using detail::serialization_init;
 
+//inline
+//std::ostream& serialize(std::ostream& os, std::size_t sz)
+//{
+//	return os << ' ' << sz;
+//}
+//
+//inline
+//std::ostream& serialize(std::ostream& os, long long i)
+//{
+//	return os << ' ' << i;
+//}
+//
+//inline
+//std::ostream& serialize(std::ostream& os, unsigned long long i)
+//{
+//	return os << ' ' << i;
+//}
+//
+//inline
+//std::ostream& serialize(std::ostream& os, float f)
+//{
+//	return os << ' ' << f;
+//}
+//
+//inline
+//std::ostream& serialize(std::ostream& os, double d)
+//{
+//	return os << ' ' << d;
+//}
+
+//=============================================
+// SERIALIZATION
+//=============================================
+
+// If we don't recognize it sent it to <<
+
 template<typename T>
 std::ostream& serialize(std::ostream& os, T const& v)
 {
@@ -230,22 +267,12 @@ std::ostream& serialize(std::ostream& os, std::string const& s)
 	return (serialize(os, s.size()) << ' ').write(s.data(), s.size());
 }
 
-template<typename T>
-std::istream& deserialize(std::istream& is, T& v)
+template<typename T1, typename T2>
+std::ostream& serialize(std::ostream& os, std::pair<T1, T2> const& p)
 {
-	is >> v;
-	return is;
-}
-
-inline
-std::istream& deserialize(std::istream& is, std::string& s)
-{
-	std::size_t n;
-	if(!deserialize(is, n))
-		return is;
-
-	s.resize(n);
-	return is.ignore().read(&s[0], n);
+	serialize(os, p.first);
+	serialize(os, p.second);
+	return os;
 }
 
 template<typename Container>
@@ -254,63 +281,39 @@ std::ostream& serialize_container(std::ostream& os, Container& c)
 	std::size_t n = c.size();
 	serialize(os, n);
 	for(auto const& v: c)
-		os << v;
+		serialize(os, v);
+//		os << v;
 	return os;
 }
 
-template<typename Container>
-std::istream& deserialize_container(std::istream& is, Container& c)
-{
-	std::size_t n;
-	if(!(is >> n))
-		return is;
-
-	c.clear();
-	std::insert_iterator<Container> ii(c, c.end());
-
-	typename Container::value_type v;
-
-	while(n--)
-		if(is >> v)
-			*ii++ = v;
-
-	return is;
-}
-
 template<typename T>
-std::ostream& operator<<(std::ostream& os, std::vector<T> const& c)
+std::ostream& serialize(std::ostream& os, std::vector<T> const& c)
 {
 	return serialize_container(os, c);
 }
 
 template<typename T>
-std::ostream& operator<<(std::ostream& os, std::deque<T> const& c)
+std::ostream& serialize(std::ostream& os, std::deque<T> const& c)
 {
 	return serialize_container(os, c);
 }
 
 template<typename T>
-std::ostream& operator<<(std::ostream& os, std::list<T> const& c)
+std::ostream& serialize(std::ostream& os, std::list<T> const& c)
 {
 	return serialize_container(os, c);
 }
 
-template<typename T>
-std::istream& operator>>(std::istream& is, std::vector<T>& c)
+template<typename T1, typename T2>
+std::ostream& serialize(std::ostream& os, std::map<T1, T2> const& c)
 {
-	return deserialize_container(is, c);
+	return serialize_container(os, c);
 }
 
-template<typename T>
-std::istream& operator>>(std::istream& is, std::deque<T>& c)
+template<typename T1, typename T2>
+std::ostream& serialize(std::ostream& os, std::set<T1, T2> const& c)
 {
-	return deserialize_container(is, c);
-}
-
-template<typename T>
-std::istream& operator>>(std::istream& is, std::list<T>& c)
-{
-	return deserialize_container(is, c);
+	return serialize_container(os, c);
 }
 
 template<typename Ptr>
@@ -327,7 +330,89 @@ std::ostream& serialize_ptr(std::ostream& s, const Ptr& ptr)
 	return s;
 }
 
-template<typename Ptr>
+//=============================================
+// DE-SERIALIZATION
+//=============================================
+
+template<typename T>
+std::istream& deserialize(std::istream& is, T const& cv)
+{
+	auto& v = const_cast<T&>(cv);
+
+	return is >> v;
+}
+
+inline
+std::istream& deserialize(std::istream& is, std::string const& cs)
+{
+	auto& s = const_cast<std::string&>(cs);
+
+	std::size_t n;
+	if(!deserialize(is, n))
+		return is;
+
+	s.resize(n);
+	return is.ignore().read(&s[0], n);
+}
+
+template<typename T1, typename T2>
+std::istream& deserialize(std::istream& is, std::pair<T1, T2>& p)
+{
+	deserialize(is, p.first);
+	deserialize(is, p.second);
+	return is;
+}
+
+template<typename Container>
+std::istream& deserialize_container(std::istream& is, Container& c)
+{
+	std::size_t n;
+	if(!deserialize(is, n))
+		return is;
+
+	c.clear();
+	std::insert_iterator<Container> ii(c, c.end());
+
+	typename std::remove_const<typename Container::value_type>::type v;
+
+	while(n--)
+		if(deserialize(is, v))
+			*ii++ = v;
+
+	return is;
+}
+
+template<typename T>
+std::istream& deserialize(std::istream& is, std::vector<T>& c)
+{
+	return deserialize_container(is, c);
+}
+
+template<typename T>
+std::istream& deserialize(std::istream& is, std::deque<T>& c)
+{
+	return deserialize_container(is, c);
+}
+
+template<typename T>
+std::istream& deserialize(std::istream& is, std::list<T>& c)
+{
+	return deserialize_container(is, c);
+}
+
+template<typename T1, typename T2>
+std::istream& deserialize(std::istream& is, std::map<T1, T2>& c)
+{
+	return deserialize_container(is, c);
+}
+
+template<typename T1, typename T2>
+std::istream& deserialize(std::istream& is, std::set<T1, T2>& c)
+{
+	return deserialize_container(is, c);
+}
+
+template<typename Ptr>//, typename std::enable_if<std::is_pointer<Ptr>::value>::type>
 std::istream& deserialize_ptr(std::istream& s, Ptr& ptr)
 {
 	char c;
