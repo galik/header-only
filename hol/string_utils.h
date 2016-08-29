@@ -41,6 +41,8 @@
 #	include <experimental/string_view>
 #endif
 
+//#include "bug.h"
+
 namespace hol {
 
 #ifdef HOL_USE_STRING_VIEW
@@ -64,15 +66,19 @@ std::basic_string<CharT>& replace_all(
 	const std::basic_string<CharT>& from,
 	const std::basic_string<CharT>& to)
 {
+//	bug_fun();
+//	if(!from.empty())
+//	{
+//		std::size_t pos = 0;
+//		while((pos = s.find(from, pos)) != std::basic_string<CharT>::npos)
+//		{
+//			s.replace(pos, from.size(), to);
+//			pos += to.size();
+//		}
+//	}
 	if(!from.empty())
-	{
-		std::size_t pos = 0;
-		while((pos = s.find(from, pos)) != std::basic_string<CharT>::npos)
-		{
-			s.replace(pos, from.size(), to);
-			pos += to.size();
-		}
-	}
+		for(std::size_t pos = 0; (pos = s.find(from, pos) + 1); pos += to.size())
+			s.replace(--pos, from.size(), to);
 	return s;
 }
 
@@ -674,6 +680,7 @@ std::vector<std::wstring> split(
 //	return s_to_test(s.c_str(), end);
 //}
 
+inline
 long strtol_safe(const char* ptr, const char*& end, int base)
 {
 	return std::strtol(ptr, const_cast<char**>(&end), base);
