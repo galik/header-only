@@ -122,12 +122,26 @@ int main()
 #include <string>
 #include <istream>
 #include <ostream>
+#include <sstream>
+#include <stdexcept>
 
 #include <set>
 #include <list>
 #include <vector>
 
 #include "bug.h"
+
+#ifdef NDEBUG
+#define hol_basic_serialization_throw(m) \
+	do{std::ostringstream o;o<<m;throw std::runtime_error(o.str());}while(0)
+#else
+#define hol_basic_serialization_throw(m) \
+	do{ \
+		std::ostringstream o; \
+		o<<m<<" in "<<__FILE__<<" at: "<<__LINE__; \
+		throw std::runtime_error(o.str()); \
+	}while(0)
+#endif
 
 namespace hol { namespace basic_serialization {
 
@@ -181,8 +195,10 @@ public:
 
 	void push(void* ptr)
 	{
-		if(m.emplace(ptr, n++).second)
-			hol_throw_runtime_error("pushing same pointer twice");
+
+		if(!m.emplace(ptr, n++).second)
+			hol_basic_serialization_throw
+				("pushing same pointer twice");
 	}
 
 	bool pull(std::size_t id, void*& ptr)
