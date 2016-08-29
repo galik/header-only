@@ -22,6 +22,7 @@
 // SOFTWARE.
 //
 
+#include <map>
 #include <ctime>
 #include <mutex>
 #include <string>
