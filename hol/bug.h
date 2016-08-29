@@ -96,7 +96,7 @@ struct scope_bomb{};
 	do{ \
 		std::cout << #c ": " << c.size() << std::endl; \
 		int i=0; \
-		for(auto&& v_c:c) \
+		for(auto&& v_c: c) \
 			{bug((i<100?" ":"") << (i<10?" ":"") << i << ": " << v_c);++i;} \
 	}while(0)
 
@@ -118,7 +118,7 @@ throw exc(oss.str());}while(0)
 	oss << __FILE__ << ":" << __LINE__ << ":1 error: " << msg; \
 	throw std::runtime_error(oss.str());}while(0)
 
-#define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno));
+#define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno))
 
 struct scope_bomb
 {
