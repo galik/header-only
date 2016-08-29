@@ -158,8 +158,11 @@ class log_out
 
 	static config_type& config(LOG L)
 	{
+		thread_local static std::map<LOG, config_type> user_cfg;
 		thread_local static config_type cfg[COUNT] = {{"D: "}, {"I: "}, {"W: "}, {"E: "}, {"X: "}};
-		return cfg[static_cast<unsigned>(L)];
+		if(static_cast<unsigned>(L) < COUNT)
+			return cfg[static_cast<unsigned>(L)];
+		return user_cfg[L];
 	}
 
 	static void output(std::ostream* os = nullptr)
@@ -365,6 +368,16 @@ public:
 	{
 		auto lock = lock_for_writing(L);
 		config(L).synchronized_output = false;
+	}
+
+	static LOG create_log(std::string const& name = "")
+	{
+		thread_local static unsigned id = COUNT;
+		auto L = static_cast<LOG>(id++);
+		stream(L, std::cout);
+		level_name(L, name);
+		enable(L);
+		return L;
 	}
 };
 
