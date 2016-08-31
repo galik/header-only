@@ -100,6 +100,30 @@ public:
 
 using PosixTimer = Timer<PosixTimerImpl>;
 
+template<decltype(CLOCK_MONOTONIC_RAW) Clock = CLOCK_MONOTONIC_RAW>
+class LinuxTimerImpl
+{
+	timespec tsb;
+	timespec tse;
+
+public:
+	void clear() { start(); tse = tsb; }
+	void start() { clock_gettime(Clock, &tsb); }
+	void stop() { clock_gettime(Clock, &tse); }
+
+	auto nsecs() const
+	{
+		auto b = (tsb.tv_sec * 1000000000) + tsb.tv_nsec;
+		auto e = (tse.tv_sec * 1000000000) + tse.tv_nsec;
+		return e - b;
+	}
+};
+
+using LinuxTimer = Timer<LinuxTimerImpl<>>;
+using LinuxMonotonicTimer = Timer<LinuxTimerImpl<CLOCK_MONOTONIC_RAW>>;
+using LinuxThreadTimer = Timer<LinuxTimerImpl<CLOCK_THREAD_CPUTIME_ID>>;
+using LinuxProcessTimer = Timer<LinuxTimerImpl<CLOCK_PROCESS_CPUTIME_ID>>;
+
 #endif
 
 class wait_timer
