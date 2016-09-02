@@ -22,6 +22,49 @@
 // SOFTWARE.
 //
 
+//================================================================
+// README
+//----------------------------------------------------------------
+//
+// Usage: (normal TCP stream connection)
+//
+//	net::socketstream nss;
+//
+//	const std::string http_rq =
+//	"GET /search?q=wibble HTTP/1.1\r\n"
+//	"Host: " "www.google.co.uk" "\r\n"
+//	"User-Agent: my-ip-sender v0.1-alpha\r\n"
+//	"Accept: */*\r\n"
+//	"Connection: close\r\n"
+//	"\r\n";
+//
+//	nss.open("www.google.co.uk", "80");
+//	nss << http_rq << std::flush;
+//
+//	for(char c; nss.get(c);)
+//		std::cout.put(c);
+//	std::cout << '\n';
+//
+// Usage: (secure SSL TCP stream connection)
+//
+//	net::socketstream nss(true);
+//
+//	const std::string http_rq =
+//	"GET /search?q=wibble HTTP/1.1\r\n"
+//	"Host: " "www.google.co.uk" "\r\n"
+//	"User-Agent: my-ip-sender v0.1-alpha\r\n"
+//	"Accept: */*\r\n"
+//	"Connection: close\r\n"
+//	"\r\n";
+//
+//	nss.open("www.google.co.uk", "443");
+//	nss << http_rq << std::flush;
+//
+//	for(char c; nss.get(c);)
+//		std::cout.put(c);
+//	std::cout << '\n';
+//
+
 #include <fstream>
 #include <iostream>
 #include <thread>
@@ -34,11 +77,10 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-
-//#include <hol/bug.h>
 
 namespace hol {
 namespace sockets {
@@ -165,10 +207,6 @@ public:
 
 	void connect(std::string const& host, std::string const& port)
 	{
-		bug_fun();
-		bug_var(host);
-		bug_var(port);
-
 		disconnect();
 
 		addrinfo hints;
@@ -213,14 +251,11 @@ public:
 
 	void init()
 	{
-		bug_fun();
 		if(!(ctx = SSL_CTX_new(SSLv23_client_method())))
 		{
 			char err[128];
 			throw std::runtime_error(ERR_error_string(ERR_get_error(), err));
 		}
-
-		bug_var(this->ctx);
 	}
 
 	void clear()
@@ -287,6 +322,7 @@ public:
 			SSL_library_init();
 		}
 	}
+
 	connection(bool secure = false): connection(internet_stream, secure) {}
 
 	void establish_with(std::string const& host, std::string const& port)
@@ -313,6 +349,9 @@ public:
 		sock.disconnect();
 	}
 
+	// primitives
+	// TODO: make these throw
+
 	ssize_t write(char const* buf, std::size_t len)
 	{
 		if(!len)
@@ -332,12 +371,14 @@ public:
 		return ::read(sock.get(), buf, len);
 	}
 
+	// high level
+
 	void send(std::string const& data)
 	{
 		if(secure)
 		{
 			int num;
-			if((num = SSL_write(ssl.get(), data.data(), data.size())) != data.size())
+			if((num = SSL_write(ssl.get(), data.data(), data.size())) != (int)data.size())
 				throw std::runtime_error(ERR_error_string(SSL_get_error(ssl.get(), num), nullptr));
 		}
 		else
