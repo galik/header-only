@@ -127,25 +127,10 @@ std::string upper_copy(std::string s)
 	return upper_mute(s);
 }
 
-constexpr char const* generic_empty_string(char)
-{
-	return "";
-}
-
-constexpr wchar_t const* generic_empty_string(wchar_t)
-{
-	return L"";
-}
-
-constexpr char const* generic_space(char)
-{
-	return " ";
-}
-
-constexpr wchar_t const* generic_space(wchar_t)
-{
-	return L" ";
-}
+constexpr char const* generic_empty_string(char) { return ""; }
+constexpr wchar_t const* generic_empty_string(wchar_t) { return L""; }
+constexpr char const* generic_space(char) { return " "; }
+constexpr wchar_t const* generic_space(wchar_t) { return L" "; }
 
 /**
  * Usage:
