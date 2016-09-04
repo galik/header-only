@@ -37,11 +37,6 @@
 #define WARN_UNUSED_RESULT
 #endif
 
-#ifdef HOL_THREAD_UTILS_DEBUG_LOGGING_ENABLED
-#include <fstream>
-#include <sstream>
-#endif
-
 namespace hol {
 namespace thread_utils {
 namespace mt {
