@@ -36,7 +36,7 @@
 /**
  * Usage:
  *
- * using namespace hol::simple_logger; // required!
+ * using hol::simple_logger::LOG;      // this to use
  *
  * LOG:E << "Logs an error message #" << 5; // don't add '\n'!
  * LOG:W << "Logs a warning " << warning_message << " for the logger.";
