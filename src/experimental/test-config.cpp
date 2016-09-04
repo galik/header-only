@@ -35,8 +35,6 @@ auto split_copy = hol::get_split_copier();
 
 TEST_CASE("config testing", "config")
 {
-	hol::Config cfg;
-
 	SECTION("folding split matches")
 	{
 		std::string config_data = R"~(
@@ -47,8 +45,7 @@ TEST_CASE("config testing", "config")
 		key02: 2
 		)~";
 		std::istringstream iss(config_data);
-		hol::ConfigStreamLoader loader(iss);
-		cfg.init(loader);
+		hol::Config cfg{iss};
 
 		REQUIRE(cfg.get("key01") == "val1");
 //		REQUIRE(cfg.get<str_vec>("key01") == str_vec{"val1", "val2"});

@@ -33,7 +33,7 @@
 using namespace hol;
 using namespace std::literals::string_literals;
 
-bool operator==(str_vec const& lhs, svw_vec const& rhs)
+bool operator==(std::vector<std::string> const& lhs, svw_vec const& rhs)
 {
 	if(lhs.size() != rhs.size())
 		return false;
@@ -43,7 +43,7 @@ bool operator==(str_vec const& lhs, svw_vec const& rhs)
 	return true;
 }
 
-bool operator==(svw_vec const& lhs, str_vec const& rhs)
+bool operator==(svw_vec const& lhs, std::vector<std::string> const& rhs)
 {
 	return rhs == lhs;
 }
@@ -59,7 +59,7 @@ std::istream& sgl(std::istream&& is, std::string& line, char delim = '\n')
 }
 
 template<typename Trimmer>
-result_vec generic_trimmer_tests(Trimmer trim, str const& name, auto N = 1ULL)
+result_vec generic_trimmer_tests(Trimmer trim, str const& name, std::size_t N = 1)
 {
 	result_vec results;
 

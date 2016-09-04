@@ -29,7 +29,7 @@
 
 #include "test.h"
 //#include "hol/string_utils.h"
-#include "hol/u8string.h"
+#include "hol/experimental/u8string.h"
 
 namespace hol {
 

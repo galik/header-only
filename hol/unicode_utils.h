@@ -22,25 +22,11 @@
 // SOFTWARE.
 //
 
-// TODO: remove this when condition is
-// fully applied to all uses
-//#define HOL_USE_STRING_VIEW
-
 #include <string>
 #include <locale>
 #include <codecvt>
 
 namespace hol {
-
-//std::string to_utf8(std::wstring w)
-//{
-//    return std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(w);
-//}
-//
-//std::wstring from_utf8(std::string s)
-//{
-//    return std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().from_bytes(s);
-//}
 
 using wcodecvt_utf8 = std::codecvt_utf8<wchar_t>;
 using ucs2codecvt_utf8 = std::codecvt_utf8<char16_t>;
@@ -121,24 +107,6 @@ std::wstring utf8_to_w(std::string const& utf8)
 {
 	return utf8_to_ucs<std::wstring>(utf8);
 }
-
-//std::wstring utf8_to_ws(std::string const& utf8)
-//{
-//	wstring_convert_utf8 cnv;
-//	std::wstring w = cnv.from_bytes(utf8);
-//	if(cnv.converted() < utf8.size())
-//		throw std::runtime_error("incomplete conversion");
-//	return w;
-//}
-//
-//std::string w_to_utf8(std::wstring const& w)
-//{
-//	wstring_convert_utf8 cnv;
-//	std::string utf8 = cnv.to_bytes(w);
-//	if(cnv.converted() < w.size())
-//		throw std::runtime_error("incomplete conversion");
-//	return utf8;
-//}
 
 } // hol
 

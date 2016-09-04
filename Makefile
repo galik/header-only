@@ -7,8 +7,8 @@ STAMP := $(shell date +%Y%m%d-%H%M%S)
 CP := cp -r
 RM := rm -f
 INSTALL := install
-CPPFLAGS := -I. $(CPPFLAGS)
-CXXFLAGS := -std=c++14 -pthread -MMD -MP $(CXXFLAGS)
+CPPFLAGS := -I. $(CPPFLAGS) $(GSL_CPPFLAGS)
+CXXFLAGS := -std=c++14 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
 
 HEADERS := $(wildcard hol/*.h)
 PKGCFGS := $(wildcard pkg-config/*.pc)
@@ -27,7 +27,7 @@ show:
 %: %.cpp
 	@echo "C: $@"
 	@echo [triggered by changes in $?]
-	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< -lstdc++fs
 	
 install:
 	@echo Creating header folders

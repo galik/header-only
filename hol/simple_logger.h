@@ -60,7 +60,8 @@
  *
  */
 
-namespace hol { namespace simple_logger {
+namespace hol {
+namespace simple_logger {
 
 /**
  * Thread-safe cross platform (xp) localtime function
@@ -447,7 +448,8 @@ public:
 //	return Logger(level, v);
 //}
 
-}} // hol::simple_logger
+} // simple_logger
+} // hol
 
 template<typename T>
 hol::simple_logger::Logger operator<<(const hol::simple_logger::LOG& level, const T& v)

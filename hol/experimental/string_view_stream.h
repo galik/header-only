@@ -27,7 +27,7 @@
 #include <streambuf>
 #include <experimental/string_view>
 
-#include "bug.h"
+#include "../bug.h"
 
 namespace hol {
 

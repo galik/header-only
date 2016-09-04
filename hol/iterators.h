@@ -68,7 +68,6 @@ public:
 	cregex_matcher(const char* begin, const char* end, const char* exp)
 	: e(exp, std::regex_constants::optimize), i(begin, end, e) {}
 
-
 	auto begin() const { return i; }
 	auto end() const { return std::cregex_iterator(); }
 };

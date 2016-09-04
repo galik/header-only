@@ -22,10 +22,6 @@
 // SOFTWARE.
 //
 
-// TODO: remove this when condition is
-// fully applied to all uses
-//#define HOL_USE_STRING_VIEW
-
 #include <regex>
 #include <cerrno>
 #include <string>
@@ -37,11 +33,10 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+
 #ifdef HOL_USE_STRING_VIEW
 #	include <experimental/string_view>
 #endif
-
-//#include "bug.h"
 
 namespace hol {
 
@@ -61,21 +56,11 @@ using string_view = std::experimental::string_view;
 //}
 
 template<typename CharT>
-std::basic_string<CharT>& replace_all(
+std::basic_string<CharT>& replace_all_mute(
 	std::basic_string<CharT>& s,
 	const std::basic_string<CharT>& from,
 	const std::basic_string<CharT>& to)
 {
-//	bug_fun();
-//	if(!from.empty())
-//	{
-//		std::size_t pos = 0;
-//		while((pos = s.find(from, pos)) != std::basic_string<CharT>::npos)
-//		{
-//			s.replace(pos, from.size(), to);
-//			pos += to.size();
-//		}
-//	}
 	if(!from.empty())
 		for(std::size_t pos = 0; (pos = s.find(from, pos) + 1); pos += to.size())
 			s.replace(--pos, from.size(), to);
@@ -83,18 +68,32 @@ std::basic_string<CharT>& replace_all(
 }
 
 inline
-std::string& replace_all(std::string& s,
+std::string& replace_all_mute(std::string& s,
 	const std::string& from, const std::string& to)
 {
-	return replace_all<char>(s, from, to);
+	return replace_all_mute<char>(s, from, to);
 }
 
 
 inline
-std::wstring& replace_all(std::wstring& s,
+std::wstring& replace_all_mute(std::wstring& s,
 	const std::wstring& from, const std::wstring& to)
 {
-	return replace_all<wchar_t>(s, from, to);
+	return replace_all_mute<wchar_t>(s, from, to);
+}
+
+inline
+std::string replace_all_copy(std::string s,
+	const std::string& from, const std::string& to)
+{
+	return replace_all_mute(s, from, to);
+}
+
+inline
+std::wstring replace_all_copy(std::wstring s,
+	const std::wstring& from, const std::wstring& to)
+{
+	return replace_all_mute(s, from, to);
 }
 
 // upper and lower
@@ -127,10 +126,12 @@ std::string upper_copy(std::string s)
 	return upper_mute(s);
 }
 
-constexpr char const* generic_empty_string(char) { return ""; }
-constexpr wchar_t const* generic_empty_string(wchar_t) { return L""; }
-constexpr char const* generic_space(char) { return " "; }
-constexpr wchar_t const* generic_space(wchar_t) { return L" "; }
+namespace detail {
+constexpr char const* empty(char) { return ""; }
+constexpr wchar_t const* empty(wchar_t) { return L""; }
+constexpr char const* space(char) { return " "; }
+constexpr wchar_t const* space(wchar_t) { return L" "; }
+} // detail
 
 /**
  * Usage:
@@ -150,8 +151,8 @@ class basic_output_separator
 	CharT const* next;
 
 public:
-	basic_output_separator(): init(generic_empty_string(CharT())), s(init), next(generic_space(CharT())) {}
-	basic_output_separator(CharT const* next): init(generic_empty_string(CharT())), s(init), next(next) {}
+	basic_output_separator(): init(detail::empty(CharT())), s(init), next(detail::space(CharT())) {}
+	basic_output_separator(CharT const* next): init(detail::empty(CharT())), s(init), next(next) {}
 	basic_output_separator(CharT const* init, CharT const* next): init(init), s(init), next(next) {}
 	basic_output_separator(basic_output_separator const& sep): s(sep.s), next(sep.next) {}
 

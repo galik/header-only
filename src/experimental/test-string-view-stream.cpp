@@ -25,7 +25,7 @@
 #include <algorithm>
 
 #include "test.h"
-#include "hol/string_view_stream.h"
+#include "hol/experimental/string_view_stream.h"
 
 using namespace hol;
 using namespace std::literals::string_literals;

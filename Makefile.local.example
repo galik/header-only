@@ -5,3 +5,7 @@
 
 CPPFLAGS :=
 CXXFLAGS := -g3 -O0
+
+# required 
+GSL_CPPFLAGS := -I$(HOME)/dev/GSL
+
