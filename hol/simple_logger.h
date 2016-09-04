@@ -36,7 +36,7 @@
 /**
  * Usage:
  *
- * using namespace hol::simple_logger;
+ * using namespace hol::simple_logger; // required!
  *
  * LOG:E << "Logs an error message #" << 5; // don't add '\n'!
  * LOG:W << "Logs a warning " << warning_message << " for the logger.";
@@ -441,20 +441,28 @@ public:
 		return *this;
 	}
 };
-//
+
+template<typename T>
+Logger operator<<(const LOG& level, const T& v)
+{
+	return Logger(level, v);
+}
+
 //template<typename T>
-//Logger operator<<(const LOG& level, const T& v)
+//::hol::simple_logger::Logger operator<<(const ::hol::simple_logger::LOG& level, const T& v)
 //{
-//	return Logger(level, v);
+//	return ::hol::simple_logger::Logger(level, v);
 //}
 
 } // simple_logger
 } // hol
 
-template<typename T>
-hol::simple_logger::Logger operator<<(const hol::simple_logger::LOG& level, const T& v)
-{
-	return hol::simple_logger::Logger(level, v);
-}
+//namespace {
+//template<typename T>
+//hol::simple_logger::Logger operator<<(const hol::simple_logger::LOG& level, const T& v)
+//{
+//	return hol::simple_logger::Logger(level, v);
+//}
+//} // <anon>
 
 #endif // HOL_SIMPLE_LOGGER_H
