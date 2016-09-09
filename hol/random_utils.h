@@ -26,101 +26,19 @@
 #include <limits>
 
 namespace hol {
-
-template<typename Integer = std::uint32_t>
-class xorshift_engine
+namespace random_utils {
+namespace rnd {
+namespace details {
+//TODO: make PRNG use these tools?
+template<typename Generator = std::mt19937>
+struct random_tools
 {
-public:
-	using result_type = Integer;
-
-private:
-	// 18446744073709551557
-	static const result_type default_seed = 2147483647;
-
-	result_type n[5];
-	enum {x, y, z, w, t};
-
-public:
-	explicit xorshift_engine(result_type value = default_seed) noexcept
-	{
-		seed(value);
-	}
-
-	template<typename Sseq>
-	explicit xorshift_engine(Sseq& seq)
-	{
-		seed(seq);
-	}
-
-	void seed(result_type value = default_seed) noexcept
-	{
-		n[x] = n[y] = n[z] = n[w] = value;
-	}
-
-	template<typename Sseq>
-	void seed(Sseq& seq)
-	{
-		seq.generate(std::begin(n), std::end(n));
-	}
-
-	auto operator()()
-	{
-		n[t] = n[x];
-		n[t] ^= n[t] << 11;
-		n[t] ^= n[t] >> 8;
-		n[x] = n[y];
-		n[y] = n[z];
-		n[z] = n[w];
-		n[w] ^= n[w] >> 19;
-		n[w] ^= n[t];
-		return n[w];
-	}
-
-	void discard(unsigned long long z) { while(z--) (*this)(); }
-
-	static constexpr result_type min() { return std::numeric_limits<result_type>::min(); }
-	static constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
-
-	template<typename UIntType>
-	friend
-	bool operator==(const xorshift_engine<UIntType>& lhs,
-	                const xorshift_engine<UIntType>& rhs)
-	{
-		return lhs.n[x] == rhs.n[x]
-			&& lhs.n[y] == rhs.n[y]
-			&& lhs.n[z] == rhs.n[z]
-			&& lhs.n[w] == rhs.n[w];
-	}
-
-	template<typename UIntType>
-	friend
-	bool operator!=(const xorshift_engine<UIntType>& lhs,
-	               const xorshift_engine<UIntType>& rhs)
-	{
-		return !(lhs == rhs);
-	}
-
-	template<typename CharT, typename Traits, typename UIntType>
-	friend
-	std::basic_ostream<CharT, Traits>&
-	operator<<(std::basic_ostream<CharT,Traits>& os,
-		const xorshift_engine<UIntType>& e)
-	{
-		return os << e.n[x] << ' ' << e.n[y] << ' ' << e.n[z] << ' ' << e.n[w];
-	}
-
-	template<typename CharT, typename Traits, typename UIntType>
-	friend
-	std::basic_istream<CharT, Traits>&
-	operator>>(std::basic_istream<CharT,Traits>& is,
-		xorshift_engine<UIntType>& e)
-	{
-		return is >> e.n[x] >> e.n[y] >> e.n[z] >> e.n[w];
-	}
+	using rd = std::random_device;
+	std::seed_seq ss = {{rd{}(), rd{}(), rd{}(), rd{}()}};
+	Generator gen;
+	random_tools(): gen(ss) {}
 };
-
-using xorshift128 = xorshift_engine<std::uint32_t>;
-using xorshift256 = xorshift_engine<std::uint64_t>;
+} // details
 
 /**
  * Usage:
@@ -155,12 +73,13 @@ class PRNG
 {
 	using rd = std::random_device;
 	using param_type = typename Dist::param_type;
-	std::seed_seq ss;
-	Generator gen;
+//	std::seed_seq ss;
+//	Generator gen;
+	details::random_tools<Generator> tools;
 	Dist dist;
 
 public:
-	PRNG(): ss({rd{}(), rd{}(), rd{}(), rd{}()}), gen(ss) {}
+//	PRNG(): ss({rd{}(), rd{}(), rd{}(), rd{}()}), gen(ss) {}
 
 	/**
 	 * Get a random number between from and to, inclusively.
@@ -186,7 +105,7 @@ public:
 
 	Type get(Type from, Type to)
 	{
-		return dist(gen, param_type{from, to});
+		return dist(tools.gen, param_type{from, to});
 	}
 
 	/**
@@ -223,20 +142,10 @@ using PRNG_64U = PRNG_64<std::uint64_t>;     // 64bit mt engine 64bit unsigned i
 using PRNG_64F = PRNG_64<float>;             // 64bit mt engine float
 using PRNG_64D = PRNG_64<double>;            // 64bit mt engine double
 
-//TODO: make PRNG use these tools?
-template<typename Generator = std::mt19937>
-struct random_tools
-{
-	using rd = std::random_device;
-	std::seed_seq ss = {{rd{}(), rd{}(), rd{}(), rd{}()}};
-	Generator gen;
-	random_tools(): gen(ss) {}
-};
-
 template<typename Numeric>
-Numeric random(Numeric from, Numeric to)
+Numeric random_number(Numeric from, Numeric to)
 {
-	thread_local random_tools<> tools;
+	thread_local details::random_tools<> tools;
 
 	using dist_type = typename std::conditional
 	<
@@ -251,11 +160,13 @@ Numeric random(Numeric from, Numeric to)
 }
 
 template<typename Numeric>
-Numeric random(Numeric to = std::numeric_limits<Numeric>::max())
+Numeric random_number(Numeric to = std::numeric_limits<Numeric>::max())
 {
 	return random({}, to);
 }
 
+} // rnd
+} // random_utils
 } // hol
 
 #endif // HOL_RANDOM_UTILS_H
