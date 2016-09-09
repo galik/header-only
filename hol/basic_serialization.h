@@ -471,6 +471,7 @@ std::ostream& serialize(std::ostream& os, T const& v)
 	return os.write((char*)&v, sizeof(v));
 }
 
+inline
 std::ostream& serialize(std::ostream& os, std::string const& s)
 {
 	return (serialize(os, s.size())).write(s.data(), s.size());
@@ -482,6 +483,7 @@ std::istream& deserialize(std::istream& is, T& v)
 	return is.read((char*)&v, sizeof(v));
 }
 
+inline
 std::istream& deserialize(std::istream& is, std::string& s)
 {
 	std::size_t n {};

@@ -5,14 +5,16 @@ PREFIX ?= /usr/local
 STAMP := $(shell date +%Y%m%d-%H%M%S)
 
 CP := cp -r
-RM := rm -f
+RM := rm -fr
 INSTALL := install
+DOXYGEN := doxygen
 CPPFLAGS := -I. $(CPPFLAGS) $(GSL_CPPFLAGS)
 CXXFLAGS := -std=c++14 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
 
 HEADERS := $(wildcard hol/*.h)
 PKGCFGS := $(wildcard pkg-config/*.pc)
 
+DOCS := doxy-docs/*
 SRCS := $(wildcard src/*.cpp)
 DEPS := $(patsubst %.cpp,%.d,$(SRCS))
 PRGS := $(patsubst %.cpp,%,$(SRCS))
@@ -29,6 +31,11 @@ show:
 	@echo [triggered by changes in $?]
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< -lstdc++fs
 	
+docs: doxy-docs/index.html
+
+doxy-docs/index.html: $(SRCS)
+	$(DOXYGEN) Doxyfile 
+
 install:
 	@echo Creating header folders
 	@$(INSTALL) -d $(PREFIX)/include/hol
@@ -59,8 +66,8 @@ uninstall:
 	
 -include $(DEPS)
 
-.PHONY: show install uninstall
+.PHONY: show docs install uninstall
 
 clean:
 	@echo "Cleaning build files."
-	@$(RM) $(DEPS) $(PRGS)
+	@$(RM) $(DEPS) $(PRGS) $(DOCS)

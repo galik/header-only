@@ -6,5 +6,7 @@ test-u8char
 test-split-utils
 test-string-utils
 *.d
+*.bak
 /Makefile.local
 
+/doxy-docs/

@@ -82,6 +82,8 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+#include "bug.h"
+
 namespace hol {
 namespace sockets {
 namespace net {
@@ -95,51 +97,51 @@ enum class SOCK
 
 enum class AF
 {
-	UNSPEC = PF_UNSPEC,
-	LOCAL = PF_LOCAL,
-	UNIX = PF_UNIX,
-	FILE = PF_FILE,
-	INET = PF_INET,
-	AX25 = PF_AX25,
-	IPX = PF_IPX,
-	APPLETALK = PF_APPLETALK,
-	NETROM = PF_NETROM,
-	BRIDGE = PF_BRIDGE,
-	ATMPVC = PF_ATMPVC,
-	X25 = PF_X25,
-	INET6 = PF_INET6,
-	ROSE = PF_ROSE,
-	DECnet = PF_DECnet,
-	NETBEUI = PF_NETBEUI,
-	SECURITY = PF_SECURITY,
-	KEY = PF_KEY,
-	NETLINK = PF_NETLINK,
-	ROUTE = PF_ROUTE,
-	PACKET = PF_PACKET,
-	ASH = PF_ASH,
-	ECONET = PF_ECONET,
-	ATMSVC = PF_ATMSVC,
-	RDS = PF_RDS,
-	SNA = PF_SNA,
-	IRDA = PF_IRDA,
-	PPPOX = PF_PPPOX,
-	WANPIPE = PF_WANPIPE,
-	LLC = PF_LLC,
-	IB = PF_IB,
-	MPLS = PF_MPLS,
-	CAN = PF_CAN,
-	TIPC = PF_TIPC,
-	BLUETOOTH = PF_BLUETOOTH,
-	IUCV = PF_IUCV,
-	RXRPC = PF_RXRPC,
-	ISDN = PF_ISDN,
-	PHONET = PF_PHONET,
-	IEEE802154 = PF_IEEE802154,
-	CAIF = PF_CAIF,
-	ALG = PF_ALG,
-	NFC = PF_NFC,
-	VSOCK = PF_VSOCK,
-	MAX = PF_MAX,
+	UNSPEC = AF_UNSPEC,
+	LOCAL = AF_LOCAL,
+	UNIX = AF_UNIX,
+	FILE = AF_FILE,
+	INET = AF_INET,
+	AX25 = AF_AX25,
+	IPX = AF_IPX,
+	APPLETALK = AF_APPLETALK,
+	NETROM = AF_NETROM,
+	BRIDGE = AF_BRIDGE,
+	ATMPVC = AF_ATMPVC,
+	X25 = AF_X25,
+	INET6 = AF_INET6,
+	ROSE = AF_ROSE,
+	DECnet = AF_DECnet,
+	NETBEUI = AF_NETBEUI,
+	SECURITY = AF_SECURITY,
+	KEY = AF_KEY,
+	NETLINK = AF_NETLINK,
+	ROUTE = AF_ROUTE,
+	PACKET = AF_PACKET,
+	ASH = AF_ASH,
+	ECONET = AF_ECONET,
+	ATMSVC = AF_ATMSVC,
+	RDS = AF_RDS,
+	SNA = AF_SNA,
+	IRDA = AF_IRDA,
+	PPPOX = AF_PPPOX,
+	WANPIPE = AF_WANPIPE,
+	LLC = AF_LLC,
+	IB = AF_IB,
+	MPLS = AF_MPLS,
+	CAN = AF_CAN,
+	TIPC = AF_TIPC,
+	BLUETOOTH = AF_BLUETOOTH,
+	IUCV = AF_IUCV,
+	RXRPC = AF_RXRPC,
+	ISDN = AF_ISDN,
+	PHONET = AF_PHONET,
+	IEEE802154 = AF_IEEE802154,
+	CAIF = AF_CAIF,
+	ALG = AF_ALG,
+	NFC = AF_NFC,
+	VSOCK = AF_VSOCK,
+	MAX = AF_MAX,
 };
 
 struct connection_type
@@ -207,22 +209,29 @@ public:
 
 	void connect(std::string const& host, std::string const& port)
 	{
+		bug_fun();
+		bug_var(host);
+		bug_var(port);
+
 		disconnect();
 
 		addrinfo hints;
 		memset(&hints, 0, sizeof hints);
-		hints.ai_family = to_int(type.address_family);
+		hints.ai_family = AF_INET;//to_int(type.address_family);
 		hints.ai_socktype = to_int(type.socket_type);
 
 		addrinfo* res;
 		if(int status = getaddrinfo(host.c_str(), port.c_str(), &hints, &res) != 0)
 			throw std::runtime_error(gai_strerror(status));
 
+		bug_var(res);
+
 		// try to connect to each
 		int sd;
 		addrinfo* p;
 		for(p = res; p; p = p->ai_next)
 		{
+			bug_var(p);
 			if((sd = ::socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 				continue;
 			if(!::connect(sd, p->ai_addr, p->ai_addrlen))
@@ -232,10 +241,17 @@ public:
 
 		freeaddrinfo(res);
 
+		bug_var(p);
+		bug_var(sd);
+
 		if(!p)
+		{
+			bug_var(std::strerror(errno));
 			throw std::runtime_error(std::strerror(errno));
+		}
 
 		fd = sd;
+		bug_var(fd);
 	}
 
 	friend void swap(socket& l, socket& r)
@@ -342,6 +358,9 @@ public:
 
 	void establish_with(std::string const& host, std::string const& port) override
 	{
+		bug_fun();
+		bug_var(host);
+		bug_var(port);
 		sock.connect(host, port);
 	}
 
@@ -431,6 +450,9 @@ public:
 
 	void open(std::string const& host, std::string const& port)
 	{
+		bug_fun();
+		bug_var(host);
+		bug_var(port);
 		return conn->establish_with(host, port);
 	}
 
@@ -550,11 +572,17 @@ public:
 
 	void open(std::string const& host, std::string const& port)
 	{
+		bug_fun();
+		bug_var(host);
+		bug_var(port);
 		buf.open(host, port);
 	}
 
 	void open(const std::string& host, uint16_t port)
 	{
+		bug_fun();
+		bug_var(host);
+		bug_var(port);
 		open(host, std::to_string(port));
 	}
 

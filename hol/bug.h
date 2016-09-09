@@ -56,8 +56,6 @@
 #include <stdexcept>
 #include <functional>
 
-//#include "stl.h"
-
 namespace hol {
 
 inline
@@ -71,7 +69,7 @@ auto& get_edit_bug_fun()
 #define bug(m) do{}while(0)
 #define bug_var(v) do{}while(0)
 #define bug_cnt(c) do{}while(0)
-#define bug_itr(c) do{}while(0)
+#define bug_itr(c, b, e) do{}while(0)
 
 #define hol_throw_exception(exc, message) \
 	throw exc(message)
@@ -89,34 +87,36 @@ struct scope_bomb{};
 
 #else
 
-#define bug(m) do{std::cout << m << std::endl;}while(0)
-#define bug_var(v) do{std::cout << #v ": " << std::boolalpha << v << std::endl;}while(0)
+#define bug(m) do{std::ostringstream o; o<<m<<std::endl;std::cout<<o.str();}while(0)
+#define bug_var(v) bug(#v ": " << std::boolalpha << v)
 
 #define bug_cnt(c) \
 	do{ \
-		std::cout << #c ": " << c.size() << std::endl; \
+		std::ostringstream o; \
+		o << #c ": " << c.size() << '\n'; \
 		int i=0; \
 		for(auto&& v_c: c) \
-			{bug((i<100?" ":"") << (i<10?" ":"") << i << ": " << v_c);++i;} \
+			{o << (i<100?" ":"") << (i<10?" ":"") << i << ": " << v_c << '\n';++i;} \
+		std::cout << o.str(); \
 	}while(0)
 
 #define bug_itr(c, b, e) \
 	do{ \
-		bug(#c ": " << c.size()); \
+		std::ostringstream o; \
+		o << #c ": " << std::distance(b, e) << '\n'; \
 		int n=0; \
-		for(auto i = b; i != e; ++i) \
-			{bug((*i<100?" ":"") << (*i<10?" ":"") << n << ": " << *i);++n;} \
+		for(auto i = (b); i != (e); ++i) \
+			{o << " " << (n<100?" ":"") << (n<10?" ":"") << n << ": " << *i << '\n';++n;} \
+		std::cout << o.str(); \
 	}while(0)
 
 #define hol_throw_exception(exc, msg) do{ \
-std::ostringstream oss; \
-oss << __FILE__ << ":" << __LINE__ << ":1 error: " << msg; \
-throw exc(oss.str());}while(0)
-
-#define hol_throw_runtime_error(msg) do{ \
 	std::ostringstream oss; \
 	oss << __FILE__ << ":" << __LINE__ << ":1 error: " << msg; \
-	throw std::runtime_error(oss.str());}while(0)
+	throw exc(oss.str());}while(0)
+
+#define hol_throw_runtime_error(msg) \
+	hol_throw_exception(std::runtime_error, msg)
 
 #define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno))
 
@@ -127,6 +127,7 @@ struct scope_bomb
 	       : m(m) { bug("--> " << m); }
 	~scope_bomb() { bug("<-- " << m); }
 };
+
 #define bug_fun() hol::scope_bomb scope_bomb_inst(hol::get_edit_bug_fun()(__PRETTY_FUNCTION__))
 
 #endif

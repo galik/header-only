@@ -83,7 +83,7 @@ inline std::tm localtime_xp(std::time_t timer)
 	return bt;
 }
 
-enum class LOG: unsigned {D, I, W, E, X, COUNT};
+enum class LOG: unsigned {D, I, A, W, E, X, COUNT};
 
 constexpr auto COUNT = static_cast<unsigned>(LOG::COUNT);
 constexpr auto DEFAULT_FORMAT = "%F %T| ";
@@ -115,6 +115,8 @@ class log_out
 		std::string format = DEFAULT_FORMAT;
 		bool enabled = true;
 		bool synchronized_output = false;
+		std::string prefix;
+		std::string suffix;
 
 		config_type() {}
 
@@ -128,6 +130,8 @@ class log_out
 		, format(std::move(cfg.format))
 		, enabled(cfg.enabled)
 		, synchronized_output(cfg.synchronized_output)
+		, prefix(std::move(cfg.prefix))
+		, suffix(std::move(cfg.suffix))
 		{
 			cfg.out = nullptr;
 		}
@@ -140,6 +144,8 @@ class log_out
 		, format(cfg.format)
 		, enabled(cfg.enabled)
 		, synchronized_output(cfg.synchronized_output)
+		, prefix(cfg.prefix)
+		, suffix(cfg.suffix)
 		{
 		}
 
@@ -152,6 +158,8 @@ class log_out
 			format = cfg.format;
 			enabled = cfg.enabled;
 			synchronized_output = cfg.synchronized_output;
+			prefix = cfg.prefix;
+			suffix = cfg.suffix;
 
 			return *this;
 		}
@@ -160,11 +168,8 @@ class log_out
 
 	static config_type& config(LOG L)
 	{
-		thread_local static std::map<LOG, config_type> user_cfg;
-		thread_local static config_type cfg[COUNT] = {{"D: "}, {"I: "}, {"W: "}, {"E: "}, {"X: "}};
-		if(static_cast<unsigned>(L) < COUNT)
-			return cfg[static_cast<unsigned>(L)];
-		return user_cfg[L];
+		static config_type cfg[COUNT] = {{"D: "}, {"I: "}, {"A: "}, {"W: "}, {"E: "}, {"X: "}};
+		return cfg[static_cast<unsigned>(L)];
 	}
 
 	static void output(std::ostream* os = nullptr)
@@ -208,6 +213,7 @@ class log_out
 		auto t = std::make_tuple(
 			config(LOG::D).lock_for_deferred_reading()
 			, config(LOG::I).lock_for_deferred_reading()
+			, config(LOG::A).lock_for_deferred_reading()
 			, config(LOG::W).lock_for_deferred_reading()
 			, config(LOG::E).lock_for_deferred_reading()
 			, config(LOG::X).lock_for_deferred_reading()
@@ -221,6 +227,7 @@ class log_out
 		auto t = std::make_tuple(
 			config(LOG::D).lock_for_deferred_writing()
 			, config(LOG::I).lock_for_deferred_writing()
+			, config(LOG::A).lock_for_deferred_writing()
 			, config(LOG::W).lock_for_deferred_writing()
 			, config(LOG::E).lock_for_deferred_writing()
 			, config(LOG::X).lock_for_deferred_writing()
@@ -230,6 +237,24 @@ class log_out
 	}
 
 public:
+	static void parens(std::string const& prefix, std::string const& suffix)
+	{
+		log_out::prefix(prefix);
+		log_out::suffix(suffix);
+	}
+
+	static void prefix(std::string const& prefix)
+	{
+		for(auto L = 0U; L < COUNT; ++L)
+			level_prefix(static_cast<LOG>(L), prefix);
+	}
+
+	static void suffix(std::string const& suffix)
+	{
+		for(auto L = 0U; L < COUNT; ++L)
+			level_suffix(static_cast<LOG>(L), suffix);
+	}
+
 	static void stream(std::ostream& os)
 	{
 		for(auto L = 0U; L < COUNT; ++L)
@@ -265,6 +290,24 @@ public:
 	{
 		auto lock = lock_for_writing(L);
 		config(L).level_name = name;
+	}
+
+	static void level_parens(LOG L, std::string prefix, std::string suffix)
+	{
+		level_prefix(L, prefix);
+		level_suffix(L, suffix);
+	}
+
+	static void level_prefix(LOG L, std::string prefix)
+	{
+		auto lock = lock_for_writing(L);
+		config(L).prefix = prefix;
+	}
+
+	static void level_suffix(LOG L, std::string suffix)
+	{
+		auto lock = lock_for_writing(L);
+		config(L).suffix = suffix;
 	}
 
 	static LOG level(LOG L = LOG::COUNT)
@@ -348,39 +391,39 @@ public:
 		disable(Ls...);
 	}
 
-	static void sunchronize_output()
+	static void synchronize_output()
 	{
 		for(auto L = 0U; L < COUNT; ++L)
-			sunchronize_output_for(static_cast<LOG>(L));
+			synchronize_output_for(static_cast<LOG>(L));
 	}
 
-	static void sunchronize_output_for(LOG L)
+	static void synchronize_output_for(LOG L)
 	{
 		auto lock = lock_for_writing(L);
 		config(L).synchronized_output = true;
 	}
 
-	static void unsunchronize_output()
+	static void unsynchronize_output()
 	{
 		for(auto L = 0U; L < COUNT; ++L)
-			unsunchronize_output_for(static_cast<LOG>(L));
+			unsynchronize_output_for(static_cast<LOG>(L));
 	}
 
-	static void unsunchronize_output_for(LOG L)
+	static void unsynchronize_output_for(LOG L)
 	{
 		auto lock = lock_for_writing(L);
 		config(L).synchronized_output = false;
 	}
-
-	static LOG create_log(std::string const& name = "")
-	{
-		thread_local static unsigned id = COUNT;
-		auto L = static_cast<LOG>(id++);
-		stream(L, std::cout);
-		level_name(L, name);
-		enable(L);
-		return L;
-	}
+//
+//	static LOG create_log(std::string const& name = "")
+//	{
+//		thread_local static unsigned id = COUNT;
+//		auto L = static_cast<LOG>(id++);
+//		stream(L, std::cout);
+//		level_name(L, name);
+//		enable(L);
+//		return L;
+//	}
 };
 
 class Logger
@@ -413,8 +456,6 @@ public:
 			cfg = log_out::config(L);
 		}
 
-//		using std::operator<<;
-//		operator<<(dynamic_cast<std::ostream&>(ss), v);
 		ss << v;
 	}
 
@@ -431,7 +472,7 @@ public:
 		if(cfg.boolalpha)
 			(*cfg.out) << std::boolalpha;
 
-		(*cfg.out) << stamp() << cfg.level_name << ss.str() << '\n';
+		(*cfg.out) << stamp() << cfg.level_name << cfg.prefix << ss.str() << cfg.suffix << '\n';
 	}
 
 	template<typename T>
