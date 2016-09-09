@@ -93,11 +93,22 @@ inline std::string ctime_xp(std::time_t timer)
 }
 
 // default = "YYYY-MM-DD HH:MM:SS"
-inline std::string time_stamp(const std::string& fmt = "%F %T")
+inline std::string time_stamp_at(std::time_t when, const std::string& fmt = "%F %T")
 {
-	auto bt = localtime_xp(std::time(0));
+	auto bt = localtime_xp(when);
 	char buf[64];
 	return {buf, std::strftime(buf, sizeof(buf), fmt.c_str(), &bt)};
+}
+
+inline std::string time_stamp_now(const std::string& fmt = "%F %T")
+{
+	return time_stamp_at(std::time(0), fmt);
+}
+
+[[deprecated]]
+inline std::string time_stamp(const std::string& fmt = "%F %T")
+{
+	return time_stamp_now(fmt);
 }
 
 } // hol
