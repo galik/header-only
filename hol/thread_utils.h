@@ -37,6 +37,10 @@
 #define WARN_UNUSED_RESULT
 #endif
 
+#ifdef HOL_HAVE_GSL_SPAN
+#include <gsl/span>
+#endif // HOL_HAVE_GSL_SPAN
+
 namespace hol {
 namespace thread_utils {
 namespace mt {
@@ -102,6 +106,74 @@ public:
 	Return get() { return f.get(); }
 };
 
+class async_group
+{
+	std::vector<std::future<void>> futs;
+
+public:
+	~async_group() { for(auto&& fut: futs) if(fut.valid()) fut.get(); }
+
+	template<typename... Args>
+	void run(Args&&... args)
+		{ futs.emplace_back(std::async(std::forward<Args>(args)...)); }
+
+	template<typename... Args>
+	void run_async(Args&&... args)
+		{ run(std::launch::async, std::forward<Args>(args)...); }
+
+	template<typename... Args>
+	void run_deferred(Args&&... args)
+		{ run(std::launch::deferred, std::forward<Args>(args)...); }
+};
+
+#ifdef HOL_HAVE_GSL_SPAN
+
+/**
+ * \brief Split the work of processing a contiguous data container's elements
+ * among a supplied number of threads.
+ * \tparam T container's data type
+ * @param data A span view of a contiguous container
+ * @param work A callable type to work on the supplied data
+ * @param pieces The number of pieces to divide the data up into between threads
+ */
+//template<typename T, typename Work>
+//void split_work(gsl::span<T> data, Work work, typename gsl::span<T>::index_type const pieces)
+//{
+//	using ssiz = typename gsl::span<T>::index_type;
+//
+//	if(!data.size())
+//		return;
+//
+//	if(!pieces)
+//		throw std::out_of_range("zero pieces to work with");
+//
+//	if(pieces > data.size())
+//		throw std::out_of_range("more pieces than data elements");
+//
+//	auto rem = data.size() % pieces;
+//	auto const part = data.size() / pieces;
+//
+//	mt::async_group asyncs;
+//
+//	for(ssiz p, i = 0; i < data.size(); i += p)
+//	{
+//		p = part;
+//		if(rem)
+//		{
+//			++p;
+//			--rem;
+//		}
+//
+//		if((i + p) > data.size())
+//			p -= ((i + p) - data.size());
+//
+//		assert(i + p <= data.size());
+//		asyncs.run_async(work, gsl::span<int>(&data[i], p));
+//	}
+//}
+
+#endif // HOL_HAVE_GSL_SPAN
+
 //=============================================================
 //== Lockable objects
 //=============================================================
@@ -125,7 +197,7 @@ public:
 	lockable_base() {}
 
 	lockable_base(lockable_base const&) = delete;
-	lockable_base(lockable_base&&) {};
+	lockable_base(lockable_base&&) {}
 
 	lockable_base& operator=(lockable_base const&) = delete;
 	lockable_base& operator=(lockable_base&&) { return *this; }
@@ -139,7 +211,7 @@ class lockable_for_reading
 public:
 	lockable_for_reading() {}
 
-	lockable_for_reading(lockable_for_reading&&) {}
+	lockable_for_reading(lockable_for_reading&&) = default;
 	lockable_for_reading(lockable_for_reading const&) = delete;
 
 	lockable_for_reading& operator=(lockable_for_reading&&) { return *this; }
@@ -161,7 +233,7 @@ class lockable_for_updates
 public:
 	lockable_for_updates() {}
 
-	lockable_for_updates(lockable_for_updates&&) {}
+	lockable_for_updates(lockable_for_updates&&) = default;
 	lockable_for_updates(lockable_for_updates const&) = delete;
 
 	lockable_for_updates& operator=(lockable_for_updates&&) { return *this; }
@@ -184,7 +256,7 @@ class lockable
 public:
 	lockable() {}
 
-	lockable(lockable&&) {}
+	lockable(lockable&&) = default;
 	lockable(lockable const&) = delete;
 
 	lockable& operator=(lockable&&) { return *this; }
@@ -214,15 +286,17 @@ public:
 //	public:
 //
 //		auto locked_updatable_range()
-//		-> locked_iterable<updatable_lock, std::vector<int>::iterator>
+//		-> mt::locked_iterable<updatable_lock, std::vector<int>::iterator>
 //		{
-//			return {lock_for_updates(), ints.begin(), ints.end()};
+//			auto lock = lock_for_updates();
+//			return {adopted_lock_for_updates(), ints.begin(), ints.end()};
 //		}
 //
 //		auto locked_read_only_range() const
-//		-> locked_iterable<read_only_lock, std::vector<int>::const_iterator>
+//		-> mt::locked_iterable<read_only_lock, std::vector<int>::const_iterator>
 //		{
-//			return {lock_for_reading(), ints.cbegin(), ints.cend()};
+//			auto lock = lock_for_reading();
+//			return {adopted_lock_for_reading(), ints.cbegin(), ints.cend()};
 //		}
 //	};
 //
