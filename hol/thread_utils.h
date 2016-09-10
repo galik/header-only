@@ -188,10 +188,6 @@ public:
     using read_only_lock  = std::shared_lock<mutex_type>;
     using updatable_lock = std::unique_lock<mutex_type>;
 
-private:
-	mutable mutex_type mtx;
-
-public:
 	virtual ~lockable_base() {};
 
 	lockable_base() {}
@@ -202,7 +198,10 @@ public:
 	lockable_base& operator=(lockable_base const&) = delete;
 	lockable_base& operator=(lockable_base&&) { return *this; }
 
-	auto& mutex() const { return mtx; }
+	mutex_type& mutex() const { return mtx; }
+
+private:
+	mutable mutex_type mtx;
 };
 
 class lockable_for_reading
@@ -211,7 +210,7 @@ class lockable_for_reading
 public:
 	lockable_for_reading() {}
 
-	lockable_for_reading(lockable_for_reading&&) = default;
+	lockable_for_reading(lockable_for_reading&&) {};
 	lockable_for_reading(lockable_for_reading const&) = delete;
 
 	lockable_for_reading& operator=(lockable_for_reading&&) { return *this; }
@@ -233,7 +232,7 @@ class lockable_for_updates
 public:
 	lockable_for_updates() {}
 
-	lockable_for_updates(lockable_for_updates&&) = default;
+	lockable_for_updates(lockable_for_updates&&) {};
 	lockable_for_updates(lockable_for_updates const&) = delete;
 
 	lockable_for_updates& operator=(lockable_for_updates&&) { return *this; }
@@ -262,6 +261,74 @@ public:
 	lockable& operator=(lockable&&) { return *this; }
 	lockable& operator=(lockable const&) = delete;
 };
+
+//============================================================
+// updatable and read_only locked versions of lockable objects
+//============================================================
+//
+//
+
+template<typename Lockable>
+class read_only_locked_version_of
+{
+public:
+	using const_pointer   = typename std::remove_reference<Lockable>::type const*;
+	using const_reference = typename std::remove_reference<Lockable>::type const&;
+
+	read_only_locked_version_of(Lockable const& lockable)
+	: lockable(lockable), lock(lockable.lock_for_reading()) {}
+
+	const_reference operator*()  const { return  lockable; }
+	const_pointer   operator->() const { return &lockable; }
+
+	const_reference ro()  const { return lockable; }
+	const_reference get() const { return lockable; }
+
+private:
+	Lockable const& lockable;
+	mt::lockable::read_only_lock lock;
+};
+
+template<typename Lockable>
+class updatable_locked_version_of
+{
+public:
+	using pointer         = typename std::remove_reference<Lockable>::type*;
+	using reference       = typename std::remove_reference<Lockable>::type&;
+	using const_pointer   = typename std::remove_reference<Lockable>::type const*;
+	using const_reference = typename std::remove_reference<Lockable>::type const&;
+
+	updatable_locked_version_of(Lockable& lockable)
+	: lockable(lockable), lock(lockable.lock_for_updates()) {}
+
+	reference operator*()  { return  lockable; }
+	pointer   operator->() { return &lockable; }
+
+	reference rw()  { return lockable; }
+	reference get() { return lockable; }
+
+	const_reference operator*()  const { return  lockable; }
+	const_pointer   operator->() const { return &lockable; }
+
+	const_reference ro()  const { return lockable; }
+	const_reference get() const { return lockable; }
+
+private:
+	Lockable& lockable;
+	mt::lockable::updatable_lock lock;
+};
+
+template<typename Lockable>
+auto get_read_only_locked_version_of(Lockable const& lockable)
+{
+	return read_only_locked_version_of<Lockable>(lockable);
+}
+
+template<typename Lockable>
+auto get_updatable_locked_version_of(Lockable& lockable)
+{
+	return updatable_locked_version_of<Lockable>(lockable);
+}
 
 //
 //

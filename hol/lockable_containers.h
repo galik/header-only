@@ -40,38 +40,25 @@ namespace mt {
 
 template<typename Container>
 class lockable_container
-: public Container
-, public lockable
+: public lockable
+, public Container
 {
 public:
-	using mutex_type = std::shared_timed_mutex;
-	using read_lock = std::shared_lock<mutex_type>;
-	using write_lock = std::unique_lock<mutex_type>;
-
-	// default ctor
 	lockable_container() {}
 
-	// move-ctor
 	lockable_container(lockable_container&& lv)
-	: lockable_container(std::move(lv), lv.lock_for_writing()) {}
+	: lockable_container(std::move(lv), lv.lock_for_updates()) {}
 
-	// move-assign
 	lockable_container& operator=(lockable_container&& lv)
 	{
-		lv.lock_for_writing();
+		lv.lock_for_updates();
 		Container::operator=(std::move(lv));
 		return *this;
 	}
 
-	read_lock lock_for_reading() { return read_lock(m); }
-	write_lock lock_for_writing() { return write_lock(m); }
-
 private:
-	// hidden, locked move-ctor
-	lockable_container(lockable_container&& lv, write_lock)
+	lockable_container(lockable_container&& lv, updatable_lock)
 	: Container(std::move(lv)) {}
-
-	mutex_type m;
 };
 
 #define HOL_LOCKABLE_SEQUENCE_CONTAINER(Container) \
@@ -94,6 +81,48 @@ HOL_LOCKABLE_SEQUENCE_CONTAINER(unordered_set);
 HOL_LOCKABLE_ASSOCIATIVE_CONTAINER(map);
 HOL_LOCKABLE_ASSOCIATIVE_CONTAINER(multimap);
 HOL_LOCKABLE_ASSOCIATIVE_CONTAINER(unordered_map);
+
+#define HOL_READ_ONLY_LOCKED_SEQUENCE_CONTAINER(Container) \
+template<typename T> \
+using read_only_locked_ ## Container = read_only_locked_version_of<lockable_ ## Container<T>>
+
+#define HOL_READ_ONLY_LOCKED_ASSOCIATIVE_CONTAINER(Container) \
+template<typename K, typename V> \
+using read_only_locked_ ## Container = read_only_locked_version_of<lockable_ ## Container<K, V>>
+
+HOL_READ_ONLY_LOCKED_SEQUENCE_CONTAINER(vector);
+HOL_READ_ONLY_LOCKED_SEQUENCE_CONTAINER(deque);
+HOL_READ_ONLY_LOCKED_SEQUENCE_CONTAINER(queue);
+HOL_READ_ONLY_LOCKED_SEQUENCE_CONTAINER(stack);
+HOL_READ_ONLY_LOCKED_SEQUENCE_CONTAINER(list);
+HOL_READ_ONLY_LOCKED_SEQUENCE_CONTAINER(set);
+HOL_READ_ONLY_LOCKED_SEQUENCE_CONTAINER(multiset);
+HOL_READ_ONLY_LOCKED_SEQUENCE_CONTAINER(unordered_set);
+
+HOL_READ_ONLY_LOCKED_ASSOCIATIVE_CONTAINER(map);
+HOL_READ_ONLY_LOCKED_ASSOCIATIVE_CONTAINER(multimap);
+HOL_READ_ONLY_LOCKED_ASSOCIATIVE_CONTAINER(unordered_map);
+
+#define HOL_UPDATABLE_LOCKED_SEQUENCE_CONTAINER(Container) \
+template<typename T> \
+using updatable_locked_ ## Container = updatable_locked_version_of<lockable_ ## Container<T>>
+
+#define HOL_UPDATABLE_LOCKED_ASSOCIATIVE_CONTAINER(Container) \
+template<typename K, typename V> \
+using updatable_locked_ ## Container = updatable_locked_version_of<lockable_ ## Container<K, V>>
+
+HOL_UPDATABLE_LOCKED_SEQUENCE_CONTAINER(vector);
+HOL_UPDATABLE_LOCKED_SEQUENCE_CONTAINER(deque);
+HOL_UPDATABLE_LOCKED_SEQUENCE_CONTAINER(queue);
+HOL_UPDATABLE_LOCKED_SEQUENCE_CONTAINER(stack);
+HOL_UPDATABLE_LOCKED_SEQUENCE_CONTAINER(list);
+HOL_UPDATABLE_LOCKED_SEQUENCE_CONTAINER(set);
+HOL_UPDATABLE_LOCKED_SEQUENCE_CONTAINER(multiset);
+HOL_UPDATABLE_LOCKED_SEQUENCE_CONTAINER(unordered_set);
+
+HOL_UPDATABLE_LOCKED_ASSOCIATIVE_CONTAINER(map);
+HOL_UPDATABLE_LOCKED_ASSOCIATIVE_CONTAINER(multimap);
+HOL_UPDATABLE_LOCKED_ASSOCIATIVE_CONTAINER(unordered_map);
 
 } // mt
 } // thread_utils
