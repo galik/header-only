@@ -38,10 +38,18 @@
 #	include <experimental/string_view>
 #endif
 
+#ifdef HOL_USE_STRING_SPAN
+#	include <gsl/string_span>
+#endif
+
 namespace hol {
 
 #ifdef HOL_USE_STRING_VIEW
 using string_view = std::experimental::string_view;
+#endif
+
+#ifdef HOL_USE_STRING_SPAN
+using string_span = gsl::string_span<>;
 #endif
 
 // replace_all
@@ -73,7 +81,6 @@ std::string& replace_all_mute(std::string& s,
 {
 	return replace_all_mute<char>(s, from, to);
 }
-
 
 inline
 std::wstring& replace_all_mute(std::wstring& s,
@@ -279,7 +286,7 @@ using woutput_separator = basic_output_separator<wchar_t>;
 
 // trimming functions
 
-constexpr const char* const ws = " \t\n\r\f\v";
+constexpr const char ws[] = " \t\n\r\f\v";
 
 /**
  * Remove leading characters from a str.
@@ -288,7 +295,8 @@ constexpr const char* const ws = " \t\n\r\f\v";
  * of the string.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string& trim_left_mute(std::string& s, const char* t = ws)
+inline
+std::string& trim_left_mute(std::string& s, const char* t = ws)
 {
 	s.erase(0, s.find_first_not_of(t));
 	return s;
@@ -301,7 +309,8 @@ inline std::string& trim_left_mute(std::string& s, const char* t = ws)
  * of the string.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string& trim_right_mute(std::string& s, const char* t = ws)
+inline
+std::string& trim_right_mute(std::string& s, const char* t = ws)
 {
 	s.erase(s.find_last_not_of(t) + 1);
 	return s;
@@ -314,7 +323,8 @@ inline std::string& trim_right_mute(std::string& s, const char* t = ws)
  * of the string.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string& trim_mute(std::string& s, const char* t = ws)
+inline
+std::string& trim_mute(std::string& s, const char* t = ws)
 {
 	return trim_left_mute(trim_right_mute(s, t), t);
 }
@@ -328,7 +338,8 @@ inline std::string& trim_mute(std::string& s, const char* t = ws)
  * of the string.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string trim_left_mute(std::string&& s, const char* t = ws)
+inline
+std::string trim_left_mute(std::string&& s, const char* t = ws)
 {
 	return trim_left_mute(s, t);
 }
@@ -340,7 +351,8 @@ inline std::string trim_left_mute(std::string&& s, const char* t = ws)
  * of the string.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string trim_right_mute(std::string&& s, const char* t = ws)
+inline
+std::string trim_right_mute(std::string&& s, const char* t = ws)
 {
 	return trim_right_mute(s, t);
 }
@@ -352,29 +364,66 @@ inline std::string trim_right_mute(std::string&& s, const char* t = ws)
  * of the string.
  * @return The same string passed in as a parameter reference.
  */
-inline std::string trim_mute(std::string&& s, const char* t = ws)
+inline
+std::string trim_mute(std::string&& s, const char* t = ws)
 {
 	return trim_left_mute(trim_right_mute(s, t), t);
 }
 
-inline std::string trim_left_copy(std::string s, const char* t = ws)
+inline
+std::string trim_left_copy(std::string s, const char* t = ws)
 {
 	return trim_left_mute(s, t);
 }
 
-inline std::string trim_right_copy(std::string s, const char* t = ws)
+inline
+std::string trim_right_copy(std::string s, const char* t = ws)
 {
 	return trim_right_mute(s, t);
 }
 
-inline std::string trim_copy(std::string s, const char* t = ws)
+inline
+std::string trim_copy(std::string s, const char* t = ws)
 {
 	return trim_mute(s, t);
 }
 
+// keep
+
+inline
+std::string trim_left_keep(std::string& s, const char* t = ws)
+{
+	std::string::size_type pos;
+	std::string keep = s.substr(0, (pos = s.find_first_not_of(t)));
+	s.erase(0, pos);
+	return keep;
+}
+
+inline
+std::string trim_right_keep(std::string& s, const char* t = ws)
+{
+	std::string::size_type pos;
+	std::string keep = s.substr((pos = s.find_last_not_of(t) + 1));
+	s.erase(pos);
+	return keep;
+}
+
+inline
+auto trim_keep(std::string& s, const char* t = ws)
+{
+	struct rv
+	{
+		std::string left;
+		std::string right;
+	};
+
+	return rv{trim_left_keep(s, t), trim_right_keep(s, t)};
+}
+
 #ifdef HOL_USE_STRING_VIEW
 //views
-inline string_view trim_left_view(string_view s, const char* t = ws)
+inline
+string_view trim_left_view(string_view s, const char* t = ws)
 {
 	if(auto pos = s.find_first_not_of(t) + 1)
 	{
@@ -384,14 +433,16 @@ inline string_view trim_left_view(string_view s, const char* t = ws)
 	return {};
 }
 
-inline string_view trim_right_view(string_view s, const char* t = ws)
+inline
+string_view trim_right_view(string_view s, const char* t = ws)
 {
 	if(auto pos = s.find_last_not_of(t) + 1)
 		s.remove_suffix(s.size() - pos);
 	return {s.data(), s.size()};
 }
 
-inline string_view trim_view(string_view s, const char* t = ws)
+inline
+string_view trim_view(string_view s, const char* t = ws)
 {
 	return trim_left_view(trim_right_view(s, t), t);
 }
@@ -444,6 +495,56 @@ inline std::string trim_copy(std::string s, char c)
 {
 	return trim_mute(s, c);
 }
+
+// GSL_STRING_SPAN
+
+#ifdef HOL_USE_STRING_SPAN
+namespace gsl_detail {
+gsl::cstring_span<> ws{::hol::ws};
+
+inline
+string_span::index_type find_first_not_of(string_span s, gsl::cstring_span<> t)
+{
+	for(string_span::index_type i = 0; i < s.size(); ++i)
+		if(std::find(t.begin(), t.end(), s[i]) == t.end())
+			return i;
+	return -1;
+}
+
+inline
+string_span::index_type find_last_not_of(string_span s, gsl::cstring_span<> t)
+{
+	for(string_span::index_type i = s.size(); i; --i)
+		if(std::find(t.begin(), t.end(), s[i - 1]) == t.end())
+			return i - 1;
+	return -1;
+}
+} // gsl_detail
+
+inline
+string_span trim_left_span(string_span s, gsl::cstring_span<> t = gsl_detail::ws)
+{
+	auto found = gsl_detail::find_first_not_of(s, t);
+
+	if(found == -1)
+		return {};
+
+	return s.subspan(found);
+}
+
+inline
+string_span trim_right_span(string_span s, gsl::cstring_span<> t = gsl_detail::ws)
+{
+	return s.subspan(0, gsl_detail::find_last_not_of(s, t) + 1);
+}
+
+inline
+string_span trim_span(string_span s, gsl::cstring_span<> t = gsl_detail::ws)
+{
+	return trim_left_span(trim_right_span(s, t), t);
+}
+
+#endif
 
 // NEW DEFINITIVE SPLIT ALGORITHM??
 
