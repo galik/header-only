@@ -116,7 +116,26 @@ class PRNG
 	Dist dist;
 
 public:
-//	PRNG(): ss({rd{}(), rd{}(), rd{}(), rd{}()}), gen(ss) {}
+
+	/**
+	 * Get a random number of any value according to
+	 * the limits of the PRNG's constructed numerical type.
+	 * @return Full numerical range random number.
+	 */
+	Type get()
+	{
+		return get(std::numeric_limits<Type>::lowest(), std::numeric_limits<Type>::max());
+	}
+
+	/**
+	 * Get a random number between 0 and `to`, inclusively.
+	 * @param to Highest possible return value.
+	 * @return Random number in the range [0, to].
+	 */
+	Type get(Type to)
+	{
+		return get(std::numeric_limits<Type>::min(), to);
+	}
 
 	/**
 	 * Get a random number between from and to, inclusively.
@@ -124,22 +143,6 @@ public:
 	 * @param to Highest possible return value.
 	 * @return Random number in the range [from, to].
 	 */
-//	Type get(Type from = std::numeric_limits<Type>::lowest()
-//		, Type to = std::numeric_limits<Type>::max())
-//	{
-//		return dist(gen, param_type{from, to});
-//	}
-
-	Type get()
-	{
-		return get(std::numeric_limits<Type>::lowest(), std::numeric_limits<Type>::max());
-	}
-
-	Type get(Type to)
-	{
-		return get(std::numeric_limits<Type>::min(), to);
-	}
-
 	Type get(Type from, Type to)
 	{
 		return dist(tools.gen, param_type{from, to});
@@ -163,21 +166,37 @@ public:
 	bool percent(Type num) { return chances(num, 100); }
 };
 
+/// 32bit mt engine
 template<typename Type = std::int32_t>
 using PRNG_32 = PRNG<Type>;
 
-using PRNG_32S = PRNG_32<std::int32_t>;      // 32bit mt engine 32bit signed int
-using PRNG_32U = PRNG_32<std::uint32_t>;     // 32bit mt engine 32bit unsigned int
-using PRNG_32F = PRNG_32<float>;             // 32bit mt engine float
-using PRNG_32D = PRNG_32<double>;            // 32bit mt engine double
+/// 32bit mt engine 32bit signed int
+using PRNG_32S = PRNG_32<std::int32_t>;
 
+/// 32bit mt engine 32bit unsigned int
+using PRNG_32U = PRNG_32<std::uint32_t>;
+
+/// 32bit mt engine float
+using PRNG_32F = PRNG_32<float>;
+
+/// 32bit mt engine double
+using PRNG_32D = PRNG_32<double>;
+
+/// 64bit mt engine
 template<typename Type = std::int64_t>
 using PRNG_64 = PRNG<Type, std::mt19937_64>;
 
-using PRNG_64S = PRNG_64<std::int64_t>;      // 64bit mt engine 64bit signed int
-using PRNG_64U = PRNG_64<std::uint64_t>;     // 64bit mt engine 64bit unsigned int
-using PRNG_64F = PRNG_64<float>;             // 64bit mt engine float
-using PRNG_64D = PRNG_64<double>;            // 64bit mt engine double
+/// 64bit mt engine 64bit signed int
+using PRNG_64S = PRNG_64<std::int64_t>;
+
+/// 64bit mt engine 64bit unsigned int
+using PRNG_64U = PRNG_64<std::uint64_t>;
+
+/// 64bit mt engine float
+using PRNG_64F = PRNG_64<float>;
+
+/// 64bit mt engine double
+using PRNG_64D = PRNG_64<double>;
 
 } // rnd
 } // random_utils
