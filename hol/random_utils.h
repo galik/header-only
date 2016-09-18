@@ -28,17 +28,54 @@
 namespace hol {
 namespace random_utils {
 namespace rnd {
-namespace details {
-//TODO: make PRNG use these tools?
+namespace detail {
+
 template<typename Generator = std::mt19937>
-struct random_tools
+class random_tools
 {
+private:
+	using RNG = Generator;
 	using rd = std::random_device;
-	std::seed_seq ss = {{rd{}(), rd{}(), rd{}(), rd{}()}};
-	Generator gen;
-	random_tools(): gen(ss) {}
+	explicit random_tools(std::seed_seq&& ss): gen(ss) {}
+
+public:
+	random_tools(): random_tools(std::seed_seq{{rd{}(), rd{}(), rd{}(), rd{}()}}) {}
+	explicit random_tools(std::seed_seq& ss): gen(ss) {}
+	RNG gen;
 };
-} // details
+
+} // detail
+
+/// return a thread-local mersenne twister prng (32-bit)
+inline std::mt19937& mt32()
+{
+	thread_local static detail::random_tools<std::mt19937> tools;
+	return tools.gen;
+}
+
+template<typename Numeric>
+Numeric random_number(Numeric from, Numeric to)
+{
+	static_assert(std::is_integral<Numeric>::value || std::is_floating_point<Numeric>::value,
+		"random_number<Numeric> must be called with an integer or a floating point number");
+
+	using dist_type = typename std::conditional
+	<
+		std::is_integral<Numeric>::value
+		, std::uniform_int_distribution<Numeric>
+		, std::uniform_real_distribution<Numeric>
+	>::type;
+
+	thread_local static dist_type dist;
+
+	return dist(mt32(), typename dist_type::param_type{from, to});
+}
+
+template<typename Numeric>
+Numeric random_number(Numeric to = std::numeric_limits<Numeric>::max())
+{
+	return random_number({}, to);
+}
 
 /**
  * Usage:
@@ -71,11 +108,11 @@ template
 	>
 class PRNG
 {
-	using rd = std::random_device;
+//	using rd = std::random_device;
 	using param_type = typename Dist::param_type;
 //	std::seed_seq ss;
 //	Generator gen;
-	details::random_tools<Generator> tools;
+	detail::random_tools<Generator> tools;
 	Dist dist;
 
 public:
@@ -141,29 +178,6 @@ using PRNG_64S = PRNG_64<std::int64_t>;      // 64bit mt engine 64bit signed int
 using PRNG_64U = PRNG_64<std::uint64_t>;     // 64bit mt engine 64bit unsigned int
 using PRNG_64F = PRNG_64<float>;             // 64bit mt engine float
 using PRNG_64D = PRNG_64<double>;            // 64bit mt engine double
-
-template<typename Numeric>
-Numeric random_number(Numeric from, Numeric to)
-{
-	thread_local details::random_tools<> tools;
-
-	using dist_type = typename std::conditional
-	<
-		std::is_integral<Numeric>::value
-		, std::uniform_int_distribution<Numeric>
-		, std::uniform_real_distribution<Numeric>
-	>::type;
-
-	thread_local static dist_type dist;
-
-	return dist(tools.gen, typename dist_type::param_type{from, to});
-}
-
-template<typename Numeric>
-Numeric random_number(Numeric to = std::numeric_limits<Numeric>::max())
-{
-	return random({}, to);
-}
 
 } // rnd
 } // random_utils
