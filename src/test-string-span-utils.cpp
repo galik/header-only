@@ -106,10 +106,6 @@ TEST_CASE("string_span string function tests", "string_span_utils")
 			gsl::string_span<> ss{s};
 			gsl::string_span<> ts{t};
 
-//			bug_var(s);
-//			bug_var(t);
-//			bug_var(o);
-
 			REQUIRE(eqtest(ss, t, o, hol::find(ss, c[0], o), s.find(c[0], o)));
 			REQUIRE(eqtest(ss, t, o, hol::find_first_of(ss, ts, o), s.find_first_of(t, o)));
 			REQUIRE(eqtest(ss, t, o, hol::find_first_not_of(ss, ts, o), s.find_first_not_of(t, o)));
