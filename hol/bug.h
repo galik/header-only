@@ -87,7 +87,7 @@ struct scope_bomb{};
 
 #else
 
-#define bug(m) do{std::ostringstream o; o<<m<<std::endl;std::cout<<o.str();}while(0)
+#define bug(m) do{std::ostringstream __o; __o<<m<<std::endl;std::cout<<__o.str();}while(0)
 #define bug_var(v) bug(#v ": " << std::boolalpha << v)
 
 #define bug_cnt(c) \
