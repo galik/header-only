@@ -40,7 +40,7 @@
 
 #define HOL_THROW_EXCEPTION(exc, msg) do{ \
 	std::ostringstream oss; \
-	oss << __FILE__ << ":" << __LINE__ << ":1 error: " << msg; \
+	oss << __FILE__ << ":" << __LINE__ << ":error: " << msg; \
 	throw exc(oss.str());}while(0)
 
 #endif // NDEBUG
@@ -48,6 +48,6 @@
 #define HOL_THROW_RUNTIME_ERROR(msg) \
 	HOL_THROW_EXCEPTION(std::runtime_error, msg)
 
-#define HOLL_THROW_ERRNO() HOL_THROW_RUNTIME_ERROR(std::strerror(errno))
+#define HOL_THROW_ERRNO() HOL_THROW_RUNTIME_ERROR(std::strerror(errno))
 
 #endif // HOL_MACRO_EXCEPTIONS_H
