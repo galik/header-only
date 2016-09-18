@@ -108,10 +108,7 @@ template
 	>
 class PRNG
 {
-//	using rd = std::random_device;
 	using param_type = typename Dist::param_type;
-//	std::seed_seq ss;
-//	Generator gen;
 	detail::random_tools<Generator> tools;
 	Dist dist;
 
