@@ -78,11 +78,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#include <openssl/rand.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-
-#include "bug.h"
+#include "macro_exceptions.h"
 
 namespace hol {
 namespace sockets {
@@ -150,10 +146,19 @@ struct connection_type
 	SOCK socket_type;
 };
 
+constexpr connection_type unix_raw = {AF::UNIX, SOCK::RAW};
+constexpr connection_type local_raw = {AF::LOCAL, SOCK::RAW};
+constexpr connection_type internet_raw = {AF::UNSPEC, SOCK::RAW};
+constexpr connection_type internet4_raw = {AF::INET, SOCK::RAW};
+constexpr connection_type internet6_raw = {AF::INET6, SOCK::RAW};
+
+constexpr connection_type unix_stream = {AF::UNIX, SOCK::STREAM};
 constexpr connection_type local_stream = {AF::LOCAL, SOCK::STREAM};
 constexpr connection_type internet_stream = {AF::UNSPEC, SOCK::STREAM};
 constexpr connection_type internet4_stream = {AF::INET, SOCK::STREAM};
 constexpr connection_type internet6_stream = {AF::INET6, SOCK::STREAM};
+
+constexpr connection_type unix_datagram = {AF::UNIX, SOCK::DGRAM};
 constexpr connection_type local_datagram = {AF::LOCAL, SOCK::DGRAM};
 constexpr connection_type internet_datagram = {AF::UNSPEC, SOCK::DGRAM};
 constexpr connection_type internet4_datagram = {AF::INET, SOCK::DGRAM};
@@ -161,8 +166,151 @@ constexpr connection_type internet6_datagram = {AF::INET6, SOCK::DGRAM};
 
 class socket
 {
-	int fd;
-	connection_type type;
+public:
+	socket(): fd(-1) {}
+	socket(socket&& other) noexcept: socket() { using std::swap; swap(*this, other); }
+	socket(socket const&) = delete;
+	socket(connection_type ct): socket() { config(ct); }
+	socket& operator=(socket&& other) { using std::swap; swap(*this, other); return *this; }
+	socket& operator=(socket const&) = delete;
+
+	~socket() { disconnect(); }
+
+	int get() const { return fd; }
+
+	void close()
+	{
+		if(fd != -1)
+			::close(fd);
+		fd = -1;
+		is_server = false;
+	}
+
+	void disconnect() { close(); }
+
+	AF address_family() const { return type.address_family; }
+	void address_family(AF address_family) { this->type.address_family = address_family; }
+
+	SOCK socket_type() const { return type.socket_type; }
+	void socket_type(SOCK socket_type) { type.socket_type = socket_type; }
+
+	connection_type config() const { return type; }
+	void config(connection_type type) { this->type = type; }
+
+	// client
+
+	void connect(std::string const& host, std::string const& port)
+	{
+		disconnect();
+
+		addrinfo hints;
+		memset(&hints, 0, sizeof hints);
+		hints.ai_family = to_int(type.address_family);
+		hints.ai_socktype = to_int(type.socket_type);
+
+		addrinfo* res;
+		if(int status = getaddrinfo(host.c_str(), port.c_str(), &hints, &res) != 0)
+			HOL_THROW_RUNTIME_ERROR(gai_strerror(status));
+
+		// try to connect to each
+		socket sd{type};
+
+		addrinfo* p;
+		for(p = res; p; p = p->ai_next)
+		{
+			if(!sd.reset(::socket(p->ai_family, p->ai_socktype, p->ai_protocol)))
+				continue;
+			if(!::connect(sd, p->ai_addr, p->ai_addrlen))
+				break;
+			sd.close();
+		}
+
+		freeaddrinfo(res);
+
+		if(!p)
+			HOL_THROW_ERRNO();
+
+		(*this) = std::move(sd);
+	}
+
+	socket& reset(int fd) { close(); this->fd = fd; return *this; }
+
+	// server
+	void bind(std::string const& port)
+	{
+		addrinfo hints;
+
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = to_int(type.address_family);
+		hints.ai_socktype = to_int(type.socket_type);
+		hints.ai_flags = AI_PASSIVE;
+
+		int error;
+		addrinfo* ai;
+		if((error = getaddrinfo(0, port.c_str(), &hints, &ai)))
+			HOL_THROW_RUNTIME_ERROR(gai_strerror(error));
+
+		socket sd{type}; // new socket same type
+		sd.is_server = true;
+
+		addrinfo* p;
+		int yes = 1;
+
+		for(p = ai; p; p = p->ai_next)
+		{
+			if(!sd.reset(::socket(p->ai_family, p->ai_socktype, p->ai_protocol)))
+				continue;
+
+			if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)))
+				HOL_THROW_ERRNO();
+
+			if(!::bind(sd, p->ai_addr, p->ai_addrlen))
+				break;
+
+			sd.close();
+		}
+
+		freeaddrinfo(ai);
+
+		if(!p)
+			HOL_THROW_ERRNO();
+
+		(*this) = std::move(sd);
+	}
+
+	void listen(int n = 10)
+	{
+		if(!is_server)
+			HOL_THROW_RUNTIME_ERROR("Not a server socket (call bind before listen?");
+		if(::listen(fd, n))
+			HOL_THROW_ERRNO();
+	}
+
+	socket accept()
+	{
+		if(!is_server)
+			HOL_THROW_RUNTIME_ERROR("Not a server socket (call bind and listen before accept?");
+		sockaddr_storage client_info; // client address
+		socklen_t addrlen = sizeof(client_info);
+
+		// handle new connections
+		socket cc{::accept(fd, (sockaddr*) &client_info, &addrlen)};
+
+		if(!cc)
+			HOL_THROW_ERRNO();
+
+		cc.client_info = client_info;
+		return std::move(cc);
+	}
+
+	operator int() const { return fd; }
+	explicit operator bool() const { return fd != -1; }
+
+private:
+	socket(int fd): fd(fd) {}
+	socket(int af, int st, int p): fd(::socket(af, st, p))
+	{
+	}
 
 	static constexpr int to_int(AF address_family)
 	{
@@ -179,86 +327,22 @@ class socket
 		return {0, to_int(ct.address_family), to_int(ct.socket_type), 0, 0, 0, 0, 0};
 	}
 
-public:
-	socket(): fd(-1) {}
-	socket(socket&& s) noexcept: socket() { std::swap(fd, s.fd); }
-	socket(socket const&) = delete;
-	socket(connection_type ct): socket() { config(ct); }
-	socket& operator=(socket&& s) { std::swap(fd, s.fd); return *this; }
-	socket& operator=(socket const&) = delete;
+	int fd;
+	connection_type type;
 
-	~socket() { disconnect(); }
+	bool is_server = false;
 
-	int get() const { return fd; }
-
-	void disconnect()
-	{
-		if(fd != -1)
-			::close(fd);
-		fd = -1;
-	}
-
-	AF address_family() const { return type.address_family; }
-	void address_family(AF address_family) { this->type.address_family = address_family; }
-
-	SOCK socket_type() const { return type.socket_type; }
-	void socket_type(SOCK socket_type) { type.socket_type = socket_type; }
-
-	connection_type config() const { return type; }
-	void config(connection_type type) { this->type = type; }
-
-	void connect(std::string const& host, std::string const& port)
-	{
-		bug_fun();
-		bug_var(host);
-		bug_var(port);
-
-		disconnect();
-
-		addrinfo hints;
-		memset(&hints, 0, sizeof hints);
-		hints.ai_family = AF_INET;//to_int(type.address_family);
-		hints.ai_socktype = to_int(type.socket_type);
-
-		addrinfo* res;
-		if(int status = getaddrinfo(host.c_str(), port.c_str(), &hints, &res) != 0)
-			throw std::runtime_error(gai_strerror(status));
-
-		bug_var(res);
-
-		// try to connect to each
-		int sd;
-		addrinfo* p;
-		for(p = res; p; p = p->ai_next)
-		{
-			bug_var(p);
-			if((sd = ::socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-				continue;
-			if(!::connect(sd, p->ai_addr, p->ai_addrlen))
-				break;
-			::close(sd);
-		}
-
-		freeaddrinfo(res);
-
-		bug_var(p);
-		bug_var(sd);
-
-		if(!p)
-		{
-			bug_var(std::strerror(errno));
-			throw std::runtime_error(std::strerror(errno));
-		}
-
-		fd = sd;
-		bug_var(fd);
-	}
+	/// If this socket was created from accept() on a server socket
+	/// this contains the client's info
+	sockaddr_storage client_info;
 
 	friend void swap(socket& l, socket& r)
 	{
 		using std::swap;
 		swap(l.fd, r.fd);
 		swap(l.type, r.type);
+		swap(l.is_server, r.is_server);
+		swap(l.client_info, r.client_info);
 	}
 };
 
@@ -301,7 +385,7 @@ public:
 	{
 		ssize_t num;
 		if((num = write(data.data(), data.size())) != (ssize_t)data.size())
-			throw std::runtime_error("");
+			HOL_THROW_RUNTIME_ERROR("write error");
 	}
 
 	std::string receive()
@@ -315,7 +399,7 @@ public:
 			data.append(buf, len);
 
 		if(len < 0)
-			throw std::runtime_error("");
+			HOL_THROW_RUNTIME_ERROR("read error");
 
 		return data;
 	}
@@ -358,9 +442,6 @@ public:
 
 	void establish_with(std::string const& host, std::string const& port) override
 	{
-		bug_fun();
-		bug_var(host);
-		bug_var(port);
 		sock.connect(host, port);
 	}
 
@@ -436,13 +517,6 @@ public:
 		return *this;
 	}
 
-//	basic_socketbuf(basic_socketbuf&& sb)
-//	: conn(std::move(sb.conn))
-//	, ibuf(std::move(sb.ibuf))
-//	, obuf(std::move(sb.obuf))
-//	{
-//	}
-
 	~basic_socketbuf()
 	{
 		sync();
@@ -450,10 +524,9 @@ public:
 
 	void open(std::string const& host, std::string const& port)
 	{
-		bug_fun();
-		bug_var(host);
-		bug_var(port);
-		return conn->establish_with(host, port);
+		if(!conn)
+			HOL_THROW_RUNTIME_ERROR("no connection configured");
+		conn->establish_with(host, port);
 	}
 
 	void close()
@@ -572,17 +645,11 @@ public:
 
 	void open(std::string const& host, std::string const& port)
 	{
-		bug_fun();
-		bug_var(host);
-		bug_var(port);
 		buf.open(host, port);
 	}
 
 	void open(const std::string& host, uint16_t port)
 	{
-		bug_fun();
-		bug_var(host);
-		bug_var(port);
 		open(host, std::to_string(port));
 	}
 
