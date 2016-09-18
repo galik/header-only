@@ -508,7 +508,7 @@ string_span::index_type find_first_not_of(string_span s, gsl::cstring_span<> t)
 	for(string_span::index_type i = 0; i < s.size(); ++i)
 		if(std::find(t.begin(), t.end(), s[i]) == t.end())
 			return i;
-	return -1;
+	return -1; // 0?
 }
 
 inline
@@ -517,7 +517,7 @@ string_span::index_type find_last_not_of(string_span s, gsl::cstring_span<> t)
 	for(string_span::index_type i = s.size(); i; --i)
 		if(std::find(t.begin(), t.end(), s[i - 1]) == t.end())
 			return i - 1;
-	return -1;
+	return -1; // s.size() ?
 }
 } // gsl_detail
 
