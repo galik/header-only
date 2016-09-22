@@ -77,6 +77,14 @@ Numeric random_number(Numeric to = std::numeric_limits<Numeric>::max())
 	return random_number({}, to);
 }
 
+template<typename Container>
+typename Container::value_type random_element(Container const& c)
+{
+	if(c.empty())
+		return {};
+	return c[random_number(c.size() - 1)];
+}
+
 /**
  * Usage:
  *
