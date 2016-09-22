@@ -286,7 +286,7 @@ using woutput_separator = basic_output_separator<wchar_t>;
 
 // trimming functions
 
-constexpr const char ws[] = " \t\n\r\f\v";
+constexpr const char ws[] = " \t\n\r\f\v\0";
 
 /**
  * Remove leading characters from a str.
@@ -548,6 +548,11 @@ string_span trim_span(string_span s, gsl::cstring_span<> t = gsl_detail::ws)
 
 // NEW DEFINITIVE SPLIT ALGORITHM??
 
+// TODO: add char delim versions
+// TODO: add view versions
+// TODO: add span versions
+// TODO: add multi_span versions
+
 template
 <
 	typename StringType = std::string
@@ -636,7 +641,7 @@ auto basic_split(
  * @return A std::vector<std::string> containing all the pieces.
  */
 inline
-std::vector<std::string> split(
+std::vector<std::string> split_copy(
 	std::string const& s
 	, std::string const& delim = " "
 	, bool fold = true
@@ -646,7 +651,7 @@ std::vector<std::string> split(
 }
 
 inline
-std::vector<std::string> split(
+std::vector<std::string> split_copy(
 	std::string const& s
 	, std::vector<std::string>& v
 	, std::string const& delim = " "
@@ -657,7 +662,7 @@ std::vector<std::string> split(
 }
 
 inline
-std::vector<std::wstring> split(
+std::vector<std::wstring> split_copy(
 	std::wstring const& s
 	, std::wstring const& delim = L" "
 	, bool fold = true
@@ -667,7 +672,7 @@ std::vector<std::wstring> split(
 }
 
 inline
-std::vector<std::wstring> split(
+std::vector<std::wstring> split_copy(
 	std::wstring const& s
 	, std::vector<std::wstring>& v
 	, std::wstring const& delim = L" "
@@ -675,6 +680,17 @@ std::vector<std::wstring> split(
 	, bool strict = false)
 {
 	return basic_split(s, v, delim, fold, strict);
+}
+
+// JOIN
+
+template<typename Container>
+std::string join(const Container& c, std::string const& delim = " ")
+{
+	std::string ret, sep;
+	for(auto const& s: c)
+		{ ret += sep + s; sep = delim; }
+	return ret;
 }
 
 // --------------------------------------------------------------------
