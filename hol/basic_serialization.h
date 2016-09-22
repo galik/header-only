@@ -235,52 +235,24 @@ namespace txt {
 
 using detail::serialization_init;
 
-//inline
-//std::ostream& serialize(std::ostream& os, std::size_t sz)
-//{
-//	return os << ' ' << sz;
-//}
-//
-//inline
-//std::ostream& serialize(std::ostream& os, long long i)
-//{
-//	return os << ' ' << i;
-//}
-//
-//inline
-//std::ostream& serialize(std::ostream& os, unsigned long long i)
-//{
-//	return os << ' ' << i;
-//}
-//
-//inline
-//std::ostream& serialize(std::ostream& os, float f)
-//{
-//	return os << ' ' << f;
-//}
-//
-//inline
-//std::ostream& serialize(std::ostream& os, double d)
-//{
-//	return os << ' ' << d;
-//}
-
 //=============================================
 // SERIALIZATION
 //=============================================
+
+constexpr char serialization_sepator = '\n'; // must be whitespace
 
 // If we don't recognize it sent it to <<
 
 template<typename T>
 std::ostream& serialize(std::ostream& os, T const& v)
 {
-	return os << ' ' << v;
+	return os << serialization_sepator << v;
 }
 
 inline
 std::ostream& serialize(std::ostream& os, std::string const& s)
 {
-	return (serialize(os, s.size()) << ' ').write(s.data(), s.size());
+	return (serialize(os, s.size()) << serialization_sepator).write(s.data(), s.size());
 }
 
 template<typename T1, typename T2>
