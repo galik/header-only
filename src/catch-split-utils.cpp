@@ -83,20 +83,20 @@ TEST_CASE("strings be splitted", "string_utils")
 
 	SECTION("Definitive Split Algorithm")
 	{
-		REQUIRE(hol::split("", " ") == empty);
-		REQUIRE(hol::split("x", " ") == x);
-		REQUIRE(hol::split(" x", " ") == x);
-		REQUIRE(hol::split("x ", " ") == x);
-		REQUIRE(hol::split(" x ", " ") == x);
-		REQUIRE(hol::split("x  ", " ") == x);
-		REQUIRE(hol::split("  x", " ") == x);
-		REQUIRE(hol::split("  x  ", " ") == x);
-		REQUIRE(hol::split("a b", " ") == a_b);
-		REQUIRE(hol::split(" a b", " ") == a_b);
-		REQUIRE(hol::split("a b ", " ") == a_b);
-		REQUIRE(hol::split("  a b", " ") == a_b);
-		REQUIRE(hol::split("a b  ", " ") == a_b);
-		REQUIRE(hol::split("a  b", " ") == a_b);
+		REQUIRE(hol::split_copy("", " ") == empty);
+		REQUIRE(hol::split_copy("x", " ") == x);
+		REQUIRE(hol::split_copy(" x", " ") == x);
+		REQUIRE(hol::split_copy("x ", " ") == x);
+		REQUIRE(hol::split_copy(" x ", " ") == x);
+		REQUIRE(hol::split_copy("x  ", " ") == x);
+		REQUIRE(hol::split_copy("  x", " ") == x);
+		REQUIRE(hol::split_copy("  x  ", " ") == x);
+		REQUIRE(hol::split_copy("a b", " ") == a_b);
+		REQUIRE(hol::split_copy(" a b", " ") == a_b);
+		REQUIRE(hol::split_copy("a b ", " ") == a_b);
+		REQUIRE(hol::split_copy("  a b", " ") == a_b);
+		REQUIRE(hol::split_copy("a b  ", " ") == a_b);
+		REQUIRE(hol::split_copy("a  b", " ") == a_b);
 	}
 
 //	delim: ' ' "" {}
