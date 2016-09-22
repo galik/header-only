@@ -83,10 +83,12 @@ inline std::tm localtime_xp(std::time_t timer)
 	return bt;
 }
 
-enum class LOG: unsigned {D, I, A, W, E, X, COUNT};
+enum class LOG: unsigned {D, I, A, W, E, X, S, COUNT};
 
 constexpr auto COUNT = static_cast<unsigned>(LOG::COUNT);
 constexpr auto DEFAULT_FORMAT = "%F %T| ";
+
+using filter_type = std::string(*)(std::string);
 
 class log_out
 {
@@ -117,6 +119,7 @@ class log_out
 		bool synchronized_output = false;
 		std::string prefix;
 		std::string suffix;
+		filter_type filter = nullptr;
 
 		config_type() {}
 
@@ -132,6 +135,7 @@ class log_out
 		, synchronized_output(cfg.synchronized_output)
 		, prefix(std::move(cfg.prefix))
 		, suffix(std::move(cfg.suffix))
+		, filter(std::move(cfg.filter))
 		{
 			cfg.out = nullptr;
 		}
@@ -146,6 +150,7 @@ class log_out
 		, synchronized_output(cfg.synchronized_output)
 		, prefix(cfg.prefix)
 		, suffix(cfg.suffix)
+		, filter(cfg.filter)
 		{
 		}
 
@@ -160,6 +165,7 @@ class log_out
 			synchronized_output = cfg.synchronized_output;
 			prefix = cfg.prefix;
 			suffix = cfg.suffix;
+			filter = cfg.filter;
 
 			return *this;
 		}
@@ -168,7 +174,10 @@ class log_out
 
 	static config_type& config(LOG L)
 	{
-		static config_type cfg[COUNT] = {{"D: "}, {"I: "}, {"A: "}, {"W: "}, {"E: "}, {"X: "}};
+		static config_type cfg[COUNT]
+		{
+			{"D: "}, {"I: "}, {"A: "}, {"W: "}, {"E: "}, {"X: "}, {"S: "}
+		};
 		return cfg[static_cast<unsigned>(L)];
 	}
 
@@ -217,6 +226,7 @@ class log_out
 			, config(LOG::W).lock_for_deferred_reading()
 			, config(LOG::E).lock_for_deferred_reading()
 			, config(LOG::X).lock_for_deferred_reading()
+			, config(LOG::S).lock_for_deferred_reading()
 		);
 		std::lock(std::get<0>(t), std::get<1>(t), std::get<2>(t), std::get<3>(t), std::get<4>(t));
 		return std::move(t);
@@ -231,6 +241,7 @@ class log_out
 			, config(LOG::W).lock_for_deferred_writing()
 			, config(LOG::E).lock_for_deferred_writing()
 			, config(LOG::X).lock_for_deferred_writing()
+			, config(LOG::S).lock_for_deferred_writing()
 		);
 		std::lock(std::get<0>(t), std::get<1>(t), std::get<2>(t), std::get<3>(t), std::get<4>(t));
 		return std::move(t);
@@ -241,6 +252,28 @@ public:
 	{
 		log_out::prefix(prefix);
 		log_out::suffix(suffix);
+	}
+
+	static void filter(filter_type filter)
+	{
+		for(auto L = 0U; L < COUNT; ++L)
+			log_out::filter(static_cast<LOG>(L), filter);
+	}
+
+	static void filter(LOG L, filter_type filter)
+	{
+		auto lock = lock_for_writing(L);
+		config(L).filter = filter;
+	}
+
+	static void remove_filter()
+	{
+		filter(nullptr);
+	}
+
+	static void remove_filter(LOG L)
+	{
+		filter(L, nullptr);
 	}
 
 	static void prefix(std::string const& prefix)
@@ -437,7 +470,7 @@ class Logger
 	std::string stamp()
 	{
 		auto bt = localtime_xp(std::time(0));
-		char buf[64];
+		char buf[128];
 		return {buf, std::strftime(buf, sizeof(buf), cfg.format.c_str(), &bt)};
 	}
 
@@ -472,7 +505,10 @@ public:
 		if(cfg.boolalpha)
 			(*cfg.out) << std::boolalpha;
 
-		(*cfg.out) << stamp() << cfg.level_name << cfg.prefix << ss.str() << cfg.suffix << '\n';
+		std::string output = cfg.filter ? cfg.filter(ss.str()) : ss.str();
+
+		(*cfg.out) << stamp() << cfg.level_name << cfg.prefix << output << cfg.suffix << '\n';
+		(*cfg.out) << std::flush;
 	}
 
 	template<typename T>
