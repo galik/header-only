@@ -87,7 +87,7 @@ struct scope_bomb{};
 
 #else
 
-#define bug(m) do{std::ostringstream __o; __o<<m<<std::endl;std::cout<<__o.str();}while(0)
+#define bug(m) do{std::ostringstream __o;__o<<m<<'\n';std::cout<<__o.str()<<std::flush;}while(0)
 #define bug_var(v) bug(#v ": " << std::boolalpha << v)
 
 #define bug_cnt(c) \
@@ -97,7 +97,7 @@ struct scope_bomb{};
 		int i=0; \
 		for(auto&& v_c: c) \
 			{o << (i<100?" ":"") << (i<10?" ":"") << i << ": " << v_c << '\n';++i;} \
-		std::cout << o.str(); \
+		std::cout << o.str() << std::flush; \
 	}while(0)
 
 #define bug_itr(c, b, e) \
@@ -107,7 +107,7 @@ struct scope_bomb{};
 		int n=0; \
 		for(auto i = (b); i != (e); ++i) \
 			{o << " " << (n<100?" ":"") << (n<10?" ":"") << n << ": " << *i << '\n';++n;} \
-		std::cout << o.str(); \
+		std::cout << o.str() << std::flush; \
 	}while(0)
 
 #define hol_throw_exception(exc, msg) do{ \
