@@ -553,6 +553,8 @@ string_span trim_span(string_span s, gsl::cstring_span<> t = gsl_detail::ws)
 // TODO: add span versions
 // TODO: add multi_span versions
 
+// split_with
+
 template
 <
 	typename StringType = std::string
@@ -680,6 +682,144 @@ std::vector<std::wstring> split_copy(
 	, bool strict = false)
 {
 	return basic_split(s, v, delim, fold, strict);
+}
+
+// split_from (split string from selection of characters)
+// grossly untested code, probably broken
+
+template
+<
+	typename StringType = std::string
+	, typename StringType2 = std::string
+	, typename VectorType = std::vector<StringType>
+>
+auto basic_split_from(
+	StringType const& s
+	, VectorType& v
+	, StringType2 const& delims_in
+	, bool fold = true
+	, bool strict = false) -> VectorType
+{
+	if(s.empty())
+		return {};
+
+	StringType delims = delims_in;
+
+//	VectorType v;
+//	v.reserve(reserve);
+
+	if(delims.empty())
+	{
+		for(auto c: s)
+			v.emplace_back(1, c);
+		return v;
+	}
+
+	auto done = s.data() + s.size();
+	auto end = s.data();
+	auto pos = end;
+
+	if((end = std::find_first_of(pos, done, delims.begin(), delims.end())) == done)
+		return strict ? VectorType{}:VectorType{s};
+
+	if(end > pos)
+		v.emplace_back(pos, end - pos);
+	else if(!fold)
+		v.emplace_back();
+
+	pos = std::find_first_of(end + 1, done, delims.begin(), delims.end(), [](auto c, auto d)
+	{
+		return c != d;
+	});//end + 1;//delims.size();
+
+	while((end = std::find_first_of(pos, done, delims.begin(), delims.end())) != done)
+	{
+		if(end > pos)
+			v.emplace_back(pos, end - pos);
+		else if(!fold)
+			v.emplace_back();
+
+		pos = std::find_first_of(end + 1, done, delims.begin(), delims.end(), [](auto c, auto d)
+		{
+			return c != d;
+		});//end + 1;//delims.size();
+	}
+
+	if(end > pos)
+		v.emplace_back(pos, end - pos);
+	else if(!fold)
+		v.emplace_back();
+
+	return v;
+}
+
+template
+<
+	typename StringType = std::string
+	, typename StringType2 = std::string
+	, typename VectorType = std::vector<StringType>
+>
+auto basic_split_from(
+	StringType const& s
+	, StringType2 const& delims_in
+	, bool fold = true
+	, bool strict = false) -> VectorType
+{
+	VectorType v;
+	return basic_split_from(s, v, delims_in, fold, strict);
+}
+
+/**
+ *
+ * @param s The string that is to be divided into pieces surrounding
+ * the occurrence of specified set of delimiters.
+ * @param delims String of delimiting characters used to divide a string into pieces.
+ * @param fold If true, ignores adjacent duplicate delimiters. So multiple spaces
+ * are treated as one space (for example).
+ * @param strict If true returns empty vector if delim not found (no splits)
+ * otherwise returns whole string if delim not found.
+ * @return A std::vector<std::string> containing all the pieces.
+ */
+inline
+std::vector<std::string> split_copy_from(
+	std::string const& s
+	, std::string const& delims = " "
+	, bool fold = true
+	, bool strict = false)
+{
+	return basic_split_from(s, delims, fold, strict);
+}
+
+inline
+std::vector<std::string> split_copy_from(
+	std::string const& s
+	, std::vector<std::string>& v
+	, std::string const& delims = " "
+	, bool fold = true
+	, bool strict = false)
+{
+	return basic_split_from(s, v, delims, fold, strict);
+}
+
+inline
+std::vector<std::wstring> split_copy_from(
+	std::wstring const& s
+	, std::wstring const& delims = L" "
+	, bool fold = true
+	, bool strict = false)
+{
+	return basic_split_from(s, delims, fold, strict);
+}
+
+inline
+std::vector<std::wstring> split_copy_from(
+	std::wstring const& s
+	, std::vector<std::wstring>& v
+	, std::wstring const& delims = L" "
+	, bool fold = true
+	, bool strict = false)
+{
+	return basic_split_from(s, v, delims, fold, strict);
 }
 
 // JOIN
