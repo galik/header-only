@@ -355,15 +355,13 @@ auto get_updatable_locked_version_of(Lockable& lockable)
 //		auto locked_updatable_range()
 //		-> mt::locked_iterable<updatable_lock, std::vector<int>::iterator>
 //		{
-//			auto lock = lock_for_updates();
-//			return {adopted_lock_for_updates(), ints.begin(), ints.end()};
+//			return {lock_for_updates(), ints.begin(), ints.end()};
 //		}
 //
 //		auto locked_read_only_range() const
 //		-> mt::locked_iterable<read_only_lock, std::vector<int>::const_iterator>
 //		{
-//			auto lock = lock_for_reading();
-//			return {adopted_lock_for_reading(), ints.cbegin(), ints.cend()};
+//			return {lock_for_reading(), ints.cbegin(), ints.cend()};
 //		}
 //	};
 //
@@ -387,7 +385,9 @@ class locked_iterable
 	IterType e;
 
 public:
-	locked_iterable(LockType&& lock, IterType b, IterType e)
+	// we accept the iterators by reference to ensude we don't copy them
+	// untim after the lock is secured
+	locked_iterable(LockType&& lock, IterType const& b, IterType const& e)
 	: lock(std::move(lock)), b(b), e(e) {}
 
 	IterType begin() { return b; }
