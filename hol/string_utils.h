@@ -1005,6 +1005,17 @@ public:
 	std::size_t size() { return buff.size(); }
 };
 
+// buffer-safe user input with std::strings
+inline
+std::istream& getline(std::istream& is, std::string& s, std::streamsize num, char delim = '\n')
+{
+	std::vector<char> buf(num + 1);
+	if(is.getline(buf.data(), buf.size(), delim))
+		s.assign(buf.data(), is.gcount() - 1);
+	return is;
+}
+
+
 } // hol
 
 #endif // HOL_STRING_UTILS_H
