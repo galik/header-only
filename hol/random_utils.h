@@ -24,6 +24,7 @@
 
 #include <random>
 #include <limits>
+#include <cassert>
 
 namespace hol {
 namespace random_utils {
@@ -77,12 +78,19 @@ Numeric random_number(Numeric to = std::numeric_limits<Numeric>::max())
 	return random_number({}, to);
 }
 
+//template<typename Container>
+//typename Container::value_type const& random_element(Container const& c)
+//{
+//	if(c.empty())
+//		return {};
+//	return c[random_number(c.size() - 1)];
+//}
+
 template<typename Container>
-typename Container::value_type random_element(Container const& c)
+decltype(auto) random_element(Container&& c)
 {
-	if(c.empty())
-		return {};
-	return c[random_number(c.size() - 1)];
+	assert(!c.empty());
+	return std::forward<Container>(c)[rnd::random_number(std::forward<Container>(c).size() - 1)];
 }
 
 /**
