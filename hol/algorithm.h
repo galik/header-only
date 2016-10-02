@@ -25,8 +25,8 @@
 #include <algorithm>
 #include <type_traits>
 
-namespace hol_header_only_library {
-namespace hol_algorithms {
+namespace header_only_library {
+namespace algorithms {
 namespace hol {
 
 template<typename Container, typename Iter, typename Value>
@@ -58,7 +58,7 @@ void erase_remove_if(Container& c, Pred p)
 }
 
 } // hol
-} // hol_algorithms
-} // hol_header_only_library
+} // algorithms
+} // header_only_library
 
 #endif // HOL_ALGORITHM_H
