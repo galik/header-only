@@ -92,12 +92,12 @@ struct scope_bomb{};
 
 #define bug_cnt(c) \
 	do{ \
-		std::ostringstream o; \
-		o << #c ": " << c.size() << '\n'; \
-		int i=0; \
+		std::ostringstream __o; \
+		__o << #c ": " << c.size() << '\n'; \
+		int __i=0; \
 		for(auto&& v_c: c) \
-			{o << (i<100?" ":"") << (i<10?" ":"") << i << ": " << v_c << '\n';++i;} \
-		std::cout << o.str() << std::flush; \
+			{__o << (__i<100?" ":"") << (__i<10?" ":"") << __i << ": " << v_c << '\n';++__i;} \
+		std::cout << __o.str() << std::flush; \
 	}while(0)
 
 #define bug_itr(c, b, e) \
