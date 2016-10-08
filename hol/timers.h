@@ -52,9 +52,9 @@ public:
 	}
 
 	auto   nsecs() const { return timer.nsecs(); }
-	double usecs() const { return timer.nsecs() / 1000.0; }
-	double msecs() const { return timer.nsecs() / 1000000.0; }
-	double  secs() const { return timer.nsecs() / 1000000000.0; }
+	double usecs() const { return double(timer.nsecs()) / 1000.0; }
+	double msecs() const { return double(timer.nsecs()) / 1000000.0; }
+	double  secs() const { return double(timer.nsecs()) / 1000000000.0; }
 };
 
 class StdTimerImpl
