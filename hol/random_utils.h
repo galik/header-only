@@ -54,6 +54,12 @@ inline std::mt19937& mt32()
 	return tools.gen;
 }
 
+inline bool random_choice()
+{
+	thread_local static std::bernoulli_distribution dist;
+	return dist(mt32());
+}
+
 template<typename Numeric>
 Numeric random_number(Numeric from, Numeric to)
 {
@@ -78,19 +84,25 @@ Numeric random_number(Numeric to = std::numeric_limits<Numeric>::max())
 	return random_number({}, to);
 }
 
-//template<typename Container>
-//typename Container::value_type const& random_element(Container const& c)
-//{
-//	if(c.empty())
-//		return {};
-//	return c[random_number(c.size() - 1)];
-//}
-
 template<typename Container>
 decltype(auto) random_element(Container&& c)
 {
 	assert(!c.empty());
 	return std::forward<Container>(c)[rnd::random_number(std::forward<Container>(c).size() - 1)];
+}
+
+/**
+ * Returns a random integer of type `Int` with a value
+ * between `0` and the one fewer than the number of supplied parameters.
+ * @param weights Probability weights of the parameter's position being
+ * returned as an `Int` value.
+ * @return The *zero based* position of one of the supplied parameters.
+ */
+template<typename Int, typename... Weights>
+inline Int random_weighted_position(Weights... weights)
+{
+	thread_local static std::discrete_distribution<Int> dist{double(weights)...};
+	return dist(rnd::mt32());
 }
 
 /**
