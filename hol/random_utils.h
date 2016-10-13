@@ -31,18 +31,33 @@ namespace random_utils {
 namespace rnd {
 namespace detail {
 
+//template<class T = std::mt19937, std::size_t N = T::state_size>
+//auto ProperlySeededRandomEngine () -> typename std::enable_if<!!N, T>::type {
+//    typename T::result_type random_data[N];
+//    std::random_device source;
+//    std::generate(std::begin(random_data), std::end(random_data), std::ref(source));
+//    std::seed_seq seeds(std::begin(random_data), std::end(random_data));
+//    T seededEngine (seeds);
+//    return seededEngine;
+//}
+
 template<typename Generator = std::mt19937>
 class random_tools
 {
-private:
-	using RNG = Generator;
-	using rd = std::random_device;
-	explicit random_tools(std::seed_seq&& ss): gen(ss) {}
-
 public:
-	random_tools(): random_tools(std::seed_seq{{rd{}(), rd{}(), rd{}(), rd{}()}}) {}
-	explicit random_tools(std::seed_seq& ss): gen(ss) {}
-	RNG gen;
+	Generator gen = seeded_rng();
+
+private:
+	// fully seed the random number generator
+	std::mt19937 seeded_rng()
+	{
+		typename Generator::result_type random_data[Generator::state_size];
+		std::random_device source;
+		std::generate(std::begin(random_data), std::end(random_data), std::ref(source));
+		std::seed_seq seeds(std::begin(random_data), std::end(random_data));
+		Generator seededEngine(seeds);
+		return seededEngine;
+	}
 };
 
 } // detail
@@ -92,16 +107,16 @@ decltype(auto) random_element(Container&& c)
 }
 
 /**
- * Returns a random integer of type `Int` with a value
+ * Returns a random unsigned integer of type `std::size_t` with a value
  * between `0` and the one fewer than the number of supplied parameters.
  * @param weights Probability weights of the parameter's position being
- * returned as an `Int` value.
+ * returned as a `std::size_t` value.
  * @return The *zero based* position of one of the supplied parameters.
  */
-template<typename Int, typename... Weights>
-inline Int random_weighted_position(Weights... weights)
+template<typename... Weights>
+inline std::size_t random_weighted_position(Weights... weights)
 {
-	thread_local static std::discrete_distribution<Int> dist{double(weights)...};
+	thread_local static std::discrete_distribution<std::size_t> dist{double(weights)...};
 	return dist(rnd::mt32());
 }
 
