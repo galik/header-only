@@ -25,6 +25,7 @@
 #include <random>
 #include <limits>
 #include <cassert>
+#include <algorithm>
 
 namespace hol {
 namespace random_utils {
@@ -51,12 +52,11 @@ private:
 	// fully seed the random number generator
 	std::mt19937 seeded_rng()
 	{
-		typename Generator::result_type random_data[Generator::state_size];
-		std::random_device source;
-		std::generate(std::begin(random_data), std::end(random_data), std::ref(source));
-		std::seed_seq seeds(std::begin(random_data), std::end(random_data));
-		Generator seededEngine(seeds);
-		return seededEngine;
+		typename Generator::result_type data[Generator::state_size];
+		std::random_device rd;
+		std::generate(std::begin(data), std::end(data), std::ref(rd));
+		std::seed_seq seeds(std::begin(data), std::end(data));
+		return Generator(seeds);
 	}
 };
 
