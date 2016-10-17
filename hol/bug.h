@@ -84,6 +84,7 @@ auto& get_edit_bug_fun()
 struct scope_bomb{};
 
 #define bug_fun()
+#define bug_scope(m)
 
 #else
 
@@ -129,7 +130,7 @@ struct scope_bomb
 };
 
 #define bug_fun() hol::scope_bomb scope_bomb_inst(hol::get_edit_bug_fun()(__PRETTY_FUNCTION__))
-
+#define bug_scope(m) hol::scope_bomb scope_bomb_inst(m)
 #endif
 
 class errno_error
