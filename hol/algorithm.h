@@ -28,6 +28,16 @@
 namespace header_only_library {
 namespace algorithms {
 
+/**
+ * Safer erase_remove uses the two iterator erase overload so the
+ * caller can't forget and get the single iterator overload by mistake
+ * leading to UB.
+ *
+ * @param c The container to erase from.
+ * @param b The first element from which to search for removals.
+ * @param e The element beyond the last from which to search for removals.
+ * @param v The value to search to be removed.
+ */
 template<typename Container>
 void erase_remove(Container& c,
 	typename Container::iterator b,
