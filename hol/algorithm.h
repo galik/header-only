@@ -27,26 +27,28 @@
 
 namespace header_only_library {
 namespace algorithms {
-namespace hol {
 
-template<typename Container, typename Iter, typename Value>
-void erase_remove(Container& c, Iter b, Iter e, Value v)
+template<typename Container>
+void erase_remove(Container& c,
+	typename Container::iterator b,
+	typename Container::iterator e,
+	typename Container::value_type v)
 {
-	static_assert(std::is_same<Value, typename Container::value_type>::value,
-		"value must be same type as container's values");
 	c.erase(std::remove(b, e, v), e);
 }
 
-template<typename Container, typename Value>
-void erase_remove(Container& c, Value v)
+template<typename Container>
+void erase_remove(Container& c,
+	typename Container::value_type v)
 {
-	static_assert(std::is_same<Value, typename Container::value_type>::value,
-		"value must be same type as container's values");
 	erase_remove(c, std::begin(c), std::end(c), v);
 }
 
-template<typename Container, typename Iter, typename Pred>
-void erase_remove_if(Container& c, Iter b, Iter e, Pred p)
+template<typename Container, typename Pred>
+void erase_remove_if(Container& c,
+	typename Container::iterator b,
+	typename Container::iterator e,
+	Pred p)
 {
 	c.erase(std::remove_if(b, e, p), e);
 }
@@ -57,7 +59,6 @@ void erase_remove_if(Container& c, Pred p)
 	erase_remove_if(c, std::begin(c), std::end(c), p);
 }
 
-} // hol
 } // algorithms
 } // header_only_library
 
