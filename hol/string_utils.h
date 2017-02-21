@@ -25,7 +25,8 @@
 #include <regex>
 #include <cerrno>
 #include <string>
-#include <vector>
+//#include <vector>
+#include <array>
 #include <locale>
 #include <cstdlib> // std::strtol
 #include <codecvt>
@@ -42,7 +43,8 @@
 #	include <gsl/string_span>
 #endif
 
-namespace hol {
+namespace header_only_library {
+namespace string_utils {
 
 #ifdef HOL_USE_STRING_VIEW
 using string_view = std::experimental::string_view;
@@ -500,7 +502,9 @@ inline std::string trim_copy(std::string s, char c)
 
 #ifdef HOL_USE_STRING_SPAN
 namespace gsl_detail {
-gsl::cstring_span<> ws{::hol::ws};
+namespace {
+gsl::cstring_span<> ws{::header_only_library::string_utils::ws};
+}
 
 inline
 string_span::index_type find_first_not_of(string_span s, gsl::cstring_span<> t)
@@ -947,28 +951,40 @@ long strtol_safe(const char* ptr, const char*& end, int base)
 //	return s;
 //}
 
-template<std::size_t N, typename CharT = char, typename Alloc = std::allocator<CharT>>
-std::vector<CharT, Alloc> load_file(std::string const& filepath)
+template<std::size_t N, typename CharT = char>
+std::basic_string<CharT> load_file(std::string const& filepath)
 {
 	std::basic_ifstream<CharT> ifs(filepath, std::ios::binary|std::ios::ate);
 
 	if(!ifs)
-		throw std::runtime_error(std::strerror(errno));
+		throw std::runtime_error(filepath + ": " + std::strerror(errno));
 
-	std::vector<CharT, Alloc> v;
-	v.reserve(ifs.tellg());
-	ifs.seekg(0);
+	auto end = ifs.tellg();
+	ifs.seekg(0, std::ios::beg);
 
-	for(CharT buf[N]; ifs.read(buf, N);)
-		v.insert(v.end(), buf,  buf + ifs.gcount());
+	std::basic_string<CharT> s;
+	s.resize(std::size_t(end - ifs.tellg()));
 
-	return v;
+	if(!ifs.read(&s[0], s.size()))
+		throw std::runtime_error(filepath + ": " + std::strerror(errno));
+
+//	std::basic_string<CharT, Alloc> v;
+//	v.reserve(end - ifs.tellg());
+//
+//	CharT buf[N];
+//	for(; ifs.read(buf, N);)
+//		v.insert(v.end(), buf,  buf + ifs.gcount());
+//
+//	if(ifs.gcount())
+//		v.insert(v.end(), buf,  buf + ifs.gcount());
+
+	return s;
 }
 
-template<typename CharT = char, typename Alloc = std::allocator<CharT>>
-std::vector<CharT, Alloc> load_file(std::string const& filepath)
+template<typename CharT = char>
+std::basic_string<CharT> load_file(std::string const& filepath)
 {
-	return load_file<2048, CharT,Alloc>(filepath);
+	return load_file<2048, CharT>(filepath);
 }
 
 //std::string to_utf8(std::wstring w)
@@ -984,25 +1000,26 @@ std::vector<CharT, Alloc> load_file(std::string const& filepath)
 /**
  * Self-erasing buffer
  */
-class secret
+template<std::size_t N>
+class erasing_buffer
 {
-	std::vector<char> buff;
+public:
+	erasing_buffer() noexcept: buff({}) {}
+	~erasing_buffer() { fill(data()); }
 
-	static void opaque_fill(char* data, std::size_t size)
+	char* data() { return buff.data(); }
+	std::size_t size() { return buff.size(); }
+
+private:
+	static void opaque_fill(char* data)
 	{
-		std::fill(data, data + size, '\0');
+		std::fill(data, data + N, '\0');
 	}
 
 	// call through function pointer can't be optimized away
 	// because it can't be inlined
-	void (*fill)(char*, std::size_t) = &opaque_fill;
-
-public:
-	secret(std::size_t size): buff(size, '\0') {}
-	~secret() { fill(data(), size()); }
-
-	char* data() { return buff.data(); }
-	std::size_t size() { return buff.size(); }
+	void (*fill)(char*) = &opaque_fill;
+	std::array<char, N> buff;
 };
 
 // buffer-safe user input with std::strings
@@ -1015,7 +1032,28 @@ std::istream& getline(std::istream& is, std::string& s, std::streamsize num, cha
 	return is;
 }
 
+namespace utf8 {
 
-} // hol
+inline std::string from_ws(std::wstring const& s)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
+	std::string utf8 = cnv.to_bytes(s);
+	if(cnv.converted() < s.size())
+		throw std::runtime_error("incomplete conversion");
+	return utf8;
+}
+
+inline std::wstring to_ws(std::string const& utf8)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
+	std::wstring s = cnv.from_bytes(utf8);
+	if(cnv.converted() < utf8.size())
+		throw std::runtime_error("incomplete conversion");
+	return s;
+}
+
+} // namespace utf8
+} // string_utils
+} // header_only_library
 
 #endif // HOL_STRING_UTILS_H

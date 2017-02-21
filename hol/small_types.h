@@ -37,7 +37,8 @@
 #include <fstream>
 #include <sstream>
 
-namespace hol { namespace small_types {
+namespace header_only_library{
+namespace small_types {
 
 namespace basic {
 
@@ -98,6 +99,7 @@ inline std::istream& sgl(std::istream& i, std::string& s, char c = '\n')
 {
 	return std::getline(i, s, c);
 }
+
 inline std::istream& sgl(std::istream&& i, std::string& s, char c = '\n')
 {
 	return sgl(i, s, c);
@@ -106,6 +108,6 @@ inline std::istream& sgl(std::istream&& i, std::string& s, char c = '\n')
 } // functions
 } // ios
 } // small_types
-} // hol
+} // header_only_library
 
 #endif // HOL_SMALL_TYPES_H

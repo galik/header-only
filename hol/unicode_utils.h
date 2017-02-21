@@ -26,7 +26,8 @@
 #include <locale>
 #include <codecvt>
 
-namespace hol {
+namespace header_only_library {
+namespace unicode_utils {
 
 using wcodecvt_utf8 = std::codecvt_utf8<wchar_t>;
 using ucs2codecvt_utf8 = std::codecvt_utf8<char16_t>;
@@ -108,6 +109,7 @@ std::wstring utf8_to_w(std::string const& utf8)
 	return utf8_to_ucs<std::wstring>(utf8);
 }
 
-} // hol
+} // unicode_utils
+} // header_only_library
 
 #endif // HOL_UNICODE_UTILS_H

@@ -41,9 +41,9 @@
 #include <gsl/span>
 #endif // HOL_HAVE_GSL_SPAN
 
-namespace hol {
+namespace header_only_library {
 namespace thread_utils {
-namespace mt {
+//namespace mt {
 
 //=============================================================
 //== Convenience threads/asyncs
@@ -286,7 +286,7 @@ public:
 
 private:
 	Lockable const& lockable;
-	mt::lockable::read_only_lock lock;
+	lockable::read_only_lock lock;
 };
 
 template<typename Lockable>
@@ -315,7 +315,7 @@ public:
 
 private:
 	Lockable& lockable;
-	mt::lockable::updatable_lock lock;
+	lockable::updatable_lock lock;
 };
 
 template<typename Lockable>
@@ -394,8 +394,8 @@ public:
 	IterType end() { return e; }
 };
 
-} // mt
+//} // mt
 } // thread_utils
-} // hol
+} // header_only_library
 
 #endif // HOL_THREAD_UTILS_H

@@ -28,7 +28,8 @@
 #include <gsl/gsl_assert>
 #include <gsl/string_span>
 
-namespace hol {
+namespace header_only_library {
+namespace string_span_utils {
 
 using offset_type = std::ptrdiff_t;
 
@@ -121,6 +122,7 @@ offset_type find_last_not_of(
 	return s.size();
 }
 
-} // hol
+} // string_span_utils
+} // header_only_library
 
 #endif // HOL_STRING_SPAN_UTILS_H

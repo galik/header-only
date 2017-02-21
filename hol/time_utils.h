@@ -25,7 +25,8 @@
 #include <ctime>
 #include <mutex>
 
-namespace hol {
+namespace header_only_library {
+namespace time_utils {
 
 #if defined(__unix__)
 #elif defined(_MSC_VER)
@@ -111,6 +112,7 @@ inline std::string time_stamp(const std::string& fmt = "%F %T")
 	return time_stamp_now(fmt);
 }
 
-} // hol
+} // time_utils
+} // header_only_library
 
 #endif // HOL_TIME_UTILE_H

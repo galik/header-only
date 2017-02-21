@@ -26,7 +26,8 @@
 #include <ostream>
 #include <iomanip>
 
-namespace hol {
+namespace header_only_library {
+namespace timers {
 
 template<typename TimerImpl>
 class Timer
@@ -175,7 +176,8 @@ public:
 	}
 };
 
-} // hol
+} // timers
+} // header_only_library
 
 
 #endif // HOL_TIMER_H

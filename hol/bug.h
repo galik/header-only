@@ -56,7 +56,7 @@
 #include <stdexcept>
 #include <functional>
 
-namespace hol {
+namespace header_only_library {
 
 inline
 auto& get_edit_bug_fun()
@@ -80,6 +80,7 @@ auto& get_edit_bug_fun()
 	throw std::runtime_error(oss.str());}while(0)
 
 #define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno));
+#define hol_throw_errno_msg(m) hol_throw_runtime_error(std::strerror(errno) << ": " << m)
 
 struct scope_bomb{};
 
@@ -120,6 +121,7 @@ struct scope_bomb{};
 	hol_throw_exception(std::runtime_error, msg)
 
 #define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno))
+#define hol_throw_errno_msg(m) hol_throw_runtime_error(std::strerror(errno) << ": " << m)
 
 struct scope_bomb
 {
@@ -129,8 +131,9 @@ struct scope_bomb
 	~scope_bomb() { bug("<-- " << m); }
 };
 
-#define bug_fun() hol::scope_bomb scope_bomb_inst(hol::get_edit_bug_fun()(__PRETTY_FUNCTION__))
-#define bug_scope(m) hol::scope_bomb scope_bomb_inst(m)
+//#define bug_fun() hol::scope_bomb scope_bomb_inst(hol::get_edit_bug_fun()(__PRETTY_FUNCTION__))
+#define bug_fun() header_only_library::scope_bomb scope_bomb_inst(header_only_library::get_edit_bug_fun()(__func__))
+#define bug_scope(m) header_only_library::scope_bomb scope_bomb_inst(m)
 #endif
 
 class errno_error
@@ -140,7 +143,7 @@ public:
 	errno_error(): std::runtime_error(std::strerror(errno)) {}
 };
 
-} // hol
+} // header_only_library
 
 #ifdef __GNUG__
 //

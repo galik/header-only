@@ -24,7 +24,8 @@
 
 #include <memory>
 
-namespace hol {
+namespace header_only_library {
+namespace memory {
 
 // Casey's default-init allocator
 // http://stackoverflow.com/a/21028912/3807729
@@ -110,69 +111,77 @@ access_ptr<ElementType> gain_access(std::unique_ptr<ElementType>& ptr)
 	return access_ptr<ElementType>(ptr);
 }
 
-} // hol
+} // memory
+} // header_only_library
 
 template<class E1, class E2>
-bool operator==(const hol::access_ptr<E1>& ptr1, const hol::access_ptr<E2>& ptr2)
+bool operator==(const header_only_library::memory::access_ptr<E1>& ptr1,
+	const header_only_library::memory::access_ptr<E2>& ptr2)
 {
 	return ptr1.get() == ptr2.get();
 }
 
 template<class E1, class E2>
-bool operator!=(const hol::access_ptr<E1>& ptr1, const hol::access_ptr<E2>& ptr2)
+bool operator!=(const header_only_library::memory::access_ptr<E1>& ptr1,
+	const header_only_library::memory::access_ptr<E2>& ptr2)
 {
 	return ptr1.get() != ptr2.get();
 }
 
 template<class E>
-bool operator==(const hol::access_ptr<E>& ptr, std::nullptr_t)
+bool operator==(const header_only_library::memory::access_ptr<E>& ptr, std::nullptr_t)
 {
 	return !bool(ptr);
 }
 
 template<class E>
-bool operator==(std::nullptr_t, const hol::access_ptr<E>& ptr)
+bool operator==(std::nullptr_t, const header_only_library::memory::access_ptr<E>& ptr)
 {
 	return !bool(ptr);
 }
 
 template<class E>
-bool operator!=(const hol::access_ptr<E>& ptr, std::nullptr_t)
+bool operator!=(const header_only_library::memory::access_ptr<E>& ptr, std::nullptr_t)
 {
 	return bool(ptr);
 }
 
 template<class E>
-bool operator!=(std::nullptr_t, const hol::access_ptr<E>& ptr)
+bool operator!=(std::nullptr_t, const header_only_library::memory::access_ptr<E>& ptr)
 {
 	return bool(ptr);
 }
 
 template<class E1, class E2>
-bool operator<(const hol::access_ptr<E1>& ptr1, const hol::access_ptr<E2>& ptr2)
+bool operator<(const header_only_library::memory::access_ptr<E1>& ptr1,
+		const header_only_library::memory::access_ptr<E2>& ptr2)
 {
 	return ptr1.get() < ptr2.get();
 }
 
 template<class E1, class E2>
-bool operator>(const hol::access_ptr<E1>& ptr1, const hol::access_ptr<E2>& ptr2)
+bool operator>(const header_only_library::memory::access_ptr<E1>& ptr1,
+		const header_only_library::memory::access_ptr<E2>& ptr2)
 {
 	return ptr1.get() > ptr2.get();
 }
 
 template<class E1, class E2>
-bool operator<=(const hol::access_ptr<E1>& ptr1, const hol::access_ptr<E2>& ptr2)
+bool operator<=(const header_only_library::memory::access_ptr<E1>& ptr1,
+	const header_only_library::memory::access_ptr<E2>& ptr2)
 {
 	return ptr1.get() <= ptr2.get();
 }
 
 template<class E1, class E2>
-bool operator>=(const hol::access_ptr<E1>& ptr1, const hol::access_ptr<E2>& ptr2)
+bool operator>=(const header_only_library::memory::access_ptr<E1>& ptr1,
+	const header_only_library::memory::access_ptr<E2>& ptr2)
 {
 	return ptr1.get() >= ptr2.get();
 }
 
-namespace hol {
+namespace header_only_library {
+namespace memory {
 
 struct stdio_file_closer
 {
@@ -304,6 +313,7 @@ Handle const& unique_handle<Handle, Cleaner>::get() const { return h; }
 template<typename Handle, typename Cleaner>
 Handle unique_handle<Handle, Cleaner>::release() { owner = false; return h; }
 
-} // hol
+} // memory
+} // header_only_library
 
 #endif // HOL_MEMORY_H

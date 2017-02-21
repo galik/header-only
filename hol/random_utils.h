@@ -27,9 +27,9 @@
 #include <cassert>
 #include <algorithm>
 
-namespace hol {
+namespace header_only_library {
 namespace random_utils {
-namespace rnd {
+//namespace rnd {
 namespace detail {
 
 //template<class T = std::mt19937, std::size_t N = T::state_size>
@@ -103,11 +103,11 @@ template<typename Container>
 decltype(auto) random_element(Container&& c)
 {
 	assert(!c.empty());
-	return std::forward<Container>(c)[rnd::random_number(std::forward<Container>(c).size() - 1)];
+	return std::forward<Container>(c)[random_number(std::forward<Container>(c).size() - 1)];
 }
 
 /**
- * Returns a random unsigned integer of type `std::size_t` with a value
+ * Returns a random unsigned integer of type `std::36size_t` with a value
  * between `0` and the one fewer than the number of supplied parameters.
  * @param weights Probability weights of the parameter's position being
  * returned as a `std::size_t` value.
@@ -117,7 +117,7 @@ template<typename... Weights>
 inline std::size_t random_weighted_position(Weights... weights)
 {
 	thread_local static std::discrete_distribution<std::size_t> dist{double(weights)...};
-	return dist(rnd::mt32());
+	return dist(mt32());
 }
 
 /**
@@ -238,8 +238,8 @@ using PRNG_64F = PRNG_64<float>;
 /// 64bit mt engine double
 using PRNG_64D = PRNG_64<double>;
 
-} // rnd
+//} // rnd
 } // random_utils
-} // hol
+} // header_only_library
 
 #endif // HOL_RANDOM_UTILS_H

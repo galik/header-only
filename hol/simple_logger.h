@@ -60,7 +60,7 @@
  *
  */
 
-namespace hol {
+namespace header_only_library {
 namespace simple_logger {
 
 /**
@@ -532,7 +532,7 @@ Logger operator<<(const LOG& level, const T& v)
 //}
 
 } // simple_logger
-} // hol
+} // header_only_library
 
 //namespace {
 //template<typename T>

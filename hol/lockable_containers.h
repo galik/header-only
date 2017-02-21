@@ -34,9 +34,9 @@
 #include <map>
 #include <unordered_map>
 
-namespace hol {
+namespace header_only_library {
 namespace thread_utils {
-namespace mt {
+//namespace mt {
 
 template<typename Container>
 class lockable_container
@@ -124,8 +124,8 @@ HOL_UPDATABLE_LOCKED_ASSOCIATIVE_CONTAINER(map);
 HOL_UPDATABLE_LOCKED_ASSOCIATIVE_CONTAINER(multimap);
 HOL_UPDATABLE_LOCKED_ASSOCIATIVE_CONTAINER(unordered_map);
 
-} // mt
+//} // mt
 } // thread_utils
-} // hol
+} // header_only_library
 
 #endif // HOL_LOCKABLE_CONTAINERS_H

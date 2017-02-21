@@ -143,7 +143,8 @@ int main()
 	}while(0)
 #endif
 
-namespace hol { namespace basic_serialization {
+namespace hol {
+namespace basic_serialization {
 
 namespace detail {
 
