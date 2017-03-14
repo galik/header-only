@@ -71,17 +71,6 @@ auto& get_edit_bug_fun()
 #define bug_cnt(c) do{}while(0)
 #define bug_itr(c, b, e) do{}while(0)
 
-#define hol_throw_exception(exc, message) \
-	throw exc(message)
-
-#define hol_throw_runtime_error(msg) do{ \
-	std::ostringstream oss; \
-	oss << msg; \
-	throw std::runtime_error(oss.str());}while(0)
-
-#define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno));
-#define hol_throw_errno_msg(m) hol_throw_runtime_error(std::strerror(errno) << ": " << m)
-
 struct scope_bomb{};
 
 #define bug_fun()
@@ -111,17 +100,6 @@ struct scope_bomb{};
 			{o << " " << (n<100?" ":"") << (n<10?" ":"") << n << ": " << *i << '\n';++n;} \
 		std::cout << o.str() << std::flush; \
 	}while(0)
-
-#define hol_throw_exception(exc, msg) do{ \
-	std::ostringstream oss; \
-	oss << __FILE__ << ":" << __LINE__ << ":1 error: " << msg; \
-	throw exc(oss.str());}while(0)
-
-#define hol_throw_runtime_error(msg) \
-	hol_throw_exception(std::runtime_error, msg)
-
-#define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno))
-#define hol_throw_errno_msg(m) hol_throw_runtime_error(std::strerror(errno) << ": " << m)
 
 struct scope_bomb
 {
