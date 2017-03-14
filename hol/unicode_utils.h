@@ -109,6 +109,53 @@ std::wstring utf8_to_w(std::string const& utf8)
 	return utf8_to_ucs<std::wstring>(utf8);
 }
 
+// locale sensitive conversion between multibyte and wide characters
+
+inline
+std::wstring mb_to_ws(std::string const& mb)
+{
+	std::wstring ws;
+	std::mbstate_t ps{};
+	char const* src = mb.data();
+
+	std::size_t len = 1 + mbsrtowcs(0, &src, 3, &ps);
+
+	ws.resize(len);
+	src = mb.data();
+
+	mbsrtowcs(&ws[0], &src, ws.size(), &ps);
+
+	if(src)
+		throw std::runtime_error("invalid multibyte character after: '"
+			+ std::string(mb.data(), src) + "'");
+
+	ws.pop_back();
+
+	return ws;
+}
+
+inline
+std::string ws_to_mb(std::wstring const& ws)
+{
+	std::string mb;
+	std::mbstate_t ps{};
+	wchar_t const* src = ws.data();
+
+	std::size_t len = 1 + wcsrtombs(0, &src, 0, &ps);
+
+	mb.resize(len);
+	src = ws.data();
+
+	wcsrtombs(&mb[0], &src, mb.size(), &ps);
+
+	if(src)
+		throw std::runtime_error("invalid wide character");
+
+	mb.pop_back();
+
+	return mb;
+}
+
 } // unicode_utils
 } // header_only_library
 
