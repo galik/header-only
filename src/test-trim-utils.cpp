@@ -29,7 +29,11 @@
 
 #include "test.h"
 #include <hol/string_utils.h>
-//#include <hol/experimental/utility_trimmers.h>
+#include <hol/macro_exceptions.h>
+
+namespace hol {
+	using namespace header_only_library::string_utils;
+}
 
 using namespace hol;
 using namespace std::literals::string_literals;

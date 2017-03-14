@@ -28,6 +28,10 @@
 #include <hol/string_utils.h>
 #include <hol/experimental/utility_splitters.h>
 
+namespace hol {
+	using namespace header_only_library::string_utils;
+}
+
 TEST_CASE("strings be splitted", "string_utils")
 {
 	auto split_copy = hol::get_split_copier();

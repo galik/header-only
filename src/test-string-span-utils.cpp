@@ -33,7 +33,10 @@
 #include <hol/random_utils.h>
 #include <hol/string_span_utils.h>
 
-using namespace hol::random_utils;
+namespace hol {
+	using namespace header_only_library::random_utils;
+	using namespace header_only_library::string_span_utils;
+}
 
 std::ostream& operator<<(std::ostream& os, gsl::string_span<> s)
 {
@@ -61,13 +64,13 @@ std::string random_text(std::size_t min, std::size_t max)
 {
 	char const letters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	auto size = rnd::random_number(min, max);
+	auto size = hol::random_number(min, max);
 
 	std::string s;
 	s.reserve(size);
 
 	while(size--)
-		s += letters[rnd::random_number(sizeof(letters) - 2)];
+		s += letters[hol::random_number(sizeof(letters) - 2)];
 
 	return s;
 }
@@ -101,7 +104,7 @@ TEST_CASE("string_span string function tests", "string_span_utils")
 			std::string t = random_text(0, 4);
 			std::string c = random_text(1, 1);
 
-			auto o = s.empty() ? 0 : rnd::random_number(s.size() - 1);
+			auto o = s.empty() ? 0 : hol::random_number(s.size() - 1);
 
 			gsl::string_span<> ss{s};
 			gsl::string_span<> ts{t};

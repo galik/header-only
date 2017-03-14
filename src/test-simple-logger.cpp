@@ -22,7 +22,7 @@
 
 #include <hol/simple_logger.h>
 
-using namespace hol::simple_logger;
+using namespace header_only_library::simple_logger;
 
 int main()
 {
