@@ -107,7 +107,7 @@ decltype(auto) random_element(Container&& c)
 }
 
 /**
- * Returns a random unsigned integer of type `std::36size_t` with a value
+ * Returns a random unsigned integer of type `std::size_t` with a value
  * between `0` and the one fewer than the number of supplied parameters.
  * @param weights Probability weights of the parameter's position being
  * returned as a `std::size_t` value.
