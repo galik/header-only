@@ -156,6 +156,24 @@ std::string ws_to_mb(std::wstring const& ws)
 	return mb;
 }
 
+//std::string ws_to_utf8(std::wstring const& s)
+//{
+//	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
+//	std::string utf8 = cnv.to_bytes(s);
+//	if(cnv.converted() < s.size())
+//		throw std::runtime_error("incomplete conversion");
+//	return utf8;
+//}
+//
+//std::wstring utf8_to_ws(std::string const& utf8)
+//{
+//	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
+//	std::wstring s = cnv.from_bytes(utf8);
+//	if(cnv.converted() < utf8.size())
+//		throw std::runtime_error("incomplete conversion");
+//	return s;
+//}
+
 } // unicode_utils
 } // header_only_library
 
