@@ -23,31 +23,24 @@
 //
 
 #include <cerrno>
-#include <string>
-#include <cstring>
 #include <sstream>
-#include <iomanip>
-#include <iostream>
 #include <stdexcept>
-#include <functional>
 
 #ifdef NDEBUG
 
-#define HOL_THROW_EXCEPTION(exc, message) \
-	throw exc(message)
+#define hol_throw_exception(e, m) do{std::ostringstream o;o<<m;throw e(o.str());}while(0)
 
 #else
 
-#define HOL_THROW_EXCEPTION(exc, msg) do{ \
-	std::ostringstream oss; \
-	oss << __FILE__ << ":" << __LINE__ << ":error: " << msg; \
-	throw exc(oss.str());}while(0)
+#define hol_throw_exception(e, m) do{ \
+	std::ostringstream o; \
+	o << __FILE__ << ":" << __LINE__ << ":error: " << m; \
+	throw e(o.str());}while(0)
 
 #endif // NDEBUG
 
-#define HOL_THROW_RUNTIME_ERROR(msg) \
-	HOL_THROW_EXCEPTION(std::runtime_error, msg)
-
-#define HOL_THROW_ERRNO() HOL_THROW_RUNTIME_ERROR(std::strerror(errno))
+#define hol_throw_runtime_error(m) hol_throw_exception(std::runtime_error, m)
+#define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno))
+#define hol_throw_errno_msg(m) hol_throw_runtime_error(m << ": " << std::strerror(errno))
 
 #endif // HOL_MACRO_EXCEPTIONS_H
