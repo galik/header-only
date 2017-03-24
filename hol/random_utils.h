@@ -32,16 +32,6 @@ namespace random_utils {
 //namespace rnd {
 namespace detail {
 
-//template<class T = std::mt19937, std::size_t N = T::state_size>
-//auto ProperlySeededRandomEngine () -> typename std::enable_if<!!N, T>::type {
-//    typename T::result_type random_data[N];
-//    std::random_device source;
-//    std::generate(std::begin(random_data), std::end(random_data), std::ref(source));
-//    std::seed_seq seeds(std::begin(random_data), std::end(random_data));
-//    T seededEngine (seeds);
-//    return seededEngine;
-//}
-
 template<typename Generator = std::mt19937>
 class random_tools
 {
@@ -50,7 +40,7 @@ public:
 
 private:
 	// fully seed the random number generator
-	std::mt19937 seeded_rng()
+	Generator seeded_rng()
 	{
 		typename Generator::result_type data[Generator::state_size];
 		std::random_device rd;
@@ -63,18 +53,28 @@ private:
 } // detail
 
 /// return a thread-local mersenne twister prng (32-bit)
-inline std::mt19937& mt32()
+inline std::mt19937& mersenne_twister_32()
 {
 	thread_local static detail::random_tools<std::mt19937> tools;
 	return tools.gen;
 }
 
+/**
+ * Randomly return true or false.
+ * @return true or false
+ */
 inline bool random_choice()
 {
 	thread_local static std::bernoulli_distribution dist;
-	return dist(mt32());
+	return dist(mersenne_twister_32());
 }
 
+/**
+ * Generate a random number between two values.
+ * @param from Lowest possible value.
+ * @param to Highest possible value.
+ * @return A random number between `from` and `to` (inclusive)
+ */
 template<typename Numeric>
 Numeric random_number(Numeric from, Numeric to)
 {
@@ -90,20 +90,31 @@ Numeric random_number(Numeric from, Numeric to)
 
 	thread_local static dist_type dist;
 
-	return dist(mt32(), typename dist_type::param_type{from, to});
+	return dist(mersenne_twister_32(), typename dist_type::param_type{from, to});
 }
 
+/**
+ * Generate a random number from zero to the specified value.
+ * @param to Highest possible value.
+ * @return A random number between `0` and `to` (inclusive)
+ */
 template<typename Numeric>
 Numeric random_number(Numeric to = std::numeric_limits<Numeric>::max())
 {
 	return random_number({}, to);
 }
 
+/**
+ * Return a randomly selected container element.
+ * @param c The container to select an element from.
+ * @return A random element from the supplied container.
+ */
 template<typename Container>
 decltype(auto) random_element(Container&& c)
 {
 	assert(!c.empty());
-	return std::forward<Container>(c)[random_number(std::forward<Container>(c).size() - 1)];
+	return *std::next(std::forward<Container>(c).begin(), random_number(std::forward<Container>(c).size() - 1));
+//	return std::forward<Container>(c)[random_number(std::forward<Container>(c).size() - 1)];
 }
 
 /**
@@ -117,7 +128,7 @@ template<typename... Weights>
 inline std::size_t random_weighted_position(Weights... weights)
 {
 	thread_local static std::discrete_distribution<std::size_t> dist{double(weights)...};
-	return dist(mt32());
+	return dist(mersenne_twister_32());
 }
 
 /**
