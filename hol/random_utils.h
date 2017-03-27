@@ -127,6 +127,7 @@ decltype(auto) random_element(Container&& c)
 template<typename... Weights>
 inline std::size_t random_weighted_position(Weights... weights)
 {
+	//TODO: Either make this non static or remove the pruntime parameters (or both)
 	thread_local static std::discrete_distribution<std::size_t> dist{double(weights)...};
 	return dist(mersenne_twister_32());
 }

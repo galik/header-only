@@ -78,13 +78,29 @@ struct scope_bomb{};
 
 #else
 
+namespace private_details {
+
+template<typename C>
+constexpr auto size(const C& c) -> decltype(c.size())
+{
+    return c.size();
+}
+
+template<typename T, std::size_t N>
+constexpr std::size_t size(const T (&array)[N]) noexcept
+{
+    return N;
+}
+
+} // namespace private_details
+
 #define bug(m) do{std::ostringstream __o;__o<<m<<'\n';std::cout<<__o.str()<<std::flush;}while(0)
 #define bug_var(v) bug(#v ": " << std::boolalpha << v)
 
 #define bug_cnt(c) \
 	do{ \
 		std::ostringstream __o; \
-		__o << #c ": " << c.size() << '\n'; \
+		__o << #c ": " << header_only_library::private_details::size(c) << '\n'; \
 		int __i=0; \
 		for(auto&& v_c: c) \
 			{__o << (__i<100?" ":"") << (__i<10?" ":"") << __i << ": " << v_c << '\n';++__i;} \

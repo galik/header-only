@@ -56,6 +56,12 @@ using str_set = std::set<str>;
 using str_vec = std::vector<str>;
 using str_map = std::map<str, str>;
 
+using siz_set = std::set<siz>;
+using siz_vec = std::vector<siz>;
+
+using int_set = std::set<int>;
+using int_vec = std::vector<int>;
+
 } // string_containers
 
 namespace regex {

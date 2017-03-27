@@ -52,26 +52,32 @@ namespace thread_utils {
 
 class detached_thread
 {
-	std::thread t;
-
 public:
+	detached_thread(detached_thread const&) = delete;
+	detached_thread(detached_thread&&) = delete;
+
 	template<typename Callable, typename... Args>
 	explicit detached_thread(Callable&& f, Args&&... args)
 	: t(std::forward<Callable>(f), std::forward<Args>(args)...) {t.detach();}
+
+private:
+	std::thread t;
 };
 
 class raii_thread
 {
-	std::thread t;
-
 public:
-	raii_thread(raii_thread&& rt): t(std::move(rt.t)) {}
+	raii_thread(raii_thread const&) = delete;
+	raii_thread(raii_thread&& other): t(std::move(other.t)) {}
 
 	template<typename Callable, typename... Args>
 	raii_thread(Callable&& f, Args&&... args)
 	: t(std::forward<Callable>(f), std::forward<Args>(args)...) {}
 
 	~raii_thread() { if(t.joinable()) t.join(); }
+
+private:
+	std::thread t;
 };
 
 class raii_task

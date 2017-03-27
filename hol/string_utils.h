@@ -22,10 +22,11 @@
 // SOFTWARE.
 //
 
+#include <set>
 #include <regex>
 #include <cerrno>
 #include <string>
-//#include <vector>
+#include <vector>
 #include <array>
 #include <locale>
 #include <cstdlib> // std::strtol
@@ -847,85 +848,85 @@ std::string join(const Container& c, std::string const& delim = " ")
 // they accept the same input as their corresponding
 // std::strtoxx() functions.
 
-//bool s_to_l(const std::string& s, long& l);
-//bool s_to_ll(const std::string& s, long long& ll);
-//
-//bool s_to_ul(const std::string& s, unsigned long& ul);
-//bool s_to_ull(const std::string& s, unsigned long long& ull);
-//
-//bool s_to_f(const std::string& s, float& f);
-//bool s_to_d(const std::string& s, double& d);
-//bool s_to_ld(const std::string& s, long double& ld);
+bool s_to_l(const std::string& s, long& l);
+bool s_to_ll(const std::string& s, long long& ll);
+
+bool s_to_ul(const std::string& s, unsigned long& ul);
+bool s_to_ull(const std::string& s, unsigned long long& ull);
+
+bool s_to_f(const std::string& s, float& f);
+bool s_to_d(const std::string& s, double& d);
+bool s_to_ld(const std::string& s, long double& ld);
 
 // string conversions
 
-//inline
-//bool s_to_test(char const* s, char const* e)
-//{
-//	if(e == s)
-//		return false;
-//
-//	while(std::isspace(*e))
-//		++e;
-//
-//	return !(*e);
-//}
-//
-//inline
-//bool s_to_l(const std::string& s, long int& l)
-//{
-//	char* end;
-//	l = std::strtol(s.c_str(), &end, 10);
-//	return s_to_test(s.c_str(), end);
-//}
-//
-//inline
-//bool s_to_ll(const std::string& s, long long int& ll)
-//{
-//	char* end;
-//	ll = std::strtoll(s.c_str(), &end, 10);
-//	return s_to_test(s.c_str(), end);
-//}
-//
-//inline
-//bool s_to_ul(const std::string& s, unsigned long int& ul)
-//{
-//	char* end;
-//	ul = std::strtoul(s.c_str(), &end, 10);
-//	return s_to_test(s.c_str(), end);
-//}
-//
-//inline
-//bool s_to_ull(const std::string& s, unsigned long long int& ull)
-//{
-//	char* end;
-//	ull = std::strtoull(s.c_str(), &end, 10);
-//	return s_to_test(s.c_str(), end);
-//}
-//
-//inline
-//bool s_to_f(const std::string& s, float& f)
-//{
-//	char* end;
-//	f = std::strtof(s.c_str(), &end);
-//	return s_to_test(s.c_str(), end);
-//}
-//
-//inline
-//bool s_to_d(const std::string& s, double& d)
-//{
-//	char* end;
-//	d = std::strtod(s.c_str(), &end);
-//	return s_to_test(s.c_str(), end);
-//}
-//
-//inline
-//bool s_to_ld(const std::string& s, long double& ld)
-//{
-//	char* end;
-//	ld = std::strtold(s.c_str(), &end);
-//	return s_to_test(s.c_str(), end);
-//}
+inline
+bool s_to_test(char const* s, char const* e)
+{
+	if(e == s)
+		return false;
+
+	while(std::isspace(*e))
+		++e;
+
+	return !(*e);
+}
+
+inline
+bool s_to_l(const std::string& s, long int& l)
+{
+	char* end;
+	l = std::strtol(s.c_str(), &end, 10);
+	return s_to_test(s.c_str(), end);
+}
+
+inline
+bool s_to_ll(const std::string& s, long long int& ll)
+{
+	char* end;
+	ll = std::strtoll(s.c_str(), &end, 10);
+	return s_to_test(s.c_str(), end);
+}
+
+inline
+bool s_to_ul(const std::string& s, unsigned long int& ul)
+{
+	char* end;
+	ul = std::strtoul(s.c_str(), &end, 10);
+	return s_to_test(s.c_str(), end);
+}
+
+inline
+bool s_to_ull(const std::string& s, unsigned long long int& ull)
+{
+	char* end;
+	ull = std::strtoull(s.c_str(), &end, 10);
+	return s_to_test(s.c_str(), end);
+}
+
+inline
+bool s_to_f(const std::string& s, float& f)
+{
+	char* end;
+	f = std::strtof(s.c_str(), &end);
+	return s_to_test(s.c_str(), end);
+}
+
+inline
+bool s_to_d(const std::string& s, double& d)
+{
+	char* end;
+	d = std::strtod(s.c_str(), &end);
+	return s_to_test(s.c_str(), end);
+}
+
+inline
+bool s_to_ld(const std::string& s, long double& ld)
+{
+	char* end;
+	ld = std::strtold(s.c_str(), &end);
+	return s_to_test(s.c_str(), end);
+}
 
 inline
 long strtol_safe(const char* ptr, const char*& end, int base)
@@ -1031,6 +1032,90 @@ std::istream& getline(std::istream& is, std::string& s, std::streamsize num, cha
 		s.assign(buf.data(), is.gcount() - 1);
 	return is;
 }
+
+class mapped_stencil
+{
+	struct place
+	{
+		using set = std::set<place>;
+		using vec = std::vector<place>;
+
+		char const* pos;
+		std::size_t len;
+
+		place(char const* pos, std::size_t len): pos(pos), len(len) {}
+
+		bool operator<(place const& other) const { return pos < other.pos; }
+	};
+
+	// order: piece, var, piece, var, piece
+	place::set vars;
+	std::string text;
+
+public:
+	using dict = std::map<std::string, std::string>;
+
+	/**
+	 * Create an empty stencil
+	 */
+	mapped_stencil() {}
+	mapped_stencil(mapped_stencil&& s): vars(std::move(s.vars)), text(std::move(s.text)) {}
+	mapped_stencil(const mapped_stencil& s): vars(s.vars), text(s.text) {}
+
+	mapped_stencil& operator=(mapped_stencil&& s) { vars = std::move(s.vars); text = std::move(s.text); return *this; }
+	mapped_stencil& operator=(mapped_stencil const& s) { vars = s.vars; text = s.text; return *this; }
+
+	void clear() { vars.clear(); text.clear(); }
+
+	void compile_file(std::string const& filename, std::set<std::string> const& vars)
+	{
+		std::stringstream ss;
+		ss << std::ifstream(filename).rdbuf();
+		return compile(ss.str(), vars);
+	}
+
+	void compile(std::string const& text, std::set<std::string> const& vars)
+	{
+		clear();
+
+		this->text = text;
+
+		for(auto const& v: vars)
+			for(auto pos = 0ULL; (pos = text.find(v, pos)) != std::string::npos; pos += v.size())
+				this->vars.emplace(this->text.data() + pos, v.size());
+
+		// embedded vars found in order
+	}
+
+	std::string create(const dict& d) const
+	{
+		if(vars.empty())
+			return text;
+
+		std::string out;
+		out.reserve(text.size());
+
+		auto pos = text.data();
+
+		for(auto const& v: vars)
+		{
+			if(v.pos > pos)
+				out.append(pos, v.pos);
+
+			auto found = d.find({v.pos, v.len});
+
+			if(found != d.end())
+				out.append(found->second);
+
+			pos = v.pos + v.len;
+		}
+
+		if(pos < text.data() + text.size())
+			out.append(pos, text.size());
+
+		return out;
+	}
+};
 
 namespace utf8 {
 
