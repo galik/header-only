@@ -97,13 +97,13 @@ void shuffle_all(Container&& c)
 template<typename Container, typename Value>
 void erase_remove_from(Container&& c, Value const& v)
 {
-	c.erase(std::remove(std::begin(std::forward<Container>(c)), std::end(std::forward<Container>(c)), v)), std::end(c));
+	c.erase(std::remove(std::begin(std::forward<Container>(c)), std::end(std::forward<Container>(c)), v), std::end(c));
 }
 
 template<typename Container, typename Pred>
 void erase_remove_from_if(Container&& c, Pred p)
 {
-	c.erase(std::remove_if(std::begin(std::forward<Container>(c)), std::end(std::forward<Container>(c)), p)), std::end(c));
+	c.erase(std::remove_if(std::begin(std::forward<Container>(c)), std::end(std::forward<Container>(c)), p), std::end(c));
 }
 
 } // algorithms
