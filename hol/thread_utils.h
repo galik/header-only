@@ -22,20 +22,24 @@
 // SOFTWARE.
 //
 
-#include <string>
-#include <vector>
-#include <thread>
-#include <mutex>
-#include <shared_mutex>
 #include <future>
+#include <mutex>
+#include <queue>
+#include <shared_mutex>
+#include <string>
+#include <thread>
+#include <vector>
 
-#undef WARN_UNUSED_RESULT
-#ifdef __GNUC__
-//	[[nodiscard]] // C++17
-#define WARN_UNUSED_RESULT [[gnu::warn_unused_result]]
+#undef HOL_WARN_UNUSED_RESULT
+#if __has_cpp_attribute(nodiscard)
+#define HOL_WARN_UNUSED_RESULT [[nodiscard]]
 #else
-#define WARN_UNUSED_RESULT
+#ifdef __GNUC__
+#define HOL_WARN_UNUSED_RESULT [[gnu::warn_unused_result]]
+#else
+#define HOL_WARN_UNUSED_RESULT
 #endif
+#endif // __has_cpp_attribute(nodiscard)
 
 #ifdef HOL_HAVE_GSL_SPAN
 #include <gsl/span>
@@ -50,67 +54,67 @@ namespace thread_utils {
 //=============================================================
 //
 
-class detached_thread
-{
-public:
-	detached_thread(detached_thread const&) = delete;
-	detached_thread(detached_thread&&) = delete;
-
-	template<typename Callable, typename... Args>
-	explicit detached_thread(Callable&& f, Args&&... args)
-	: t(std::forward<Callable>(f), std::forward<Args>(args)...) {t.detach();}
-
-private:
-	std::thread t;
-};
-
-class raii_thread
-{
-public:
-	raii_thread(raii_thread const&) = delete;
-	raii_thread(raii_thread&& other): t(std::move(other.t)) {}
-
-	template<typename Callable, typename... Args>
-	raii_thread(Callable&& f, Args&&... args)
-	: t(std::forward<Callable>(f), std::forward<Args>(args)...) {}
-
-	~raii_thread() { if(t.joinable()) t.join(); }
-
-private:
-	std::thread t;
-};
-
-class raii_task
-{
-	std::future<void> f;
-
-public:
-	raii_task(raii_task&& rt): f(std::move(rt.f)) {}
-
-	template<typename Callable, typename... Args>
-	raii_task(Callable&& f, Args&&... args)
-	: f(std::async(std::launch::async, std::forward<Callable>(f), std::forward<Args>(args)...)) {}
-
-	~raii_task() { if(f.valid()) f.get(); }
-};
-
-template<typename Return>
-class raii_future
-{
-	std::future<Return> f;
-
-public:
-	raii_future(raii_future&& rt): f(std::move(rt.f)) {}
-
-	template<typename Callable, typename... Args>
-	raii_future(Callable&& f, Args&&... args)
-	: f(std::async(std::launch::async, std::forward<Callable>(f), std::forward<Args>(args)...)) {}
-
-	~raii_future() { if(f.valid()) f.get(); }
-
-	bool valid() const { return f.valid(); }
-	Return get() { return f.get(); }
-};
+//class detached_thread
+//{
+//public:
+//	detached_thread(detached_thread const&) = delete;
+//	detached_thread(detached_thread&&) = delete;
+//
+//	template<typename Callable, typename... Args>
+//	explicit detached_thread(Callable&& f, Args&&... args)
+//	: t(std::forward<Callable>(f), std::forward<Args>(args)...) {t.detach();}
+//
+//private:
+//	std::thread t;
+//};
+//
+//class raii_thread
+//{
+//public:
+//	raii_thread(raii_thread const&) = delete;
+//	raii_thread(raii_thread&& other): t(std::move(other.t)) {}
+//
+//	template<typename Callable, typename... Args>
+//	raii_thread(Callable&& f, Args&&... args)
+//	: t(std::forward<Callable>(f), std::forward<Args>(args)...) {}
+//
+//	~raii_thread() { if(t.joinable()) t.join(); }
+//
+//private:
+//	std::thread t;
+//};
+//
+//class raii_task
+//{
+//	std::future<void> f;
+//
+//public:
+//	raii_task(raii_task&& rt): f(std::move(rt.f)) {}
+//
+//	template<typename Callable, typename... Args>
+//	raii_task(Callable&& f, Args&&... args)
+//	: f(std::async(std::launch::async, std::forward<Callable>(f), std::forward<Args>(args)...)) {}
+//
+//	~raii_task() { if(f.valid()) f.get(); }
+//};
+//
+//template<typename Return>
+//class raii_future
+//{
+//	std::future<Return> f;
+//
+//public:
+//	raii_future(raii_future&& rt): f(std::move(rt.f)) {}
+//
+//	template<typename Callable, typename... Args>
+//	raii_future(Callable&& f, Args&&... args)
+//	: f(std::async(std::launch::async, std::forward<Callable>(f), std::forward<Args>(args)...)) {}
+//
+//	~raii_future() { if(f.valid()) f.get(); }
+//
+//	bool valid() const { return f.valid(); }
+//	Return get() { return f.get(); }
+//};
 
 class async_group
 {
@@ -222,13 +226,13 @@ public:
 	lockable_for_reading& operator=(lockable_for_reading&&) { return *this; }
 	lockable_for_reading& operator=(lockable_for_reading const&) = delete;
 
-	WARN_UNUSED_RESULT
+	HOL_WARN_UNUSED_RESULT
 	auto lock_for_reading() const { return read_only_lock(mutex()); }
 
-	WARN_UNUSED_RESULT
+	HOL_WARN_UNUSED_RESULT
 	auto deferred_lock_for_reading() const { return read_only_lock(mutex(), std::defer_lock); }
 
-	WARN_UNUSED_RESULT
+	HOL_WARN_UNUSED_RESULT
 	auto adopted_lock_for_reading() const { return read_only_lock(mutex(), std::adopt_lock); }
 };
 
@@ -244,13 +248,13 @@ public:
 	lockable_for_updates& operator=(lockable_for_updates&&) { return *this; }
 	lockable_for_updates& operator=(lockable_for_updates const&) = delete;
 
-	WARN_UNUSED_RESULT
+	HOL_WARN_UNUSED_RESULT
 	auto lock_for_updates() const { return updatable_lock(mutex()); }
 
-	WARN_UNUSED_RESULT
+	HOL_WARN_UNUSED_RESULT
 	auto adopted_lock_for_updates() const { return updatable_lock(mutex(), std::adopt_lock); }
 
-	WARN_UNUSED_RESULT
+	HOL_WARN_UNUSED_RESULT
 	auto deferred_lock_for_updates() const { return updatable_lock(mutex(), std::defer_lock); }
 };
 
@@ -391,8 +395,8 @@ class locked_iterable
 	IterType e;
 
 public:
-	// we accept the iterators by reference to ensude we don't copy them
-	// untim after the lock is secured
+	// we accept the iterators by reference to ensure we don't copy them
+	// until after the lock is secured
 	locked_iterable(LockType&& lock, IterType const& b, IterType const& e)
 	: lock(std::move(lock)), b(b), e(e) {}
 
@@ -400,7 +404,214 @@ public:
 	IterType end() { return e; }
 };
 
-//} // mt
+} // thread_utils
+} // header_only_library
+
+// Alternative lock enabled objects
+
+#include <experimental/optional>
+
+namespace header_only_library {
+namespace thread_utils {
+
+template<typename T>
+using optional_type = std::experimental::optional<T>;
+
+class lock_enabled
+{
+	using mutex_type = std::shared_timed_mutex;
+
+public:
+	struct enable_reading {};
+	struct enable_updates: enable_reading {};
+
+	struct enable_reading_impl: enable_reading
+	{
+		explicit enable_reading_impl(mutex_type& mtx): lock(mtx) {}
+		explicit enable_reading_impl(mutex_type& mtx, std::defer_lock_t): lock(mtx, std::defer_lock) {}
+		explicit enable_reading_impl(mutex_type& mtx, std::chrono::microseconds wait): lock(mtx, wait) {}
+
+//		enable_reading_impl(enable_reading_impl const&) = delete;
+//		enable_reading_impl(enable_reading_impl&& access): lock(std::move(access.lock)) {}
+//
+//		enable_reading_impl& operator=(enable_reading_impl const&) = delete;
+//		enable_reading_impl& operator=(enable_reading_impl&& access) { lock = std::move(access.lock); return *this; }
+
+		explicit operator bool() const { return lock.owns_lock(); }
+		std::shared_lock<mutex_type> lock;
+	};
+
+	struct enable_updates_impl: enable_updates
+	{
+		enable_updates_impl(mutex_type& mtx): lock(mtx) {}
+		enable_updates_impl(mutex_type& mtx, std::defer_lock_t): lock(mtx, std::defer_lock) {}
+		enable_updates_impl(mutex_type& mtx, std::chrono::microseconds wait): lock(mtx, wait) {}
+		explicit operator bool() const { return lock.owns_lock(); }
+		std::unique_lock<mutex_type> lock;
+	};
+
+	HOL_WARN_UNUSED_RESULT
+	auto lock_for_reading() { return enable_reading_impl{mtx}; };
+
+	HOL_WARN_UNUSED_RESULT
+	auto lock_for_updates() { return enable_updates_impl{mtx}; };
+
+	HOL_WARN_UNUSED_RESULT
+	auto try_to_lock_for_reading(std::chrono::microseconds wait)
+	{
+		if(enable_reading_impl access{mtx, wait})
+			return optional_type<enable_reading_impl>(std::move(access));
+		return optional_type<enable_reading_impl>();
+	}
+
+	HOL_WARN_UNUSED_RESULT
+	auto try_to_lock_for_updates(std::chrono::microseconds wait)
+	{
+		if(enable_updates_impl access{mtx, wait})
+			return optional_type<enable_updates_impl>(std::move(access));
+		return optional_type<enable_updates_impl>();
+	}
+
+	HOL_WARN_UNUSED_RESULT
+	auto make_lockable_for_reading() { return enable_reading_impl{mtx, std::defer_lock}; };
+
+	HOL_WARN_UNUSED_RESULT
+	auto make_lockable_for_updates() { return enable_updates_impl{mtx, std::defer_lock}; };
+
+private:
+	mutex_type mtx;
+};
+
+// USAGE
+//
+//	class Business
+//	: public lock_enabled
+//	{
+//	public:
+//
+//		int get_value(enable_reading) const { return 0; }
+//		void set_value(enable_updates, int v) { (void) v; }
+//
+//
+//	};
+//
+//
+//	auto business = std::make_unique<Business>();
+//
+//	{
+//		auto access = business->lock_for_updates();
+//
+//		// update x here
+//		business->get_value(access);
+//		business->set_value(access, 1);
+//	}
+//
+//	{
+//		auto access = business->lock_for_reading();
+//
+//		// examine x here
+//		business->get_value(access);
+//		//business->set_value(access, 1); // won't compile
+//	}
+//
+//	{
+//		auto business2 = std::make_unique<Business>();
+//
+//		auto access = business->make_lockable_for_reading();
+//		auto access2 = business2->make_lockable_for_reading();
+//
+//		std::lock(access.lock, access2.lock);
+//	}
+
+class thread_pool
+{
+public:
+	thread_pool(unsigned size)
+	{
+		while(size--)
+			threads.emplace_back(&thread_pool::process, this);
+	}
+
+	~thread_pool() { stop(); }
+
+	template<typename Func, typename... Params>
+	void add(Func func, Params&&... params)
+	{
+		if(closing_down)
+			throw std::runtime_error("adding job to dead pool");
+
+		{
+			std::unique_lock<std::mutex> lock(mtx);
+			jobs.push(std::bind(func, std::forward<Params>(params)...));
+		}
+
+		cv.notify_all();
+	}
+
+	std::size_t size() const { return threads.size(); }
+
+	void stop()
+	{
+		std::unique_lock<std::mutex> lock(mtx);
+		if(!closing_down)
+			actual_stop();
+	}
+
+private:
+	void process()
+	{
+		while(!done)
+		{
+			std::function<void()> func;
+
+			{
+				std::unique_lock<std::mutex> lock(mtx);
+
+				cv.wait(lock, [this]{ return done || !jobs.empty(); });
+
+				if(done)
+					break;
+
+				func = std::move(jobs.front());
+				jobs.pop();
+			}
+
+			cv.notify_all();
+
+			if(func)
+				func();
+		}
+	}
+
+	void actual_stop()
+	{
+		closing_down = true;
+		mtx.unlock();
+
+		for(;;)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::unique_lock<std::mutex> lock(mtx);
+			if(jobs.empty())
+				break;
+		}
+
+		done = true;
+
+		cv.notify_all();
+
+		for(auto& thread: threads)
+			thread.join();
+	}
+
+	std::mutex mtx;
+	std::condition_variable cv;
+	std::atomic_bool done{false};
+	bool closing_down{false};
+	std::vector<std::thread> threads;
+	std::queue<std::function<void()>> jobs;
+};
+
 } // thread_utils
 } // header_only_library
 
