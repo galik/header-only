@@ -12,3 +12,4 @@
 /doxy-docs/
 /src/
 !/src/*.{cpp,hpp,h}
+CMakeLists.txt
