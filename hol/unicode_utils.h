@@ -32,10 +32,12 @@ namespace unicode_utils {
 using wcodecvt_utf8 = std::codecvt_utf8<wchar_t>;
 using ucs2codecvt_utf8 = std::codecvt_utf8<char16_t>;
 using ucs4codecvt_utf8 = std::codecvt_utf8<char32_t>;
+using utf16codecvt_utf8 = std::codecvt_utf8_utf16<char16_t>;
 
 using wstring_convert_utf8 = std::wstring_convert<wcodecvt_utf8, wchar_t>;
 using ucs2string_convert_utf8 = std::wstring_convert<ucs2codecvt_utf8, char16_t>;
 using ucs4string_convert_utf8 = std::wstring_convert<ucs4codecvt_utf8, char32_t>;
+using utf16string_convert_utf8 = std::wstring_convert<utf16codecvt_utf8, char16_t>;
 
 template<typename StringType>
 struct utf8_converter_type
@@ -92,6 +94,22 @@ std::string w_to_utf8(std::wstring const& ucs)
 }
 
 inline
+std::string utf32_to_utf8(std::u32string const& ucs4)
+{
+	return ucs_to_utf8(ucs4);
+}
+
+inline
+std::string utf16_to_utf8(std::u16string const& utf16)
+{
+	utf16string_convert_utf8 cnv;
+	std::string utf8 = cnv.to_bytes(utf16.c_str());
+	if(cnv.converted() < utf16.size())
+		throw std::runtime_error("incomplete conversion");
+	return utf8;
+}
+
+inline
 std::u16string utf8_to_ucs2(std::string const& utf8)
 {
 	return utf8_to_ucs<std::u16string>(utf8);
@@ -109,6 +127,29 @@ std::wstring utf8_to_w(std::string const& utf8)
 	return utf8_to_ucs<std::wstring>(utf8);
 }
 
+inline
+std::u32string utf8_to_utf32(std::string const& utf8)
+{
+	return utf8_to_ucs<std::u32string>(utf8);
+}
+
+template<typename ToString, typename CodeCvt>
+ToString u_convert_from_utf8(std::string const& s)
+{
+	CodeCvt cnv;
+	ToString to = cnv.from_bytes(s);
+	if(cnv.converted() < s.size())
+		throw std::runtime_error("incomplete conversion");
+	return to;
+}
+
+inline
+std::u16string utf8_to_utf16(std::string const& utf8)
+{
+	return u_convert_from_utf8<std::u16string, utf16string_convert_utf8>(utf8);
+}
+
+
 // locale sensitive conversion between multibyte and wide characters
 
 inline
@@ -118,12 +159,12 @@ std::wstring mb_to_ws(std::string const& mb)
 	std::mbstate_t ps{};
 	char const* src = mb.data();
 
-	std::size_t len = 1 + mbsrtowcs(0, &src, 3, &ps);
+	std::size_t len = 1 + std::mbsrtowcs(0, &src, 3, &ps);
 
 	ws.resize(len);
 	src = mb.data();
 
-	mbsrtowcs(&ws[0], &src, ws.size(), &ps);
+	std::mbsrtowcs(&ws[0], &src, ws.size(), &ps);
 
 	if(src)
 		throw std::runtime_error("invalid multibyte character after: '"
@@ -141,12 +182,12 @@ std::string ws_to_mb(std::wstring const& ws)
 	std::mbstate_t ps{};
 	wchar_t const* src = ws.data();
 
-	std::size_t len = 1 + wcsrtombs(0, &src, 0, &ps);
+	std::size_t len = 1 + std::wcsrtombs(0, &src, 0, &ps);
 
 	mb.resize(len);
 	src = ws.data();
 
-	wcsrtombs(&mb[0], &src, mb.size(), &ps);
+	std::wcsrtombs(&mb[0], &src, mb.size(), &ps);
 
 	if(src)
 		throw std::runtime_error("invalid wide character");
