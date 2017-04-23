@@ -28,113 +28,34 @@
 
 namespace header_only_library {
 namespace unicode_utils {
+namespace detail {
 
 using wcodecvt_utf8 = std::codecvt_utf8<wchar_t>;
 using ucs2codecvt_utf8 = std::codecvt_utf8<char16_t>;
 using ucs4codecvt_utf8 = std::codecvt_utf8<char32_t>;
 using utf16codecvt_utf8 = std::codecvt_utf8_utf16<char16_t>;
+using utf32codecvt_utf8 = std::codecvt_utf8<char32_t>;
+using utf32codecvt_utf16 = std::codecvt_utf16<char32_t>; // ??
 
-using wstring_convert_utf8 = std::wstring_convert<wcodecvt_utf8, wchar_t>;
-using ucs2string_convert_utf8 = std::wstring_convert<ucs2codecvt_utf8, char16_t>;
-using ucs4string_convert_utf8 = std::wstring_convert<ucs4codecvt_utf8, char32_t>;
-using utf16string_convert_utf8 = std::wstring_convert<utf16codecvt_utf8, char16_t>;
+using cvt_ws_utf8 = std::wstring_convert<wcodecvt_utf8, wchar_t>;
+using cvt_ucs2_utf8 = std::wstring_convert<ucs2codecvt_utf8, char16_t>;
+using cvt_ucs4_utf8 = std::wstring_convert<ucs4codecvt_utf8, char32_t>;
+using cvt_utf16_utf8 = std::wstring_convert<utf16codecvt_utf8, char16_t>;
+using cvt_utf32_utf8 = std::wstring_convert<utf32codecvt_utf8, char32_t>;
+using cvt_utf32_utf16 = std::wstring_convert<utf32codecvt_utf16, char32_t>; // ??
 
-template<typename StringType>
-struct utf8_converter_type
+template<typename CodeCvt, typename FromString, typename ToString = std::string>
+ToString convert_to(FromString const& s)
 {
-	using type = typename std::conditional
-	<
-		std::is_same<StringType, std::wstring>::value,
-		wstring_convert_utf8,
-		typename std::conditional
-		<
-			std::is_same<StringType, std::u16string>::value,
-			ucs2string_convert_utf8,
-			ucs4string_convert_utf8
-		>::type
-	>::type;
-};
-
-template<typename StringType>
-std::string ucs_to_utf8(StringType const& s)
-{
-	typename utf8_converter_type<StringType>::type cnv;
-	std::string utf8 = cnv.to_bytes(s);
+	CodeCvt cnv;
+	ToString to = cnv.to_bytes(s);
 	if(cnv.converted() < s.size())
 		throw std::runtime_error("incomplete conversion");
-	return utf8;
+	return to;
 }
 
-template<typename StringType>
-StringType utf8_to_ucs(std::string const& utf8)
-{
-	typename utf8_converter_type<StringType>::type cnv;
-	StringType s = cnv.from_bytes(utf8);
-	if(cnv.converted() < utf8.size())
-		throw std::runtime_error("incomplete conversion");
-	return s;
-}
-
-inline
-std::string ucs2_to_utf8(std::u16string const& ucs2)
-{
-	return ucs_to_utf8(ucs2);
-}
-
-inline
-std::string ucs4_to_utf8(std::u32string const& ucs4)
-{
-	return ucs_to_utf8(ucs4);
-}
-
-inline
-std::string w_to_utf8(std::wstring const& ucs)
-{
-	return ucs_to_utf8(ucs);
-}
-
-inline
-std::string utf32_to_utf8(std::u32string const& ucs4)
-{
-	return ucs_to_utf8(ucs4);
-}
-
-inline
-std::string utf16_to_utf8(std::u16string const& utf16)
-{
-	utf16string_convert_utf8 cnv;
-	std::string utf8 = cnv.to_bytes(utf16.c_str());
-	if(cnv.converted() < utf16.size())
-		throw std::runtime_error("incomplete conversion");
-	return utf8;
-}
-
-inline
-std::u16string utf8_to_ucs2(std::string const& utf8)
-{
-	return utf8_to_ucs<std::u16string>(utf8);
-}
-
-inline
-std::u32string utf8_to_ucs4(std::string const& utf8)
-{
-	return utf8_to_ucs<std::u32string>(utf8);
-}
-
-inline
-std::wstring utf8_to_w(std::string const& utf8)
-{
-	return utf8_to_ucs<std::wstring>(utf8);
-}
-
-inline
-std::u32string utf8_to_utf32(std::string const& utf8)
-{
-	return utf8_to_ucs<std::u32string>(utf8);
-}
-
-template<typename ToString, typename CodeCvt>
-ToString u_convert_from_utf8(std::string const& s)
+template<typename CodeCvt, typename ToString, typename FromString = std::string>
+ToString convert_from(FromString const& s)
 {
 	CodeCvt cnv;
 	ToString to = cnv.from_bytes(s);
@@ -143,12 +64,83 @@ ToString u_convert_from_utf8(std::string const& s)
 	return to;
 }
 
+} //namespace detail
+
+// UTF-32/UTF-16/UCS-4/UCS-2 to UTF-8/UTF-16
+
+inline
+std::string ucs2_to_utf8(std::u16string const& ucs2)
+{
+	return detail::convert_to<detail::cvt_ucs2_utf8, std::u16string>(ucs2);
+}
+
+inline
+std::string utf16_to_utf8(std::u16string const& utf16)
+{
+	return detail::convert_to<detail::cvt_utf16_utf8, std::u16string>(utf16);
+}
+
+inline
+std::string ucs4_to_utf8(std::u32string const& ucs4)
+{
+	return detail::convert_to<detail::cvt_ucs4_utf8, std::u32string>(ucs4);
+}
+
+inline
+std::string utf32_to_utf8(std::u32string const& utf32)
+{
+	return detail::convert_to<detail::cvt_utf32_utf8, std::u32string>(utf32);
+}
+
+inline
+std::string ws_to_utf8(std::wstring const& s)
+{
+	return detail::convert_to<detail::cvt_ws_utf8, std::wstring>(s);
+}
+
+//inline
+//std::u16string utf32_to_utf16(std::u32string const& s)
+//{
+//	return detail::convert_to<detail::cvt_utf32_utf16, std::u32string, std::u16string>(s);
+//}
+
+// UTF-8/UTF-16 to UTF-32/UTF-16/UCS-4/UCS-2
+
+inline
+std::u16string utf8_to_ucs2(std::string const& utf8)
+{
+	return detail::convert_from<detail::cvt_ucs2_utf8, std::u16string>(utf8);
+}
+
 inline
 std::u16string utf8_to_utf16(std::string const& utf8)
 {
-	return u_convert_from_utf8<std::u16string, utf16string_convert_utf8>(utf8);
+	return detail::convert_from<detail::cvt_utf16_utf8, std::u16string>(utf8);
 }
 
+inline
+std::u32string utf8_to_ucs4(std::string const& utf8)
+{
+	return detail::convert_from<detail::cvt_ucs4_utf8, std::u32string>(utf8);
+}
+
+inline
+std::u32string utf8_to_utf32(std::string const& utf8)
+{
+	return detail::convert_from<detail::cvt_utf32_utf8, std::u32string>(utf8);
+}
+
+inline
+std::wstring utf8_to_ws(std::string const& utf8)
+{
+	return detail::convert_from<detail::cvt_ws_utf8, std::wstring>(utf8);
+}
+
+//inline
+//std::u32string utf16_to_utf32(std::u16string const& utf16)
+//{
+//	return detail::convert_from<detail::cvt_utf32_utf16, std::u32string, std::u16string>(utf16);
+//}
 
 // locale sensitive conversion between multibyte and wide characters
 
@@ -196,24 +188,6 @@ std::string ws_to_mb(std::wstring const& ws)
 
 	return mb;
 }
-
-//std::string ws_to_utf8(std::wstring const& s)
-//{
-//	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
-//	std::string utf8 = cnv.to_bytes(s);
-//	if(cnv.converted() < s.size())
-//		throw std::runtime_error("incomplete conversion");
-//	return utf8;
-//}
-//
-//std::wstring utf8_to_ws(std::string const& utf8)
-//{
-//	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
-//	std::wstring s = cnv.from_bytes(utf8);
-//	if(cnv.converted() < utf8.size())
-//		throw std::runtime_error("incomplete conversion");
-//	return s;
-//}
 
 } // unicode_utils
 } // header_only_library
