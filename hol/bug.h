@@ -59,7 +59,7 @@
 namespace header_only_library {
 
 inline
-auto& get_edit_bug_fun()
+std::function<std::string(std::string)>& get_edit_bug_fun()
 {
 	static std::function<std::string(std::string)> edit_bug_fun = [](std::string s){return s;};
 	return edit_bug_fun;

@@ -23,6 +23,7 @@
 //
 
 #include <algorithm>
+#include <random>
 #include <type_traits>
 
 namespace header_only_library {

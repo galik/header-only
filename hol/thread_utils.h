@@ -386,7 +386,7 @@ private:
 class thread_pool
 {
 public:
-	thread_pool(unsigned size)
+	thread_pool(unsigned size = std::thread::hardware_concurrency())
 	{
 		while(size--)
 			threads.emplace_back(&thread_pool::process, this);
@@ -397,11 +397,12 @@ public:
 	template<typename Func, typename... Params>
 	void add(Func func, Params&&... params)
 	{
-		if(closing_down)
-			throw std::runtime_error("adding job to dead pool");
-
 		{
 			std::unique_lock<std::mutex> lock(mtx);
+
+			if(closing_down)
+				throw std::runtime_error("adding job to dead pool");
+
 			jobs.push(std::bind(func, std::forward<Params>(params)...));
 		}
 

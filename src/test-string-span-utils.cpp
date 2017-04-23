@@ -34,7 +34,7 @@
 #include <hol/string_span_utils.h>
 
 namespace hol {
-	using namespace header_only_library::random_utils;
+	using namespace header_only_library::random_utils::mersenne_twister_32;
 	using namespace header_only_library::string_span_utils;
 }
 
