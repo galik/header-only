@@ -36,19 +36,19 @@ TEST_CASE("Unicode Conversions", "unicode_utils")
 {
 	SECTION("to_utf8")
 	{
-		REQUIRE(hol::ucs2_to_utf8(u"\U0001d11e") == u8"\xF0\x9D\x84\x9E");
-//		REQUIRE(hol::ucs4_to_utf8(U"\U0001d11e") == u8"\xF0\x9D\x84\x9E");
+		REQUIRE(hol::ucs2_to_utf8(u"\u4F60\u597D") == u8"\xE4\xBD\xA0\xE5\xA5\xBD");
+		REQUIRE(hol::ucs4_to_utf8(U"\U0001d11e") == u8"\xF0\x9D\x84\x9E");
 		REQUIRE(hol::utf16_to_utf8(u"\U0001d11e") == u8"\xF0\x9D\x84\x9E");
-//		REQUIRE(hol::utf32_to_utf8(U"你好，世界") == u8"你好，世界");
-//		REQUIRE(hol::ws_to_utf8(L"你好，世界") == u8"你好，世界");
+		REQUIRE(hol::utf32_to_utf8(U"\U00004F60\U0000597D") == u8"\xE4\xBD\xA0\xE5\xA5\xBD");
+		REQUIRE(hol::ws_to_utf8(L"\u4F60\u597D") == u8"\xE4\xBD\xA0\xE5\xA5\xBD");
 	}
 	SECTION("from_utf8")
 	{
-//		REQUIRE(hol::utf8_to_ucs2(u8"你好，世界") == u"你好，世界");
-//		REQUIRE(hol::utf8_to_ucs4(u8"你好，世界") == U"你好，世界");
-//		REQUIRE(hol::utf8_to_utf16(u8"你好，世界") == u"你好，世界");
-//		REQUIRE(hol::utf8_to_utf32(u8"你好，世界") == U"你好，世界");
-//		REQUIRE(hol::utf8_to_ws(u8"你好，世界") == L"你好，世界");
+		REQUIRE(hol::utf8_to_ucs2(u8"\xE4\xBD\xA0\xE5\xA5\xBD") == u"\u4F60\u597D");
+		REQUIRE(hol::utf8_to_ucs4(u8"\xF0\x9D\x84\x9E") == U"\U0001d11e");
+		REQUIRE(hol::utf8_to_utf16(u8"\xF0\x9D\x84\x9E") == u"\U0001d11e");
+		REQUIRE(hol::utf8_to_utf32(u8"\xE4\xBD\xA0\xE5\xA5\xBD") == U"\U00004F60\U0000597D");
+		REQUIRE(hol::utf8_to_ws(u8"\xE4\xBD\xA0\xE5\xA5\xBD") == L"\u4F60\u597D");
 	}
 }
 
