@@ -23,9 +23,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include <string>
-#include <vector>
-
 #include "hol/unicode_utils.h"
 
 namespace hol {
