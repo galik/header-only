@@ -29,7 +29,7 @@ show:
 %: %.cpp
 	@echo "C: $@"
 	@echo [triggered by changes in $?]
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< -lstdc++fs
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 	
 docs: doxy-docs/index.html
 
