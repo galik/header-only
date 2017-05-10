@@ -47,6 +47,7 @@ auto const& random_data()
 	return data;
 }
 
+inline
 auto& random_generator()
 {
 	thread_local static std::seed_seq seeds(std::begin(random_data()), std::end(random_data()));
