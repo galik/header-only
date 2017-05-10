@@ -42,7 +42,7 @@ inline
 auto const& random_data()
 {
 	thread_local static std::array<typename Generator::result_type, Generator::state_size> data;
-	std::random_device rd;
+	thread_local static std::random_device rd;
 	std::generate(std::begin(data), std::end(data), std::ref(rd));
 	return data;
 }
@@ -57,14 +57,14 @@ auto& random_generator()
 }
 
 inline
-void reseed()
+void random_reseed()
 {
 	std::seed_seq seeds(std::begin(random_data()), std::end(random_data()));
 	random_generator().seed(seeds);
 }
 
 inline
-void reseed(std::size_t n)
+void random_reseed(typename Generator::result_type n)
 {
 	std::seed_seq seeds(&n, &n + 1);
 	random_generator().seed(seeds);
@@ -105,7 +105,7 @@ detail::Generator& random_generator()
  * generator from the std::random_device.
  */
 inline
-void reseed() { detail::reseed(); }
+void random_reseed() { detail::random_reseed(); }
 
 /**
  * Re-seed the underlying pseudo random number generator.
@@ -115,7 +115,7 @@ void reseed() { detail::reseed(); }
  * @param n The seed value to use.
  */
 inline
-void reseed(std::size_t n) { detail::reseed(n); }
+void random_reseed(std::size_t n) { detail::random_reseed(n); }
 
 /**
  * Generate a pseudo random number that is uniformly distributed
@@ -185,7 +185,7 @@ bool random_bernoulli(double p = 0.5)
 	return randomly_distributed_number<std::bernoulli_distribution>(p);
 }
 
-template<typename Integer>
+template<typename Integer = int>
 Integer random_binomial(Integer t = 1, double p = 0.5)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
@@ -199,7 +199,7 @@ Integer random_binomial(Integer t = 1, double p = 0.5)
 	return randomly_distributed_number<std::binomial_distribution<Integer>>(t, p);
 }
 
-template<typename Integer>
+template<typename Integer = int>
 Integer random_negative_binomial(Integer k = 1, double p = 0.5)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
@@ -213,7 +213,7 @@ Integer random_negative_binomial(Integer k = 1, double p = 0.5)
 	return randomly_distributed_number<std::negative_binomial_distribution<Integer>>(k, p);
 }
 
-template<typename Integer>
+template<typename Integer = int>
 Integer random_geometric(double p = 0.5)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
@@ -226,7 +226,7 @@ Integer random_geometric(double p = 0.5)
 	return randomly_distributed_number<std::geometric_distribution<Integer>>(p);
 }
 
-template<typename Integer>
+template<typename Integer = int>
 Integer random_poisson(double mean = 1.0)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
@@ -238,7 +238,7 @@ Integer random_poisson(double mean = 1.0)
 	return randomly_distributed_number<std::poisson_distribution<Integer>>(mean);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_exponential(Real lambda = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -249,7 +249,7 @@ Real random_exponential(Real lambda = 1.0)
 	return randomly_distributed_number<std::exponential_distribution<Real>>(lambda);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_gamma(Real alpha = 1.0, Real beta = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -258,7 +258,7 @@ Real random_gamma(Real alpha = 1.0, Real beta = 1.0)
 	return randomly_distributed_number<std::gamma_distribution<Real>>(alpha, beta);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_weibull(Real a = 1.0, Real b = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -267,7 +267,7 @@ Real random_weibull(Real a = 1.0, Real b = 1.0)
 	return randomly_distributed_number<std::weibull_distribution<Real>>(a, b);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_extreme_value(Real a = 0.0, Real b = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -276,7 +276,7 @@ Real random_extreme_value(Real a = 0.0, Real b = 1.0)
 	return randomly_distributed_number<std::extreme_value_distribution<Real>>(a, b);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_normal(Real mean = 0.0, Real standard_deviation = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -285,7 +285,7 @@ Real random_normal(Real mean = 0.0, Real standard_deviation = 1.0)
 	return randomly_distributed_number<std::normal_distribution<Real>>(mean, standard_deviation);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_lognormal(Real m = 0.0, Real s = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -294,7 +294,7 @@ Real random_lognormal(Real m = 0.0, Real s = 1.0)
 	return randomly_distributed_number<std::lognormal_distribution<Real>>(m, s);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_chi_squared(Real n = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -303,7 +303,7 @@ Real random_chi_squared(Real n = 1.0)
 	return randomly_distributed_number<std::chi_squared_distribution<Real>>(n);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_cauchy(Real a = 0.0, Real b = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -312,7 +312,7 @@ Real random_cauchy(Real a = 0.0, Real b = 1.0)
 	return randomly_distributed_number<std::cauchy_distribution<Real>>(a, b);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_fisher_f(Real m = 1.0, Real n = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -321,7 +321,7 @@ Real random_fisher_f(Real m = 1.0, Real n = 1.0)
 	return randomly_distributed_number<std::fisher_f_distribution<Real>>(m, n);
 }
 
-template<typename Real>
+template<typename Real = double>
 Real random_student_t(Real n = 1.0)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -344,7 +344,7 @@ Real random_student_t(Real n = 1.0)
 //		std::initializer_list<double>{std::forward<Doubles>(doubles)...});
 //}
 
-template<typename Integer>
+template<typename Integer = int>
 Integer random_discrete(std::initializer_list<double> doubles)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
@@ -356,7 +356,7 @@ Integer random_discrete(std::initializer_list<double> doubles)
 	return randomly_distributed_number<std::discrete_distribution<Integer>>(doubles);
 }
 
-template<typename Integer, typename InputIt>
+template<typename InputIt, typename Integer = int>
 Integer random_discrete(InputIt first, InputIt last)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
@@ -368,7 +368,9 @@ Integer random_discrete(InputIt first, InputIt last)
 	return randomly_distributed_number<std::discrete_distribution<Integer>>(first, last);
 }
 
-template<typename Integer, typename UnaryOperation>
+// http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+//
+template<typename UnaryOperation, typename Integer = int>
 Integer random_discrete(std::size_t count, double xmin, double xmax, UnaryOperation unary_op)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
@@ -389,7 +391,7 @@ Integer random_discrete(std::size_t count, double xmin, double xmax, UnaryOperat
 // piecewise_constant_distribution
 // http://en.cppreference.com/w/cpp/numeric/random/piecewise_constant_distribution
 
-template<typename Real, typename InputIteratorB, typename InputIteratorW>
+template<typename InputIteratorB, typename InputIteratorW, typename Real = double>
 Real random_piecewise_constant(InputIteratorB first_b, InputIteratorB last_b, InputIteratorW first_w)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -405,7 +407,7 @@ Real random_piecewise_constant(InputIteratorB first_b, InputIteratorB last_b, In
 	return randomly_distributed_number<dist_type>(first_b, last_b, first_w);
 }
 
-template<typename Real, typename UnaryOperation>
+template<typename UnaryOperation, typename Real = double>
 Real random_piecewise_constant(std::initializer_list<Real> bl, UnaryOperation fw)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -414,7 +416,7 @@ Real random_piecewise_constant(std::initializer_list<Real> bl, UnaryOperation fw
 	return randomly_distributed_number<std::piecewise_constant_distribution<Real>>(bl, fw);
 }
 
-template<typename Real, typename UnaryOperation>
+template<typename UnaryOperation, typename Real = double>
 Real random_piecewise_constant(std::size_t nw, Real xmin, Real xmax, UnaryOperation fw)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -436,7 +438,7 @@ Real random_piecewise_constant(std::size_t nw, Real xmin, Real xmax, UnaryOperat
 // C++11 26.5.8.6.3
 //
 
-template<typename Real, typename InputIteratorB, typename InputIteratorW>
+template<typename InputIteratorB, typename InputIteratorW, typename Real = double>
 Real random_piecewise_linear(InputIteratorB first_b, InputIteratorB last_b, InputIteratorW first_w)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -452,7 +454,7 @@ Real random_piecewise_linear(InputIteratorB first_b, InputIteratorB last_b, Inpu
 	return randomly_distributed_number<dist_type>(first_b, last_b, first_w);
 }
 
-template<typename Real, typename UnaryOperation>
+template<typename UnaryOperation, typename Real = double>
 Real random_piecewise_linear(std::initializer_list<Real> bl, UnaryOperation fw)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -467,7 +469,7 @@ Real random_piecewise_linear(std::initializer_list<Real> bl, UnaryOperation fw)
 	return randomly_distributed_number<dist_type>(bl, fw);
 }
 
-template<typename Real, typename UnaryOperation>
+template<typename UnaryOperation, typename Real = double>
 Real random_piecewise_linear(std::size_t nw, Real xmin, Real xmax, UnaryOperation fw)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
@@ -489,7 +491,7 @@ Real random_piecewise_linear(std::size_t nw, Real xmin, Real xmax, UnaryOperatio
  *
  * @return true or false
  */
-template<typename Real>
+template<typename Real = double>
 bool random_choice(Real p = 0.5) { return random_bernoulli(p); }
 
 /**
