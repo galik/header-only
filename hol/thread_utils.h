@@ -30,6 +30,8 @@
 #include <thread>
 #include <vector>
 
+#include "bug.h"
+
 #undef HOL_WARN_UNUSED_RESULT
 #if __has_cpp_attribute(nodiscard)
 #define HOL_WARN_UNUSED_RESULT [[nodiscard]]
@@ -383,13 +385,101 @@ private:
 //		std::lock(access.lock, access2.lock);
 //	}
 
+//class thread_pool
+//{
+//public:
+//	thread_pool(unsigned size = std::thread::hardware_concurrency())
+//	{
+//		while(size--)
+//			threads.emplace_back(&thread_pool::process, this);
+//	}
+//
+//	~thread_pool() { stop(); }
+//
+//	template<typename Func, typename... Params>
+//	void add(Func func, Params&&... params)
+//	{
+//		{
+//			std::unique_lock<std::mutex> lock(mtx);
+//
+//			if(closing_down)
+//				throw std::runtime_error("adding job to dead pool");
+//
+//			jobs.push(std::bind(func, std::forward<Params>(params)...));
+//		}
+//
+//		cv.notify_all();
+//	}
+//
+//	std::size_t size() const { return threads.size(); }
+//
+//	void stop()
+//	{
+//		std::unique_lock<std::mutex> lock(mtx);
+//		if(!closing_down)
+//			actual_stop();
+//	}
+//
+//private:
+//	void process()
+//	{
+//		while(!done)
+//		{
+//			std::function<void()> func;
+//
+//			{
+//				std::unique_lock<std::mutex> lock(mtx);
+//
+//				cv.wait(lock, [this]{ return done || !jobs.empty(); });
+//
+//				if(done)
+//					break;
+//
+//				func = std::move(jobs.front());
+//				jobs.pop();
+//			}
+//
+//			cv.notify_all();
+//
+//			if(func)
+//				func();
+//		}
+//	}
+//
+//	void actual_stop()
+//	{
+//		closing_down = true;
+//		mtx.unlock();
+//
+//		for(;;)
+//		{
+//			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+//			std::unique_lock<std::mutex> lock(mtx);
+//			if(jobs.empty())
+//				break;
+//		}
+//
+//		done = true;
+//
+//		cv.notify_all();
+//
+//		for(auto& thread: threads)
+//			thread.join();
+//	}
+//
+//	std::mutex mtx;
+//	std::condition_variable cv;
+//	std::atomic_bool done{false};
+//	bool closing_down{false};
+//	std::vector<std::thread> threads;
+//	std::queue<std::function<void()>> jobs;
+//};
+
 class thread_pool
 {
 public:
-	thread_pool(unsigned size = std::thread::hardware_concurrency())
+	thread_pool()
 	{
-		while(size--)
-			threads.emplace_back(&thread_pool::process, this);
 	}
 
 	~thread_pool() { stop(); }
@@ -397,37 +487,83 @@ public:
 	template<typename Func, typename... Params>
 	void add(Func func, Params&&... params)
 	{
+		if(closing_down||done)
+			throw std::runtime_error("adding job to dead pool");
+
 		{
 			std::unique_lock<std::mutex> lock(mtx);
-
-			if(closing_down)
-				throw std::runtime_error("adding job to dead pool");
-
-			jobs.push(std::bind(func, std::forward<Params>(params)...));
+			jobs.push([=]{ func(std::forward<Params>(params)...); });
 		}
 
 		cv.notify_all();
 	}
 
-	std::size_t size() const { return threads.size(); }
+	std::size_t size() const
+	{
+		std::unique_lock<std::mutex> lock(mtx);
+		return threads.size();
+	}
+
+	void start(unsigned size = std::thread::hardware_concurrency())
+	{
+		{
+			std::unique_lock<std::mutex> lock(mtx);
+			cv.wait(lock, [this]{ return !closing_down; });
+		}
+
+		if(!done)
+			throw std::runtime_error("trying to start a running pool, must close first");
+
+		actual_start(size);
+	}
 
 	void stop()
 	{
-		std::unique_lock<std::mutex> lock(mtx);
-		if(!closing_down)
-			actual_stop();
+		bool expected = false;
+		if(!closing_down.compare_exchange_strong(expected, true))
+			return;
+
+		{
+			std::unique_lock<std::mutex> lock(mtx);
+			cv.wait(lock, [this]{ return jobs.empty(); });
+		}
+
+		done = true;
+		cv.notify_all();
+
+		for(auto& thread: threads)
+			thread.join();
+
+		{
+			std::unique_lock<std::mutex> lock(mtx);
+			threads.clear();
+		}
+
+		closing_down = false;
+		cv.notify_all();
 	}
 
 private:
+	void actual_start(unsigned size)
+	{
+		{
+			std::unique_lock<std::mutex> lock(mtx);
+			while(size--)
+				threads.emplace_back(&thread_pool::process, this);
+		}
+
+		done = false;
+		cv.notify_all();
+	}
+
 	void process()
 	{
+		std::function<void()> func;
+
 		while(!done)
 		{
-			std::function<void()> func;
-
 			{
 				std::unique_lock<std::mutex> lock(mtx);
-
 				cv.wait(lock, [this]{ return done || !jobs.empty(); });
 
 				if(done)
@@ -444,31 +580,15 @@ private:
 		}
 	}
 
-	void actual_stop()
-	{
-		closing_down = true;
-		mtx.unlock();
-
-		for(;;)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-			std::unique_lock<std::mutex> lock(mtx);
-			if(jobs.empty())
-				break;
-		}
-
-		done = true;
-
-		cv.notify_all();
-
-		for(auto& thread: threads)
-			thread.join();
-	}
-
-	std::mutex mtx;
+	mutable std::mutex mtx;
 	std::condition_variable cv;
-	std::atomic_bool done{false};
-	bool closing_down{false};
+
+	//! block queue and wait for it to empty
+	std::atomic_bool closing_down{false};
+
+	//! signal threads to end
+	std::atomic_bool done{true};
+
 	std::vector<std::thread> threads;
 	std::queue<std::function<void()>> jobs;
 };
