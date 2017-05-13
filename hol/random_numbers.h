@@ -31,7 +31,7 @@
 #endif
 
 namespace header_only_library {
-namespace random_utils {
+namespace random_numbers {
 namespace detail {
 
 using Generator = HOL_RANDOM_UTILS_GENERATOR;
@@ -107,6 +107,16 @@ Number random_number(Number from, Number to)
 	thread_local static Distribution dist;
 
 	return dist(random_generator(), typename Distribution::param_type{from, to});
+}
+
+template<typename Distribution, typename... Args>
+typename Distribution::result_type
+randomly_distributed_number(Args&&... args)
+{
+	using param_type = typename Distribution::param_type;
+
+	thread_local static Distribution dist;
+	return dist(detail::random_generator(), param_type(std::forward<Args>(args)...));
 }
 
 } // namespace detail
@@ -188,22 +198,12 @@ Number random_number()
 	return detail::random_number(from, to);
 }
 
-template<typename Distribution, typename... Args>
-typename Distribution::result_type
-randomly_distributed_number(Args&&... args)
-{
-	using param_type = typename Distribution::param_type;
-
-	thread_local static Distribution dist;
-	return dist(detail::random_generator(), param_type(std::forward<Args>(args)...));
-}
-
 // bernoulli_distribution
 
 inline
 bool random_bernoulli(double p = 0.5)
 {
-	return randomly_distributed_number<std::bernoulli_distribution>(p);
+	return detail::randomly_distributed_number<std::bernoulli_distribution>(p);
 }
 
 template<typename Integer = int>
@@ -217,7 +217,7 @@ Integer random_binomial(Integer t = 1, double p = 0.5)
 	assert(0.0 < p);
 	assert(p <= 1.0);
 	// Requires that 0 ≤ p ≤ 1 and 0 ≤ t.
-	return randomly_distributed_number<std::binomial_distribution<Integer>>(t, p);
+	return detail::randomly_distributed_number<std::binomial_distribution<Integer>>(t, p);
 }
 
 template<typename Integer = int>
@@ -231,7 +231,7 @@ Integer random_negative_binomial(Integer k = 1, double p = 0.5)
 	assert(0.0 < p);
 	assert(p <= 1.0);
 
-	return randomly_distributed_number<std::negative_binomial_distribution<Integer>>(k, p);
+	return detail::randomly_distributed_number<std::negative_binomial_distribution<Integer>>(k, p);
 }
 
 template<typename Integer = int>
@@ -244,7 +244,7 @@ Integer random_geometric(double p = 0.5)
 	assert(0.0 < p);
 	assert(p < 1.0);
 
-	return randomly_distributed_number<std::geometric_distribution<Integer>>(p);
+	return detail::randomly_distributed_number<std::geometric_distribution<Integer>>(p);
 }
 
 template<typename Integer = int>
@@ -256,7 +256,7 @@ Integer random_poisson(double mean = 1.0)
 
 	assert(0.0 < mean);
 
-	return randomly_distributed_number<std::poisson_distribution<Integer>>(mean);
+	return detail::randomly_distributed_number<std::poisson_distribution<Integer>>(mean);
 }
 
 template<typename Real = double>
@@ -267,7 +267,7 @@ Real random_exponential(Real lambda = 1.0)
 
 	assert(0.0 < lambda);
 
-	return randomly_distributed_number<std::exponential_distribution<Real>>(lambda);
+	return detail::randomly_distributed_number<std::exponential_distribution<Real>>(lambda);
 }
 
 template<typename Real = double>
@@ -276,7 +276,7 @@ Real random_gamma(Real alpha = 1.0, Real beta = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::gamma_distribution<Real>>(alpha, beta);
+	return detail::randomly_distributed_number<std::gamma_distribution<Real>>(alpha, beta);
 }
 
 template<typename Real = double>
@@ -285,7 +285,7 @@ Real random_weibull(Real a = 1.0, Real b = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::weibull_distribution<Real>>(a, b);
+	return detail::randomly_distributed_number<std::weibull_distribution<Real>>(a, b);
 }
 
 template<typename Real = double>
@@ -294,7 +294,7 @@ Real random_extreme_value(Real a = 0.0, Real b = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::extreme_value_distribution<Real>>(a, b);
+	return detail::randomly_distributed_number<std::extreme_value_distribution<Real>>(a, b);
 }
 
 template<typename Real = double>
@@ -303,7 +303,7 @@ Real random_normal(Real mean = 0.0, Real standard_deviation = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::normal_distribution<Real>>(mean, standard_deviation);
+	return detail::randomly_distributed_number<std::normal_distribution<Real>>(mean, standard_deviation);
 }
 
 template<typename Real = double>
@@ -312,7 +312,7 @@ Real random_lognormal(Real m = 0.0, Real s = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::lognormal_distribution<Real>>(m, s);
+	return detail::randomly_distributed_number<std::lognormal_distribution<Real>>(m, s);
 }
 
 template<typename Real = double>
@@ -321,7 +321,7 @@ Real random_chi_squared(Real n = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::chi_squared_distribution<Real>>(n);
+	return detail::randomly_distributed_number<std::chi_squared_distribution<Real>>(n);
 }
 
 template<typename Real = double>
@@ -330,7 +330,7 @@ Real random_cauchy(Real a = 0.0, Real b = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::cauchy_distribution<Real>>(a, b);
+	return detail::randomly_distributed_number<std::cauchy_distribution<Real>>(a, b);
 }
 
 template<typename Real = double>
@@ -339,7 +339,7 @@ Real random_fisher_f(Real m = 1.0, Real n = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::fisher_f_distribution<Real>>(m, n);
+	return detail::randomly_distributed_number<std::fisher_f_distribution<Real>>(m, n);
 }
 
 template<typename Real = double>
@@ -348,7 +348,7 @@ Real random_student_t(Real n = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::student_t_distribution<Real>>(n);
+	return detail::randomly_distributed_number<std::student_t_distribution<Real>>(n);
 }
 
 // TODO: Param pack not reflected in the underlying interface... remove this opton?
@@ -361,7 +361,7 @@ Real random_student_t(Real n = 1.0)
 //
 //	// TODO: static text to make sure Doubles are correctly typed
 //
-//	return randomly_distributed_number<std::discrete_distribution<Integer>>(
+//	return detail::randomly_distributed_number<std::discrete_distribution<Integer>>(
 //		std::initializer_list<double>{std::forward<Doubles>(doubles)...});
 //}
 
@@ -374,7 +374,7 @@ Integer random_discrete(std::initializer_list<double> doubles)
 
 	// TODO: static text to make sure Doubles are correctly typed
 
-	return randomly_distributed_number<std::discrete_distribution<Integer>>(doubles);
+	return detail::randomly_distributed_number<std::discrete_distribution<Integer>>(doubles);
 }
 
 template<typename InputIt, typename Integer = int>
@@ -386,7 +386,7 @@ Integer random_discrete(InputIt first, InputIt last)
 
 	// TODO: static text to make sure Doubles are correctly typed
 
-	return randomly_distributed_number<std::discrete_distribution<Integer>>(first, last);
+	return detail::randomly_distributed_number<std::discrete_distribution<Integer>>(first, last);
 }
 
 // http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
@@ -405,7 +405,7 @@ Integer random_discrete(std::size_t count, double xmin, double xmax, UnaryOperat
 
 	assert(delta > 0.0);
 
-	return randomly_distributed_number<std::discrete_distribution<Integer>>(
+	return detail::randomly_distributed_number<std::discrete_distribution<Integer>>(
 		count, xmin, xmax, unary_op);
 }
 
@@ -425,7 +425,7 @@ Real random_piecewise_constant(InputIteratorB first_b, InputIteratorB last_b, In
 
 	using dist_type = std::piecewise_constant_distribution<Real>;
 
-	return randomly_distributed_number<dist_type>(first_b, last_b, first_w);
+	return detail::randomly_distributed_number<dist_type>(first_b, last_b, first_w);
 }
 
 template<typename UnaryOperation, typename Real = double>
@@ -434,7 +434,7 @@ Real random_piecewise_constant(std::initializer_list<Real> bl, UnaryOperation fw
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
 
-	return randomly_distributed_number<std::piecewise_constant_distribution<Real>>(bl, fw);
+	return detail::randomly_distributed_number<std::piecewise_constant_distribution<Real>>(bl, fw);
 }
 
 template<typename UnaryOperation, typename Real = double>
@@ -452,7 +452,7 @@ Real random_piecewise_constant(std::size_t nw, Real xmin, Real xmax, UnaryOperat
 	assert(xmin < xmax);
 	assert(0.0 < (xmax - xmin) / Real(nw ? nw : 1));
 
-	return randomly_distributed_number<dist_type>(nw, xmin, xmax, fw);
+	return detail::randomly_distributed_number<dist_type>(nw, xmin, xmax, fw);
 }
 
 // piecewise_linear_distribution
@@ -472,7 +472,7 @@ Real random_piecewise_linear(InputIteratorB first_b, InputIteratorB last_b, Inpu
 
 	using dist_type = std::piecewise_linear_distribution<Real>;
 
-	return randomly_distributed_number<dist_type>(first_b, last_b, first_w);
+	return detail::randomly_distributed_number<dist_type>(first_b, last_b, first_w);
 }
 
 template<typename UnaryOperation, typename Real = double>
@@ -487,7 +487,7 @@ Real random_piecewise_linear(std::initializer_list<Real> bl, UnaryOperation fw)
 
 	using dist_type = std::piecewise_linear_distribution<Real>;
 
-	return randomly_distributed_number<dist_type>(bl, fw);
+	return detail::randomly_distributed_number<dist_type>(bl, fw);
 }
 
 template<typename UnaryOperation, typename Real = double>
@@ -502,7 +502,7 @@ Real random_piecewise_linear(std::size_t nw, Real xmin, Real xmax, UnaryOperatio
 
 	using dist_type = std::piecewise_linear_distribution<Real>;
 
-	return randomly_distributed_number<dist_type>(nw, xmin, xmax, fw);
+	return detail::randomly_distributed_number<dist_type>(nw, xmin, xmax, fw);
 }
 
 // -------------------------
