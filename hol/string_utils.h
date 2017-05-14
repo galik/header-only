@@ -29,6 +29,7 @@
 #include <vector>
 #include <array>
 #include <locale>
+#include <numeric>
 #include <cstdlib> // std::strtol
 #include <codecvt>
 #include <cstring>
@@ -66,6 +67,8 @@ using string_span = gsl::string_span<>;
 //	return s;
 //}
 
+namespace detail {
+
 template<typename CharT>
 std::basic_string<CharT>& replace_all_mute(
 	std::basic_string<CharT>& s,
@@ -78,19 +81,123 @@ std::basic_string<CharT>& replace_all_mute(
 	return s;
 }
 
+template<typename CharT>
+std::basic_string<CharT>& lower_mute(std::basic_string<CharT>& s)
+{
+	std::transform(s.begin(), s.end(), s.begin()
+		, [&](auto c){ return std::tolower(c); });
+	return s;
+}
+
+template<typename CharT>
+std::basic_string<CharT>& upper_mute(std::basic_string<CharT>& s)
+{
+	std::transform(s.begin(), s.end(), s.begin()
+		, [&](auto c){ return std::toupper(c); });
+	return s;
+}
+
+// trim
+
+constexpr char const* ws(char) { return " \t\n\r\f\v\0"; }
+constexpr wchar_t const* ws(wchar_t) { return L" \t\n\r\f\v\0"; }
+constexpr char16_t const* ws(char16_t) { return u" \t\n\r\f\v\0"; }
+constexpr char32_t const* ws(char32_t) { return U" \t\n\r\f\v\0"; }
+
+template<typename CharT>
+std::basic_string<CharT>& trim_left_mute(std::basic_string<CharT>& s,
+	CharT const* ws = detail::ws(CharT()))
+{
+	s.erase(0, s.find_first_not_of(ws));
+	return s;
+}
+
+template<typename CharT>
+std::basic_string<CharT>& trim_right_mute(std::basic_string<CharT>& s,
+	CharT const* ws = detail::ws(CharT()))
+{
+	s.erase(s.find_last_not_of(ws) + 1);
+	return s;
+}
+
+template<typename CharT>
+std::basic_string<CharT>& trim_mute(std::basic_string<CharT>& s,
+	CharT const* ws = detail::ws(CharT()))
+{
+	return trim_left_mute(trim_right_mute(s, ws), ws);
+}
+
+// keep
+
+template<typename CharT>
+std::basic_string<CharT> trim_left_keep(std::basic_string<CharT>& s,
+	CharT const* ws = detail::ws(CharT()))
+{
+	typename std::basic_string<CharT>::size_type pos;
+	std::basic_string<CharT> keep = s.substr(0, (pos = s.find_first_not_of(ws)));
+	s.erase(0, pos);
+	return keep;
+}
+
+template<typename CharT>
+std::basic_string<CharT> trim_right_keep(std::basic_string<CharT>& s,
+	CharT const* ws = detail::ws(CharT()))
+{
+	typename std::basic_string<CharT>::size_type pos;
+	std::basic_string<CharT> keep = s.substr((pos = s.find_last_not_of(ws) + 1));
+	s.erase(pos);
+	return keep;
+}
+
+template<typename CharT>
+auto trim_keep(std::basic_string<CharT>& s,
+	CharT const* ws = detail::ws(CharT()))
+{
+	struct rv
+	{
+		std::basic_string<CharT> left;
+		std::basic_string<CharT> right;
+	};
+
+	return rv{trim_left_keep(s, ws), trim_right_keep(s, ws)};
+}
+
+} // namespace detail
+
+//--------------------------------------------------------------
+// replace_all_mute
+//
 inline
 std::string& replace_all_mute(std::string& s,
 	const std::string& from, const std::string& to)
 {
-	return replace_all_mute<char>(s, from, to);
+	return detail::replace_all_mute<char>(s, from, to);
 }
 
 inline
 std::wstring& replace_all_mute(std::wstring& s,
 	const std::wstring& from, const std::wstring& to)
 {
-	return replace_all_mute<wchar_t>(s, from, to);
+	return detail::replace_all_mute<wchar_t>(s, from, to);
 }
+
+inline
+std::u16string& replace_all_mute(std::u16string& s,
+	const std::u16string& from, const std::u16string& to)
+{
+	return detail::replace_all_mute<char16_t>(s, from, to);
+}
+
+inline
+std::u32string& replace_all_mute(std::u32string& s,
+	const std::u32string& from, const std::u32string& to)
+{
+	return detail::replace_all_mute<char32_t>(s, from, to);
+}
+
+//--------------------------------------------------------------
+// replace_all_copy
+//
 
 inline
 std::string replace_all_copy(std::string s,
@@ -106,23 +213,51 @@ std::wstring replace_all_copy(std::wstring s,
 	return replace_all_mute(s, from, to);
 }
 
-// upper and lower
+inline
+std::u16string replace_all_copy(std::u16string s,
+	const std::u16string& from, const std::u16string& to)
+{
+	return replace_all_mute(s, from, to);
+}
+
+inline
+std::u32string replace_all_copy(std::u32string s,
+	const std::u32string& from, const std::u32string& to)
+{
+	return replace_all_mute(s, from, to);
+}
+
+// -----------------------------------------------
+// lower_mute
+//
 
 inline
 std::string& lower_mute(std::string& s)
 {
-	std::transform(s.begin(), s.end(), s.begin()
-		, std::ptr_fun<int, int>(std::tolower));
-	return s;
+	return detail::lower_mute(s);
 }
 
 inline
-std::string& upper_mute(std::string& s)
+std::wstring& lower_mute(std::wstring& s)
 {
-	std::transform(s.begin(), s.end(), s.begin()
-		, std::ptr_fun<int, int>(std::toupper));
-	return s;
+	return detail::lower_mute(s);
 }
+
+inline
+std::u16string& lower_mute(std::u16string& s)
+{
+	return detail::lower_mute(s);
+}
+
+inline
+std::u32string& lower_mute(std::u32string& s)
+{
+	return detail::lower_mute(s);
+}
+
+// -----------------------------------------------
+// lower_copy
+//
 
 inline
 std::string lower_copy(std::string s)
@@ -131,17 +266,121 @@ std::string lower_copy(std::string s)
 }
 
 inline
+std::wstring lower_copy(std::wstring s)
+{
+	return lower_mute(s);
+}
+
+inline
+std::u16string lower_copy(std::u16string s)
+{
+	return lower_copy(s);
+}
+
+inline
+std::u32string lower_copy(std::u32string s)
+{
+	return lower_copy(s);
+}
+
+// -----------------------------------------------
+// upper_mute
+//
+
+inline
+std::string& upper_mute(std::string& s)
+{
+	return detail::upper_mute(s);
+}
+
+inline
+std::wstring& upper_mute(std::wstring& s)
+{
+	return detail::upper_mute(s);
+}
+
+inline
+std::u16string& upper_mute(std::u16string& s)
+{
+	return detail::upper_mute(s);
+}
+
+inline
+std::u32string& upper_mute(std::u32string& s)
+{
+	return detail::upper_mute(s);
+}
+
+// -----------------------------------------------
+// upper_copy
+//
+
+inline
 std::string upper_copy(std::string s)
 {
 	return upper_mute(s);
 }
 
+inline
+std::wstring upper_copy(std::wstring s)
+{
+	return upper_mute(s);
+}
+
+inline
+std::u16string upper_copy(std::u16string s)
+{
+	return upper_mute(s);
+}
+
+inline
+std::u32string upper_copy(std::u32string s)
+{
+	return upper_mute(s);
+}
+
 namespace detail {
+
 constexpr char const* empty(char) { return ""; }
 constexpr wchar_t const* empty(wchar_t) { return L""; }
+constexpr char16_t const* empty(char16_t) { return u""; }
+constexpr char32_t const* empty(char32_t) { return U""; }
+
 constexpr char const* space(char) { return " "; }
 constexpr wchar_t const* space(wchar_t) { return L" "; }
+constexpr char16_t const* space(char16_t) { return u" "; }
+constexpr char32_t const* space(char32_t) { return U" "; }
+
 } // detail
+
+template<class CharT, template<class> class String, template<class> class Container>
+String<CharT> join(Container<String<CharT>> const& c, String<CharT> const& delim)
+{
+	String<CharT> ret, sep;
+
+	auto size = std::accumulate(std::begin(c), std::end(c), 0U, [](auto n, auto const& s)
+	{
+		return n + s.size();
+	}) + ((c.size() - 1) * delim.size());
+
+	ret.reserve(size);
+
+	for(auto const& s: c)
+		{ ret += sep + s; sep = delim; }
+	return ret;
+}
+
+template<class CharT, template<class> class String, template<class> class Container>
+String<CharT> join(Container<String<CharT>> const& c, CharT const* delim)
+{
+	return join(c, String<CharT>(delim));
+}
+
+template<class CharT, template<class> class String, template<class> class Container>
+String<CharT> join(Container<String<CharT>> const& c)
+{
+	return join(c, String<CharT>(detail::space(CharT())));
+}
 
 /**
  * Usage:
@@ -289,7 +528,9 @@ using woutput_separator = basic_output_separator<wchar_t>;
 
 // trimming functions
 
-constexpr const char ws[] = " \t\n\r\f\v\0";
+//--------------------------------------------------------------------
+// trim_mute
+//
 
 /**
  * Remove leading characters from a str.
@@ -299,10 +540,27 @@ constexpr const char ws[] = " \t\n\r\f\v\0";
  * @return The same string passed in as a parameter reference.
  */
 inline
-std::string& trim_left_mute(std::string& s, const char* t = ws)
+std::string& trim_left_mute(std::string& s, char const* ws = detail::ws(char()))
 {
-	s.erase(0, s.find_first_not_of(t));
-	return s;
+	return detail::trim_left_mute(s, ws);
+}
+
+inline
+std::wstring& trim_left_mute(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+{
+	return detail::trim_left_mute(s, ws);
+}
+
+inline
+std::u16string& trim_left_mute(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+{
+	return detail::trim_left_mute(s, ws);
+}
+
+inline
+std::u32string& trim_left_mute(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
+{
+	return detail::trim_left_mute(s, ws);
 }
 
 /**
@@ -313,10 +571,27 @@ std::string& trim_left_mute(std::string& s, const char* t = ws)
  * @return The same string passed in as a parameter reference.
  */
 inline
-std::string& trim_right_mute(std::string& s, const char* t = ws)
+std::string& trim_right_mute(std::string& s, char const* ws = detail::ws(char()))
 {
-	s.erase(s.find_last_not_of(t) + 1);
-	return s;
+	return detail::trim_right_mute(s, ws);
+}
+
+inline
+std::wstring& trim_right_mute(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+{
+	return detail::trim_right_mute(s, ws);
+}
+
+inline
+std::u16string& trim_right_mute(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+{
+	return detail::trim_right_mute(s, ws);
+}
+
+inline
+std::u32string& trim_right_mute(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
+{
+	return detail::trim_right_mute(s, ws);
 }
 
 /**
@@ -327,176 +602,179 @@ std::string& trim_right_mute(std::string& s, const char* t = ws)
  * @return The same string passed in as a parameter reference.
  */
 inline
-std::string& trim_mute(std::string& s, const char* t = ws)
+std::string& trim_mute(std::string& s, char const* ws = detail::ws(char()))
 {
-	return trim_left_mute(trim_right_mute(s, t), t);
-}
-
-// MOVE SEMANTICS
-
-/**
- * Remove leading characters from a str.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the beginning
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline
-std::string trim_left_mute(std::string&& s, const char* t = ws)
-{
-	return trim_left_mute(s, t);
-}
-
-/**
- * Remove trailing characters from a str.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the end
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline
-std::string trim_right_mute(std::string&& s, const char* t = ws)
-{
-	return trim_right_mute(s, t);
-}
-
-/**
- * Remove surrounding characters from a str.
- * @param s The string to be modified.
- * @param t The set of characters to delete from each end
- * of the string.
- * @return The same string passed in as a parameter reference.
- */
-inline
-std::string trim_mute(std::string&& s, const char* t = ws)
-{
-	return trim_left_mute(trim_right_mute(s, t), t);
+	return detail::trim_mute(s, ws);
 }
 
 inline
-std::string trim_left_copy(std::string s, const char* t = ws)
+std::wstring& trim_mute(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
 {
-	return trim_left_mute(s, t);
+	return detail::trim_mute(s, ws);
 }
 
 inline
-std::string trim_right_copy(std::string s, const char* t = ws)
+std::u16string& trim_mute(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
 {
-	return trim_right_mute(s, t);
+	return detail::trim_mute(s, ws);
 }
 
 inline
-std::string trim_copy(std::string s, const char* t = ws)
+std::u32string& trim_mute(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
 {
-	return trim_mute(s, t);
+	return detail::trim_mute(s, ws);
 }
 
-// keep
+//--------------------------------------------------------------------
+// trim_copy
+//
 
 inline
-std::string trim_left_keep(std::string& s, const char* t = ws)
+std::string trim_left_copy(std::string s, char const* ws = detail::ws(char()))
 {
-	std::string::size_type pos;
-	std::string keep = s.substr(0, (pos = s.find_first_not_of(t)));
-	s.erase(0, pos);
-	return keep;
-}
-
-inline
-std::string trim_right_keep(std::string& s, const char* t = ws)
-{
-	std::string::size_type pos;
-	std::string keep = s.substr((pos = s.find_last_not_of(t) + 1));
-	s.erase(pos);
-	return keep;
+	return trim_left_mute(s, ws);
 }
 
 inline
-auto trim_keep(std::string& s, const char* t = ws)
+std::wstring trim_left_copy(std::wstring s, wchar_t const* ws = detail::ws(wchar_t()))
 {
-	struct rv
-	{
-		std::string left;
-		std::string right;
-	};
-
-	return rv{trim_left_keep(s, t), trim_right_keep(s, t)};
-}
-
-#ifdef HOL_USE_STRING_VIEW
-//views
-inline
-string_view trim_left_view(string_view s, const char* t = ws)
-{
-	if(auto pos = s.find_first_not_of(t) + 1)
-	{
-		s.remove_prefix(pos - 1);
-		return {s.data(), s.size()};
-	}
-	return {};
+	return trim_left_mute(s, ws);
 }
 
 inline
-string_view trim_right_view(string_view s, const char* t = ws)
+std::u16string trim_left_copy(std::u16string s, char16_t const* ws = detail::ws(char16_t()))
 {
-	if(auto pos = s.find_last_not_of(t) + 1)
-		s.remove_suffix(s.size() - pos);
-	return {s.data(), s.size()};
+	return trim_left_mute(s, ws);
 }
 
 inline
-string_view trim_view(string_view s, const char* t = ws)
+std::u32string trim_left_copy(std::u32string s, char32_t const* ws = detail::ws(char32_t()))
 {
-	return trim_left_view(trim_right_view(s, t), t);
+	return trim_left_mute(s, ws);
 }
 
-#endif
-
-inline std::string& trim_left_mute(std::string& s, char c)
+inline
+std::string trim_right_copy(std::string s, char const* ws = detail::ws(char()))
 {
-	s.erase(0, s.find_first_not_of(c));
-	return s;
+	return trim_right_mute(s, ws);
 }
 
-inline std::string& trim_right_mute(std::string& s, char c)
+inline
+std::wstring trim_right_copy(std::wstring s, wchar_t const* ws = detail::ws(wchar_t()))
 {
-	s.erase(s.find_last_not_of(c) + 1);
-	return s;
+	return trim_right_mute(s, ws);
 }
 
-inline std::string& trim_mute(std::string& s, char c)
+inline
+std::u16string trim_right_copy(std::u16string s, char16_t const* ws = detail::ws(char16_t()))
 {
-	return trim_left_mute(trim_right_mute(s, c), c);
+	return trim_right_mute(s, ws);
 }
 
-inline std::string& trim_left_mute(std::string&& s, char c)
+inline
+std::u32string trim_right_copy(std::u32string s, char32_t const* ws = detail::ws(char32_t()))
 {
-	return trim_left_mute(s, c);
+	return trim_right_mute(s, ws);
 }
 
-inline std::string& trim_right_mute(std::string&& s, char c)
+inline
+std::string trim_copy(std::string s, char const* ws = detail::ws(char()))
 {
-	return trim_right_mute(s, c);
+	return trim_mute(s, ws);
 }
 
-inline std::string& trim_mute(std::string&& s, char c)
+inline
+std::wstring trim_copy(std::wstring s, wchar_t const* ws = detail::ws(wchar_t()))
 {
-	return trim_left_mute(trim_right_mute(s, c), c);
+	return trim_mute(s, ws);
 }
 
-inline std::string trim_right_copy(std::string s, char c)
+inline
+std::u16string trim_copy(std::u16string s, char16_t const* ws = detail::ws(char16_t()))
 {
-	return trim_right_mute(s, c);
+	return trim_mute(s, ws);
 }
 
-inline std::string trim_left_copy(std::string s, char c)
+inline
+std::u32string trim_copy(std::u32string s, char32_t const* ws = detail::ws(char32_t()))
 {
-	return trim_left_mute(s, c);
+	return trim_mute(s, ws);
 }
 
-inline std::string trim_copy(std::string s, char c)
+//--------------------------------------------------------------------
+// trim_keep
+//
+
+inline
+std::string trim_left_keep(std::string& s, char const* ws = detail::ws(char()))
 {
-	return trim_mute(s, c);
+	return detail::trim_left_keep(s, ws);
+}
+
+inline
+std::wstring trim_left_keep(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+{
+	return detail::trim_left_keep(s, ws);
+}
+
+inline
+std::u16string trim_left_keep(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+{
+	return detail::trim_left_keep(s, ws);
+}
+
+inline
+std::u32string trim_left_keep(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
+{
+	return detail::trim_left_keep(s, ws);
+}
+
+inline
+std::string trim_right_keep(std::string& s, char const* ws = detail::ws(char()))
+{
+	return detail::trim_right_keep(s, ws);
+}
+
+inline
+std::wstring trim_right_keep(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+{
+	return detail::trim_right_keep(s, ws);
+}
+
+inline
+std::u16string trim_right_keep(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+{
+	return detail::trim_right_keep(s, ws);
+}
+
+inline
+std::u32string trim_right_keep(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
+{
+	return detail::trim_right_keep(s, ws);
+}
+
+inline
+auto trim_keep(std::string& s, char const* ws = detail::ws(char()))
+{
+	return detail::trim_keep(s, ws);
+}
+
+inline
+auto trim_keep(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+{
+	return detail::trim_keep(s, ws);
+}
+
+inline
+auto trim_keep(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+{
+	return detail::trim_keep(s, ws);
+}
+
+inline
+auto trim_keep(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
+{
+	return detail::trim_keep(s, ws);
 }
 
 // GSL_STRING_SPAN
@@ -504,7 +782,7 @@ inline std::string trim_copy(std::string s, char c)
 #ifdef HOL_USE_STRING_SPAN
 namespace gsl_detail {
 namespace {
-gsl::cstring_span<> ws{::header_only_library::string_utils::ws};
+gsl::cstring_span<> ws{" \t\n\r\f\v\0"};//(::header_only_library::string_utils::detail::ws(char()));
 }
 
 inline
@@ -838,6 +1116,64 @@ std::string join(const Container& c, std::string const& delim = " ")
 	return ret;
 }
 
+//template<typename CharT, template<typename> class Container>
+//std::basic_string<CharT> join(
+//	const Container<std::basic_string<CharT>>& c,
+//	std::basic_string<CharT> const& delim = detail::space(CharT()))
+//{
+//	std::basic_string<CharT> ret, sep;
+//
+//	auto z = std::accumulate(std::begin(c), std::end(c), 0U, [](auto n, auto const& s)
+//	{
+//		return n + s.size();
+//	}) + ((c.size() - 1) * delim.size());
+//
+//	ret.reserve(z);
+//
+//	for(auto const& s: c)
+//		{ ret += sep + s; sep = delim; }
+//	return ret;
+//}
+//
+//template<typename CharT, template<typename> class Container>
+//std::basic_string<CharT> join(
+//	const Container<std::basic_string<CharT>>& c,
+//	CharT const* delim = detail::space(CharT()))
+//{
+//	return join(c, std::basic_string<CharT>(delim));
+//}
+
+//template<typename CharT, typename Traits, typename Alloc,
+//	template<class,class,class> class String,
+//	template<template<class,class,class> class> class Container>
+//String<CharT, Traits, Alloc> join(
+//	Container<String> const& c,
+//	String<CharT, Traits, Alloc> const& delim = header_only_library::string_utils::detail::space(CharT()))
+//{
+//	std::basic_string<CharT> ret, sep;
+//
+//	auto z = std::accumulate(std::begin(c), std::end(c), std::size_t(0), [](auto n, auto const& s)
+//	{
+//		return n + s.size();
+//	}) + ((c.size() - 1) * delim.size());
+//
+//	ret.reserve(z);
+//
+//	for(auto const& s: c)
+//		{ ret += sep + s; sep = delim; }
+//	return ret;
+//}
+//
+//template<typename CharT, typename Traits, typename Alloc,
+//	template<class,class,class> class String,
+//	template<template<class,class,class> class> class Container>
+//String<CharT, Traits, Alloc> join(
+//	Container<String> const& c,
+//	CharT const* delim = header_only_library::string_utils::detail::space(CharT()))
+//{
+//	return join(c, std::basic_string<CharT>(delim));
+//}
+
 // --------------------------------------------------------------------
 // string conversions
 // --------------------------------------------------------------------
@@ -969,16 +1305,6 @@ std::basic_string<CharT> load_file(std::string const& filepath)
 	if(!ifs.read(&s[0], s.size()))
 		throw std::runtime_error(filepath + ": " + std::strerror(errno));
 
-//	std::basic_string<CharT, Alloc> v;
-//	v.reserve(end - ifs.tellg());
-//
-//	CharT buf[N];
-//	for(; ifs.read(buf, N);)
-//		v.insert(v.end(), buf,  buf + ifs.gcount());
-//
-//	if(ifs.gcount())
-//		v.insert(v.end(), buf,  buf + ifs.gcount());
-
 	return s;
 }
 
@@ -987,16 +1313,6 @@ std::basic_string<CharT> load_file(std::string const& filepath)
 {
 	return load_file<2048, CharT>(filepath);
 }
-
-//std::string to_utf8(std::wstring w)
-//{
-//    return std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(w);
-//}
-//
-//std::wstring from_utf8(std::string s)
-//{
-//    return std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().from_bytes(s);
-//}
 
 /**
  * Self-erasing buffer
@@ -1117,27 +1433,27 @@ public:
 	}
 };
 
-namespace utf8 {
-
-inline std::string from_ws(std::wstring const& s)
-{
-	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
-	std::string utf8 = cnv.to_bytes(s);
-	if(cnv.converted() < s.size())
-		throw std::runtime_error("incomplete conversion");
-	return utf8;
-}
-
-inline std::wstring to_ws(std::string const& utf8)
-{
-	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
-	std::wstring s = cnv.from_bytes(utf8);
-	if(cnv.converted() < utf8.size())
-		throw std::runtime_error("incomplete conversion");
-	return s;
-}
-
-} // namespace utf8
+//namespace utf8 {
+//
+//inline std::string from_ws(std::wstring const& s)
+//{
+//	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
+//	std::string utf8 = cnv.to_bytes(s);
+//	if(cnv.converted() < s.size())
+//		throw std::runtime_error("incomplete conversion");
+//	return utf8;
+//}
+//
+//inline std::wstring to_ws(std::string const& utf8)
+//{
+//	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cnv;
+//	std::wstring s = cnv.from_bytes(utf8);
+//	if(cnv.converted() < utf8.size())
+//		throw std::runtime_error("incomplete conversion");
+//	return s;
+//}
+//
+//} // namespace utf8
 } // string_utils
 } // header_only_library
 
