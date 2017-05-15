@@ -33,7 +33,7 @@
 #include <algorithm>
 
 #include "test.h"
-#include <hol/random_utils.h>
+#include "hol/random_numbers.h"
 #include <hol/basic_serialization.h>
 
 TEST_CASE("Basic Serialization [txt]", "[basic types]")
