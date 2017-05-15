@@ -30,11 +30,11 @@
 #include <algorithm>
 
 #include <hol/bug.h>
-#include <hol/random_utils.h>
+#include "hol/random_numbers.h"
 #include <hol/string_span_utils.h>
 
 namespace hol {
-	using namespace header_only_library::random_utils::mersenne_twister_32;
+	using namespace header_only_library::random_numbers;
 	using namespace header_only_library::string_span_utils;
 }
 
