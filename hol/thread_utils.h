@@ -30,7 +30,7 @@
 #include <thread>
 #include <vector>
 
-#include "bug.h"
+//#include "bug.h"
 
 #undef HOL_WARN_UNUSED_RESULT
 #if __has_cpp_attribute(nodiscard)
@@ -475,12 +475,11 @@ private:
 //	std::queue<std::function<void()>> jobs;
 //};
 
+// TODO: Add copy/move semantics
 class thread_pool
 {
 public:
-	thread_pool()
-	{
-	}
+	thread_pool() = default;
 
 	~thread_pool() { stop(); }
 
@@ -492,7 +491,8 @@ public:
 
 		{
 			std::unique_lock<std::mutex> lock(mtx);
-			jobs.push([=]{ func(std::forward<Params>(params)...); });
+//			jobs.push([=]{ func(std::forward<Params>(params)...); });
+			jobs.push([func, &params...]{ func(std::forward<Params>(params)...); });
 		}
 
 		cv.notify_all();
@@ -517,6 +517,9 @@ public:
 		actual_start(size);
 	}
 
+	//! Prevent new jobs
+	//! Wait for jobs to complete
+	//! remove threads
 	void stop()
 	{
 		bool expected = false;
