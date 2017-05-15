@@ -104,63 +104,40 @@ constexpr wchar_t const* ws(wchar_t) { return L" \t\n\r\f\v\0"; }
 constexpr char16_t const* ws(char16_t) { return u" \t\n\r\f\v\0"; }
 constexpr char32_t const* ws(char32_t) { return U" \t\n\r\f\v\0"; }
 
-template<typename CharT>
-std::basic_string<CharT>& trim_left_mute(std::basic_string<CharT>& s,
-	CharT const* ws = detail::ws(CharT()))
-{
-	s.erase(0, s.find_first_not_of(ws));
-	return s;
-}
-
-template<typename CharT>
-std::basic_string<CharT>& trim_right_mute(std::basic_string<CharT>& s,
-	CharT const* ws = detail::ws(CharT()))
-{
-	s.erase(s.find_last_not_of(ws) + 1);
-	return s;
-}
-
-template<typename CharT>
-std::basic_string<CharT>& trim_mute(std::basic_string<CharT>& s,
-	CharT const* ws = detail::ws(CharT()))
-{
-	return trim_left_mute(trim_right_mute(s, ws), ws);
-}
-
 // keep
 
-template<typename CharT>
-std::basic_string<CharT> trim_left_keep(std::basic_string<CharT>& s,
-	CharT const* ws = detail::ws(CharT()))
-{
-	typename std::basic_string<CharT>::size_type pos;
-	std::basic_string<CharT> keep = s.substr(0, (pos = s.find_first_not_of(ws)));
-	s.erase(0, pos);
-	return keep;
-}
-
-template<typename CharT>
-std::basic_string<CharT> trim_right_keep(std::basic_string<CharT>& s,
-	CharT const* ws = detail::ws(CharT()))
-{
-	typename std::basic_string<CharT>::size_type pos;
-	std::basic_string<CharT> keep = s.substr((pos = s.find_last_not_of(ws) + 1));
-	s.erase(pos);
-	return keep;
-}
-
-template<typename CharT>
-auto trim_keep(std::basic_string<CharT>& s,
-	CharT const* ws = detail::ws(CharT()))
-{
-	struct rv
-	{
-		std::basic_string<CharT> left;
-		std::basic_string<CharT> right;
-	};
-
-	return rv{trim_left_keep(s, ws), trim_right_keep(s, ws)};
-}
+//template<typename CharT>
+//std::basic_string<CharT> trim_left_keep(std::basic_string<CharT>& s,
+//	CharT const* ws = detail::ws(CharT()))
+//{
+//	typename std::basic_string<CharT>::size_type pos;
+//	std::basic_string<CharT> keep = s.substr(0, (pos = s.find_first_not_of(ws)));
+//	s.erase(0, pos);
+//	return keep;
+//}
+//
+//template<typename CharT>
+//std::basic_string<CharT> trim_right_keep(std::basic_string<CharT>& s,
+//	CharT const* ws = detail::ws(CharT()))
+//{
+//	typename std::basic_string<CharT>::size_type pos;
+//	std::basic_string<CharT> keep = s.substr((pos = s.find_last_not_of(ws) + 1));
+//	s.erase(pos);
+//	return keep;
+//}
+//
+//template<typename CharT>
+//auto trim_keep(std::basic_string<CharT>& s,
+//	CharT const* ws = detail::ws(CharT()))
+//{
+//	struct rv
+//	{
+//		std::basic_string<CharT> left;
+//		std::basic_string<CharT> right;
+//	};
+//
+//	return rv{trim_left_keep(s, ws), trim_right_keep(s, ws)};
+//}
 
 } // namespace detail
 
@@ -353,35 +330,6 @@ constexpr char32_t const* space(char32_t) { return U" "; }
 
 } // detail
 
-template<class CharT, template<class> class String, template<class> class Container>
-String<CharT> join(Container<String<CharT>> const& c, String<CharT> const& delim)
-{
-	String<CharT> ret, sep;
-
-	auto size = std::accumulate(std::begin(c), std::end(c), 0U, [](auto n, auto const& s)
-	{
-		return n + s.size();
-	}) + ((c.size() - 1) * delim.size());
-
-	ret.reserve(size);
-
-	for(auto const& s: c)
-		{ ret += sep + s; sep = delim; }
-	return ret;
-}
-
-template<class CharT, template<class> class String, template<class> class Container>
-String<CharT> join(Container<String<CharT>> const& c, CharT const* delim)
-{
-	return join(c, String<CharT>(delim));
-}
-
-template<class CharT, template<class> class String, template<class> class Container>
-String<CharT> join(Container<String<CharT>> const& c)
-{
-	return join(c, String<CharT>(detail::space(CharT())));
-}
-
 /**
  * Usage:
  *
@@ -525,256 +473,261 @@ public:
 
 using output_separator = basic_output_separator<char>;
 using woutput_separator = basic_output_separator<wchar_t>;
+using u16output_separator = basic_output_separator<char16_t>;
+using u32output_separator = basic_output_separator<char32_t>;
 
 // trimming functions
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------
 // trim_mute
 //
 
 /**
- * Remove leading characters from a str.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the beginning
- * of the string.
- * @return The same string passed in as a parameter reference.
+ * Remove leading characters from a String.
+ * @param s The String to be trimmed.
+ * @param ws The set of characters to remove from the beginning
+ * of the String.
+ * @return The same String passed in as a parameter.
  */
-inline
-std::string& trim_left_mute(std::string& s, char const* ws = detail::ws(char()))
+template<typename String>
+String& trim_left_mute(String& s, typename String::value_type const* ws)
 {
-	return detail::trim_left_mute(s, ws);
+	s.erase(0, s.find_first_not_of(ws));
+	return s;
 }
 
-inline
-std::wstring& trim_left_mute(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+template<typename String>
+String& trim_left_mute(String& s, String const& ws)
 {
-	return detail::trim_left_mute(s, ws);
+	return trim_left_mute(s, ws.c_str());
 }
 
-inline
-std::u16string& trim_left_mute(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+template<typename String>
+String& trim_left_mute(String& s)
 {
-	return detail::trim_left_mute(s, ws);
-}
-
-inline
-std::u32string& trim_left_mute(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
-{
-	return detail::trim_left_mute(s, ws);
+	return trim_left_mute(s, detail::ws(typename String::value_type()));
 }
 
 /**
- * Remove trailing characters from a str.
- * @param s The std::string to be modified.
- * @param t The set of characters to delete from the end
- * of the string.
- * @return The same string passed in as a parameter reference.
+ * Remove trailing characters from a String.
+ * @param s The String to be trimmed.
+ * @param ws The set of characters to remove from the end
+ * of the String.
+ * @return The same String passed in as a parameter.
  */
-inline
-std::string& trim_right_mute(std::string& s, char const* ws = detail::ws(char()))
+template<typename String>
+String& trim_right_mute(String& s, typename String::value_type const* ws)
 {
-	return detail::trim_right_mute(s, ws);
+	s.erase(s.find_last_not_of(ws) + 1);
+	return s;
 }
 
-inline
-std::wstring& trim_right_mute(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+template<typename String>
+String& trim_right_mute(String& s, String const& ws)
 {
-	return detail::trim_right_mute(s, ws);
+	return trim_right_mute(s, ws.c_str());
 }
 
-inline
-std::u16string& trim_right_mute(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+template<typename String>
+String& trim_right_mute(String& s)
 {
-	return detail::trim_right_mute(s, ws);
-}
-
-inline
-std::u32string& trim_right_mute(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
-{
-	return detail::trim_right_mute(s, ws);
+	return trim_right_mute(s, detail::ws(typename String::value_type()));
 }
 
 /**
- * Remove surrounding characters from a str.
- * @param s The string to be modified.
- * @param t The set of characters to delete from each end
- * of the string.
- * @return The same string passed in as a parameter reference.
+ * Remove surrounding characters from a String.
+ * @param s The String to be trimmed.
+ * @param ws The set of characters to remove from each end
+ * of the String.
+ * @return The same String passed in as a parameter.
  */
-inline
-std::string& trim_mute(std::string& s, char const* ws = detail::ws(char()))
+template<typename String>
+String& trim_mute(String& s, typename String::value_type const* ws)
 {
-	return detail::trim_mute(s, ws);
+	return trim_left_mute(trim_right_mute(s, ws), ws);
 }
 
-inline
-std::wstring& trim_mute(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+template<typename String>
+String& trim_mute(String& s, String const& ws)
 {
-	return detail::trim_mute(s, ws);
+	return trim_mute(s, ws.c_str());
 }
 
-inline
-std::u16string& trim_mute(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+template<typename String>
+String& trim_mute(String& s)
 {
-	return detail::trim_mute(s, ws);
+	return trim_mute(s, detail::ws(typename String::value_type()));
 }
 
-inline
-std::u32string& trim_mute(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
-{
-	return detail::trim_mute(s, ws);
-}
-
-//--------------------------------------------------------------------
+//---------------------------------------------------------
 // trim_copy
 //
 
-inline
-std::string trim_left_copy(std::string s, char const* ws = detail::ws(char()))
+/**
+ * Obtain a copy of a string with leading characters removed.
+ * @param s The std::string to be trimmed.
+ * @param t The set of characters to remove from the beginning
+ * of the String.
+ * @return A copy of the string passed in as a parameter.
+ */
+template<typename String>
+String trim_left_copy(String s, typename String::value_type const* ws)
 {
 	return trim_left_mute(s, ws);
 }
 
-inline
-std::wstring trim_left_copy(std::wstring s, wchar_t const* ws = detail::ws(wchar_t()))
+template<typename String>
+String trim_left_copy(String s, String const& ws)
 {
 	return trim_left_mute(s, ws);
 }
 
-inline
-std::u16string trim_left_copy(std::u16string s, char16_t const* ws = detail::ws(char16_t()))
+template<typename String>
+String& trim_left_copy(String s)
 {
-	return trim_left_mute(s, ws);
+	return trim_left_mute(s, detail::ws(typename String::value_type()));
 }
 
-inline
-std::u32string trim_left_copy(std::u32string s, char32_t const* ws = detail::ws(char32_t()))
-{
-	return trim_left_mute(s, ws);
-}
-
-inline
-std::string trim_right_copy(std::string s, char const* ws = detail::ws(char()))
-{
-	return trim_right_mute(s, ws);
-}
-
-inline
-std::wstring trim_right_copy(std::wstring s, wchar_t const* ws = detail::ws(wchar_t()))
+/**
+ * Obtain a copy of a string with trailing characters removed.
+ * @param s The std::string to be trimmed.
+ * @param t The set of characters to remove from the end
+ * of the String.
+ * @return A copy of the string passed in as a parameter.
+ */
+template<typename String>
+String trim_right_copy(String s, typename String::value_type const* ws)
 {
 	return trim_right_mute(s, ws);
 }
 
-inline
-std::u16string trim_right_copy(std::u16string s, char16_t const* ws = detail::ws(char16_t()))
+template<typename String>
+String trim_right_copy(String s, String const& ws)
 {
 	return trim_right_mute(s, ws);
 }
 
-inline
-std::u32string trim_right_copy(std::u32string s, char32_t const* ws = detail::ws(char32_t()))
+template<typename String>
+String trim_right_copy(String s)
 {
-	return trim_right_mute(s, ws);
+	return trim_right_mute(s, detail::ws(typename String::value_type()));
 }
 
-inline
-std::string trim_copy(std::string s, char const* ws = detail::ws(char()))
-{
-	return trim_mute(s, ws);
-}
-
-inline
-std::wstring trim_copy(std::wstring s, wchar_t const* ws = detail::ws(wchar_t()))
-{
-	return trim_mute(s, ws);
-}
-
-inline
-std::u16string trim_copy(std::u16string s, char16_t const* ws = detail::ws(char16_t()))
+/**
+ * Obtain a copy of a String with surrounding characters removed.
+ * @param s The String to be trimmed.
+ * @param t The set of characters to remove from each end
+ * of the Sring.
+ * @return A copy of the String passed in as a parameter.
+ */
+template<typename String>
+String trim_copy(String s, typename String::value_type const* ws)
 {
 	return trim_mute(s, ws);
 }
 
-inline
-std::u32string trim_copy(std::u32string s, char32_t const* ws = detail::ws(char32_t()))
+template<typename String>
+String trim_copy(String s, String const& ws)
 {
 	return trim_mute(s, ws);
 }
 
-//--------------------------------------------------------------------
+template<typename String>
+String trim_copy(String s)
+{
+	return trim_mute(s, detail::ws(typename String::value_type()));
+}
+
+//---------------------------------------------------------
 // trim_keep
 //
 
-inline
-std::string trim_left_keep(std::string& s, char const* ws = detail::ws(char()))
+/**
+ * Remove (and keep) leading characters from a String.
+ * @param s The String to be trimmed.
+ * @param ws The set of characters to remove from the beginning
+ * of the String.
+ * @return The String of characters that were removed.
+ */
+template<typename String>
+String trim_left_keep(String s, typename String::value_type const* ws)
 {
-	return detail::trim_left_keep(s, ws);
+	typename String::size_type pos;
+	String keep = s.substr(0, (pos = s.find_first_not_of(ws)));
+	s.erase(0, pos);
+	return keep;
 }
 
-inline
-std::wstring trim_left_keep(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+template<typename String>
+String trim_left_keep(String s, String const& ws)
 {
-	return detail::trim_left_keep(s, ws);
+	return trim_left_keep(s, ws.c_str());
 }
 
-inline
-std::u16string trim_left_keep(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+template<typename String>
+String trim_left_keep(String s)
 {
-	return detail::trim_left_keep(s, ws);
+	return trim_left_keep(s, detail::ws(typename String::value_type()));
 }
 
-inline
-std::u32string trim_left_keep(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
+/**
+ * Remove (and keep) trailing characters from a String.
+ * @param s The String to be trimmed.
+ * @param ws The set of characters to remove from the end
+ * of the String.
+ * @return The String of characters that were removed.
+ */
+template<typename String>
+String trim_right_keep(String s, typename String::value_type const* ws)
 {
-	return detail::trim_left_keep(s, ws);
+	typename String::size_type pos;
+	String keep = s.substr((pos = s.find_last_not_of(ws) + 1));
+	s.erase(pos);
+	return keep;
 }
 
-inline
-std::string trim_right_keep(std::string& s, char const* ws = detail::ws(char()))
+template<typename String>
+String trim_right_keep(String s, String const& ws)
 {
-	return detail::trim_right_keep(s, ws);
+	return trim_right_keep(s, ws.c_str());
 }
 
-inline
-std::wstring trim_right_keep(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
+template<typename String>
+String trim_right_keep(String s)
 {
-	return detail::trim_right_keep(s, ws);
+	return trim_right_keep(s, detail::ws(typename String::value_type()));
 }
 
-inline
-std::u16string trim_right_keep(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
+/**
+ * Remove (and keep) leading and trailing characters from a String.
+ * @param s The String to be trimmed.
+ * @param ws The set of characters to remove from each end
+ * of the String.
+ * @return A structure of the form `struct { String left; String right; };`
+ * containing each String of characters that was removed.
+ */
+template<typename String>
+auto trim_keep(String s, typename String::value_type const* ws)
 {
-	return detail::trim_right_keep(s, ws);
+	struct rv
+	{
+		String left;
+		String right;
+	};
+
+	return rv{trim_left_keep(s, ws), trim_right_keep(s, ws)};
 }
 
-inline
-std::u32string trim_right_keep(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
+template<typename String>
+auto trim_keep(String s, String const& ws)
 {
-	return detail::trim_right_keep(s, ws);
+	return trim_keep(s, ws.c_str());
 }
 
-inline
-auto trim_keep(std::string& s, char const* ws = detail::ws(char()))
+template<typename String>
+auto trim_keep(String s)
 {
-	return detail::trim_keep(s, ws);
-}
-
-inline
-auto trim_keep(std::wstring& s, wchar_t const* ws = detail::ws(wchar_t()))
-{
-	return detail::trim_keep(s, ws);
-}
-
-inline
-auto trim_keep(std::u16string& s, char16_t const* ws = detail::ws(char16_t()))
-{
-	return detail::trim_keep(s, ws);
-}
-
-inline
-auto trim_keep(std::u32string& s, char32_t const* ws = detail::ws(char32_t()))
-{
-	return detail::trim_keep(s, ws);
+	return trim_keep(s, detail::ws(typename String::value_type()));
 }
 
 // GSL_STRING_SPAN
@@ -1107,72 +1060,43 @@ std::vector<std::wstring> split_copy_from(
 
 // JOIN
 
-template<typename Container>
-std::string join(const Container& c, std::string const& delim = " ")
+//template<typename Container>
+//std::string join(const Container& c, std::string const& delim = " ")
+//{
+//	std::string ret, sep;
+//	for(auto const& s: c)
+//		{ ret += sep + s; sep = delim; }
+//	return ret;
+//}
+
+template<class CharT, template<class> class String, template<class> class Container>
+String<CharT> join(Container<String<CharT>> const& c, String<CharT> const& delim)
 {
-	std::string ret, sep;
+	String<CharT> ret, sep;
+
+	auto size = std::accumulate(std::begin(c), std::end(c), std::size_t(0), [](auto n, auto const& s)
+	{
+		return n + s.size();
+	}) + ((c.size() - 1) * delim.size());
+
+	ret.reserve(size);
+
 	for(auto const& s: c)
 		{ ret += sep + s; sep = delim; }
 	return ret;
 }
 
-//template<typename CharT, template<typename> class Container>
-//std::basic_string<CharT> join(
-//	const Container<std::basic_string<CharT>>& c,
-//	std::basic_string<CharT> const& delim = detail::space(CharT()))
-//{
-//	std::basic_string<CharT> ret, sep;
-//
-//	auto z = std::accumulate(std::begin(c), std::end(c), 0U, [](auto n, auto const& s)
-//	{
-//		return n + s.size();
-//	}) + ((c.size() - 1) * delim.size());
-//
-//	ret.reserve(z);
-//
-//	for(auto const& s: c)
-//		{ ret += sep + s; sep = delim; }
-//	return ret;
-//}
-//
-//template<typename CharT, template<typename> class Container>
-//std::basic_string<CharT> join(
-//	const Container<std::basic_string<CharT>>& c,
-//	CharT const* delim = detail::space(CharT()))
-//{
-//	return join(c, std::basic_string<CharT>(delim));
-//}
+template<class CharT, template<class> class String, template<class> class Container>
+String<CharT> join(Container<String<CharT>> const& c, CharT const* delim)
+{
+	return join(c, String<CharT>(delim));
+}
 
-//template<typename CharT, typename Traits, typename Alloc,
-//	template<class,class,class> class String,
-//	template<template<class,class,class> class> class Container>
-//String<CharT, Traits, Alloc> join(
-//	Container<String> const& c,
-//	String<CharT, Traits, Alloc> const& delim = header_only_library::string_utils::detail::space(CharT()))
-//{
-//	std::basic_string<CharT> ret, sep;
-//
-//	auto z = std::accumulate(std::begin(c), std::end(c), std::size_t(0), [](auto n, auto const& s)
-//	{
-//		return n + s.size();
-//	}) + ((c.size() - 1) * delim.size());
-//
-//	ret.reserve(z);
-//
-//	for(auto const& s: c)
-//		{ ret += sep + s; sep = delim; }
-//	return ret;
-//}
-//
-//template<typename CharT, typename Traits, typename Alloc,
-//	template<class,class,class> class String,
-//	template<template<class,class,class> class> class Container>
-//String<CharT, Traits, Alloc> join(
-//	Container<String> const& c,
-//	CharT const* delim = header_only_library::string_utils::detail::space(CharT()))
-//{
-//	return join(c, std::basic_string<CharT>(delim));
-//}
+template<class CharT, template<class> class String, template<class> class Container>
+String<CharT> join(Container<String<CharT>> const& c)
+{
+	return join(c, String<CharT>(detail::empty(CharT())));
+}
 
 // --------------------------------------------------------------------
 // string conversions
