@@ -4,13 +4,22 @@
 #include <cinttypes>
 #include <algorithm>
 
+#ifdef __cpp_if_constexpr
+#define IF_CONSTEXPR(cond) if constexpr(cond)
+#else
+#define IF_CONSTEXPR(cond) if(cond)
+#endif
+
 namespace header_only_library {
 namespace endian_utils {
 
 constexpr bool is_littleendian()
 {
-	unsigned i{1};
-	return ((char*)&i)[0];
+	// C++11 Standard §9.5.5 should guarantee that this alias works
+	// when coupled with the rule §3.10.10 that char can alias any other type
+	// because it states that i and c[0] share the same address
+	static union { unsigned i = 1; char c[1]; };
+	return c[0];
 }
 
 constexpr bool is_bigendian()
@@ -26,17 +35,17 @@ Numeric swap_endianness(Numeric n)
 }
 
 template<typename Numeric>
-Numeric from_littleendian(Numeric n)
+constexpr Numeric from_littleendian(Numeric n)
 {
-	if(is_littleendian())
+	IF_CONSTEXPR(is_littleendian())
 		return n;
 	return swap_endianness(n);
 }
 
 template<typename Numeric>
-Numeric from_bigendian(Numeric n)
+constexpr Numeric from_bigendian(Numeric n)
 {
-	if(is_bigendian())
+	IF_CONSTEXPR(is_bigendian())
 		return n;
 	return swap_endianness(n);
 }
