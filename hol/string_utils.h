@@ -104,41 +104,6 @@ constexpr wchar_t const* ws(wchar_t) { return L" \t\n\r\f\v\0"; }
 constexpr char16_t const* ws(char16_t) { return u" \t\n\r\f\v\0"; }
 constexpr char32_t const* ws(char32_t) { return U" \t\n\r\f\v\0"; }
 
-// keep
-
-//template<typename CharT>
-//std::basic_string<CharT> trim_left_keep(std::basic_string<CharT>& s,
-//	CharT const* ws = detail::ws(CharT()))
-//{
-//	typename std::basic_string<CharT>::size_type pos;
-//	std::basic_string<CharT> keep = s.substr(0, (pos = s.find_first_not_of(ws)));
-//	s.erase(0, pos);
-//	return keep;
-//}
-//
-//template<typename CharT>
-//std::basic_string<CharT> trim_right_keep(std::basic_string<CharT>& s,
-//	CharT const* ws = detail::ws(CharT()))
-//{
-//	typename std::basic_string<CharT>::size_type pos;
-//	std::basic_string<CharT> keep = s.substr((pos = s.find_last_not_of(ws) + 1));
-//	s.erase(pos);
-//	return keep;
-//}
-//
-//template<typename CharT>
-//auto trim_keep(std::basic_string<CharT>& s,
-//	CharT const* ws = detail::ws(CharT()))
-//{
-//	struct rv
-//	{
-//		std::basic_string<CharT> left;
-//		std::basic_string<CharT> right;
-//	};
-//
-//	return rv{trim_left_keep(s, ws), trim_right_keep(s, ws)};
-//}
-
 } // namespace detail
 
 //--------------------------------------------------------------
@@ -482,6 +447,9 @@ using u32output_separator = basic_output_separator<char32_t>;
 // trim_mute
 //
 
+template<typename C, typename T, typename A>
+using String = std::basic_string<C, T, A>;
+
 /**
  * Remove leading characters from a String.
  * @param s The String to be trimmed.
@@ -489,23 +457,23 @@ using u32output_separator = basic_output_separator<char32_t>;
  * of the String.
  * @return The same String passed in as a parameter.
  */
-template<typename String>
-String& trim_left_mute(String& s, typename String::value_type const* ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_left_mute(String<C, T, A>& s, C const* ws)
 {
 	s.erase(0, s.find_first_not_of(ws));
 	return s;
 }
 
-template<typename String>
-String& trim_left_mute(String& s, String const& ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_left_mute(String<C, T, A>& s, String<C, T, A> const& ws)
 {
 	return trim_left_mute(s, ws.c_str());
 }
 
-template<typename String>
-String& trim_left_mute(String& s)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_left_mute(String<C, T, A>& s)
 {
-	return trim_left_mute(s, detail::ws(typename String::value_type()));
+	return trim_left_mute(s, detail::ws(C()));
 }
 
 /**
@@ -515,23 +483,23 @@ String& trim_left_mute(String& s)
  * of the String.
  * @return The same String passed in as a parameter.
  */
-template<typename String>
-String& trim_right_mute(String& s, typename String::value_type const* ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_right_mute(String<C, T, A>& s, C const* ws)
 {
 	s.erase(s.find_last_not_of(ws) + 1);
 	return s;
 }
 
-template<typename String>
-String& trim_right_mute(String& s, String const& ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_right_mute(String<C, T, A>& s, String<C, T, A> const& ws)
 {
 	return trim_right_mute(s, ws.c_str());
 }
 
-template<typename String>
-String& trim_right_mute(String& s)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_right_mute(String<C, T, A>& s)
 {
-	return trim_right_mute(s, detail::ws(typename String::value_type()));
+	return trim_right_mute(s, detail::ws(C()));
 }
 
 /**
@@ -541,22 +509,22 @@ String& trim_right_mute(String& s)
  * of the String.
  * @return The same String passed in as a parameter.
  */
-template<typename String>
-String& trim_mute(String& s, typename String::value_type const* ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_mute(String<C, T, A>& s, C const* ws)
 {
 	return trim_left_mute(trim_right_mute(s, ws), ws);
 }
 
-template<typename String>
-String& trim_mute(String& s, String const& ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_mute(String<C, T, A>& s, String<C, T, A> const& ws)
 {
 	return trim_mute(s, ws.c_str());
 }
 
-template<typename String>
-String& trim_mute(String& s)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_mute(String<C, T, A>& s)
 {
-	return trim_mute(s, detail::ws(typename String::value_type()));
+	return trim_mute(s, detail::ws(C()));
 }
 
 //---------------------------------------------------------
@@ -570,22 +538,22 @@ String& trim_mute(String& s)
  * of the String.
  * @return A copy of the string passed in as a parameter.
  */
-template<typename String>
-String trim_left_copy(String s, typename String::value_type const* ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_left_copy(String<C, T, A> s, C const* ws)
 {
 	return trim_left_mute(s, ws);
 }
 
-template<typename String>
-String trim_left_copy(String s, String const& ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_left_copy(String<C, T, A> s, String<C, T, A> const& ws)
 {
 	return trim_left_mute(s, ws);
 }
 
-template<typename String>
-String& trim_left_copy(String s)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A>& trim_left_copy(String<C, T, A> s)
 {
-	return trim_left_mute(s, detail::ws(typename String::value_type()));
+	return trim_left_mute(s);
 }
 
 /**
@@ -595,22 +563,22 @@ String& trim_left_copy(String s)
  * of the String.
  * @return A copy of the string passed in as a parameter.
  */
-template<typename String>
-String trim_right_copy(String s, typename String::value_type const* ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_right_copy(String<C, T, A> s, C const* ws)
 {
 	return trim_right_mute(s, ws);
 }
 
-template<typename String>
-String trim_right_copy(String s, String const& ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_right_copy(String<C, T, A> s, String<C, T, A> const& ws)
 {
 	return trim_right_mute(s, ws);
 }
 
-template<typename String>
-String trim_right_copy(String s)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_right_copy(String<C, T, A> s)
 {
-	return trim_right_mute(s, detail::ws(typename String::value_type()));
+	return trim_right_mute(s);
 }
 
 /**
@@ -620,22 +588,22 @@ String trim_right_copy(String s)
  * of the Sring.
  * @return A copy of the String passed in as a parameter.
  */
-template<typename String>
-String trim_copy(String s, typename String::value_type const* ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_copy(String<C, T, A> s, C const* ws)
 {
 	return trim_mute(s, ws);
 }
 
-template<typename String>
-String trim_copy(String s, String const& ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_copy(String<C, T, A> s, String<C, T, A> const& ws)
 {
 	return trim_mute(s, ws);
 }
 
-template<typename String>
-String trim_copy(String s)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_copy(String<C, T, A> s)
 {
-	return trim_mute(s, detail::ws(typename String::value_type()));
+	return trim_mute(s);
 }
 
 //---------------------------------------------------------
@@ -649,25 +617,25 @@ String trim_copy(String s)
  * of the String.
  * @return The String of characters that were removed.
  */
-template<typename String>
-String trim_left_keep(String s, typename String::value_type const* ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_left_keep(String<C, T, A> s, C const* ws)
 {
-	typename String::size_type pos;
-	String keep = s.substr(0, (pos = s.find_first_not_of(ws)));
+	typename String<C, T, A>::size_type pos;
+	String<C, T, A> keep = s.substr(0, (pos = s.find_first_not_of(ws)));
 	s.erase(0, pos);
 	return keep;
 }
 
-template<typename String>
-String trim_left_keep(String s, String const& ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_left_keep(String<C, T, A> s, String<C, T, A> const& ws)
 {
 	return trim_left_keep(s, ws.c_str());
 }
 
-template<typename String>
-String trim_left_keep(String s)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_left_keep(String<C, T, A> s)
 {
-	return trim_left_keep(s, detail::ws(typename String::value_type()));
+	return trim_left_keep(s, detail::ws(C()));
 }
 
 /**
@@ -677,25 +645,25 @@ String trim_left_keep(String s)
  * of the String.
  * @return The String of characters that were removed.
  */
-template<typename String>
-String trim_right_keep(String s, typename String::value_type const* ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_right_keep(String<C, T, A> s, C const* ws)
 {
-	typename String::size_type pos;
-	String keep = s.substr((pos = s.find_last_not_of(ws) + 1));
+	typename String<C, T, A>::size_type pos;
+	String<C, T, A> keep = s.substr((pos = s.find_last_not_of(ws) + 1));
 	s.erase(pos);
 	return keep;
 }
 
-template<typename String>
-String trim_right_keep(String s, String const& ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_right_keep(String<C, T, A> s, String<C, T, A> const& ws)
 {
 	return trim_right_keep(s, ws.c_str());
 }
 
-template<typename String>
-String trim_right_keep(String s)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_right_keep(String<C, T, A> s)
 {
-	return trim_right_keep(s, detail::ws(typename String::value_type()));
+	return trim_right_keep(s, detail::ws(C()));
 }
 
 /**
@@ -706,29 +674,281 @@ String trim_right_keep(String s)
  * @return A structure of the form `struct { String left; String right; };`
  * containing each String of characters that was removed.
  */
-template<typename String>
-auto trim_keep(String s, typename String::value_type const* ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+auto trim_keep(String<C, T, A> s, C const* ws)
 {
 	struct rv
 	{
-		String left;
-		String right;
+		String<C, T, A> left;
+		String<C, T, A> right;
 	};
 
 	return rv{trim_left_keep(s, ws), trim_right_keep(s, ws)};
 }
 
-template<typename String>
-auto trim_keep(String s, String const& ws)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+auto trim_keep(String<C, T, A> s, String<C, T, A> const& ws)
 {
 	return trim_keep(s, ws.c_str());
 }
 
-template<typename String>
-auto trim_keep(String s)
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+auto trim_keep(String<C, T, A> s)
 {
-	return trim_keep(s, detail::ws(typename String::value_type()));
+	return trim_keep(s, detail::ws(C()));
 }
+
+////---------------------------------------------------------
+//// trim_mute
+////
+//
+///**
+// * Remove leading characters from a String.
+// * @param s The String to be trimmed.
+// * @param ws The set of characters to remove from the beginning
+// * of the String.
+// * @return The same String passed in as a parameter.
+// */
+//template<typename String>
+//String& trim_left_mute(String& s, typename String::value_type const* ws)
+//{
+//	s.erase(0, s.find_first_not_of(ws));
+//	return s;
+//}
+//
+//template<typename String>
+//String& trim_left_mute(String& s, String const& ws)
+//{
+//	return trim_left_mute(s, ws.c_str());
+//}
+//
+//template<typename String>
+//String& trim_left_mute(String& s)
+//{
+//	return trim_left_mute(s, detail::ws(typename String::value_type()));
+//}
+//
+///**
+// * Remove trailing characters from a String.
+// * @param s The String to be trimmed.
+// * @param ws The set of characters to remove from the end
+// * of the String.
+// * @return The same String passed in as a parameter.
+// */
+//template<typename String>
+//String& trim_right_mute(String& s, typename String::value_type const* ws)
+//{
+//	s.erase(s.find_last_not_of(ws) + 1);
+//	return s;
+//}
+//
+//template<typename String>
+//String& trim_right_mute(String& s, String const& ws)
+//{
+//	return trim_right_mute(s, ws.c_str());
+//}
+//
+//template<typename String>
+//String& trim_right_mute(String& s)
+//{
+//	return trim_right_mute(s, detail::ws(typename String::value_type()));
+//}
+//
+///**
+// * Remove surrounding characters from a String.
+// * @param s The String to be trimmed.
+// * @param ws The set of characters to remove from each end
+// * of the String.
+// * @return The same String passed in as a parameter.
+// */
+//template<typename String>
+//String& trim_mute(String& s, typename String::value_type const* ws)
+//{
+//	return trim_left_mute(trim_right_mute(s, ws), ws);
+//}
+//
+//template<typename String>
+//String& trim_mute(String& s, String const& ws)
+//{
+//	return trim_mute(s, ws.c_str());
+//}
+//
+//template<typename String>
+//String& trim_mute(String& s)
+//{
+//	return trim_mute(s, detail::ws(typename String::value_type()));
+//}
+//
+////---------------------------------------------------------
+//// trim_copy
+////
+//
+///**
+// * Obtain a copy of a string with leading characters removed.
+// * @param s The std::string to be trimmed.
+// * @param t The set of characters to remove from the beginning
+// * of the String.
+// * @return A copy of the string passed in as a parameter.
+// */
+//template<typename String>
+//String trim_left_copy(String s, typename String::value_type const* ws)
+//{
+//	return trim_left_mute(s, ws);
+//}
+//
+//template<typename String>
+//String trim_left_copy(String s, String const& ws)
+//{
+//	return trim_left_mute(s, ws);
+//}
+//
+//template<typename String>
+//String& trim_left_copy(String s)
+//{
+//	return trim_left_mute(s);
+//}
+//
+///**
+// * Obtain a copy of a string with trailing characters removed.
+// * @param s The std::string to be trimmed.
+// * @param t The set of characters to remove from the end
+// * of the String.
+// * @return A copy of the string passed in as a parameter.
+// */
+//template<typename String>
+//String trim_right_copy(String s, typename String::value_type const* ws)
+//{
+//	return trim_right_mute(s, ws);
+//}
+//
+//template<typename String>
+//String trim_right_copy(String s, String const& ws)
+//{
+//	return trim_right_mute(s, ws);
+//}
+//
+//template<typename String>
+//String trim_right_copy(String s)
+//{
+//	return trim_right_mute(s);
+//}
+//
+///**
+// * Obtain a copy of a String with surrounding characters removed.
+// * @param s The String to be trimmed.
+// * @param t The set of characters to remove from each end
+// * of the Sring.
+// * @return A copy of the String passed in as a parameter.
+// */
+//template<typename String>
+//String trim_copy(String s, typename String::value_type const* ws)
+//{
+//	return trim_mute(s, ws);
+//}
+//
+//template<typename String>
+//String trim_copy(String s, String const& ws)
+//{
+//	return trim_mute(s, ws);
+//}
+//
+//template<typename String>
+//String trim_copy(String s)
+//{
+//	return trim_mute(s);
+//}
+//
+////---------------------------------------------------------
+//// trim_keep
+////
+//
+///**
+// * Remove (and keep) leading characters from a String.
+// * @param s The String to be trimmed.
+// * @param ws The set of characters to remove from the beginning
+// * of the String.
+// * @return The String of characters that were removed.
+// */
+//template<typename String>
+//String trim_left_keep(String s, typename String::value_type const* ws)
+//{
+//	typename String::size_type pos;
+//	String keep = s.substr(0, (pos = s.find_first_not_of(ws)));
+//	s.erase(0, pos);
+//	return keep;
+//}
+//
+//template<typename String>
+//String trim_left_keep(String s, String const& ws)
+//{
+//	return trim_left_keep(s, ws.c_str());
+//}
+//
+//template<typename String>
+//String trim_left_keep(String s)
+//{
+//	return trim_left_keep(s, detail::ws(typename String::value_type()));
+//}
+//
+///**
+// * Remove (and keep) trailing characters from a String.
+// * @param s The String to be trimmed.
+// * @param ws The set of characters to remove from the end
+// * of the String.
+// * @return The String of characters that were removed.
+// */
+//template<typename String>
+//String trim_right_keep(String s, typename String::value_type const* ws)
+//{
+//	typename String::size_type pos;
+//	String keep = s.substr((pos = s.find_last_not_of(ws) + 1));
+//	s.erase(pos);
+//	return keep;
+//}
+//
+//template<typename String>
+//String trim_right_keep(String s, String const& ws)
+//{
+//	return trim_right_keep(s, ws.c_str());
+//}
+//
+//template<typename String>
+//String trim_right_keep(String s)
+//{
+//	return trim_right_keep(s, detail::ws(typename String::value_type()));
+//}
+//
+///**
+// * Remove (and keep) leading and trailing characters from a String.
+// * @param s The String to be trimmed.
+// * @param ws The set of characters to remove from each end
+// * of the String.
+// * @return A structure of the form `struct { String left; String right; };`
+// * containing each String of characters that was removed.
+// */
+//template<typename String>
+//auto trim_keep(String s, typename String::value_type const* ws)
+//{
+//	struct rv
+//	{
+//		String left;
+//		String right;
+//	};
+//
+//	return rv{trim_left_keep(s, ws), trim_right_keep(s, ws)};
+//}
+//
+//template<typename String>
+//auto trim_keep(String s, String const& ws)
+//{
+//	return trim_keep(s, ws.c_str());
+//}
+//
+//template<typename String>
+//auto trim_keep(String s)
+//{
+//	return trim_keep(s, detail::ws(typename String::value_type()));
+//}
 
 // GSL_STRING_SPAN
 
