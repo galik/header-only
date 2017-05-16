@@ -127,7 +127,7 @@ using LinuxProcessTimer = Timer<LinuxTimerImpl<CLOCK_PROCESS_CPUTIME_ID>>;
 
 #endif
 
-class wait_timer
+class sleep_timer
 {
 	using clock = std::chrono::steady_clock;
 
@@ -135,7 +135,7 @@ class wait_timer
 	clock::time_point timeout = clock::now();
 
 public:
-	wait_timer(std::chrono::milliseconds ms)
+	sleep_timer(std::chrono::milliseconds ms)
 	: time_to_wait(ms), timeout(clock::now() + ms) {}
 
 	void wait()
@@ -174,6 +174,60 @@ public:
 		timeout += (frames * ms);
 		time_to_wait = ms;
 	}
+};
+
+class event_timer
+{
+public:
+	using steady_clock = std::chrono::steady_clock;
+	using system_clock = std::chrono::system_clock;
+
+	event_timer(steady_clock::duration delay): delay(delay) {}
+
+	template<typename Func, typename... Args>
+	void add_event(Func func, Args&&... args)
+	{
+		events.emplace_back(func, std::forward<Args>(args)...);
+	}
+
+	void start()
+	{
+		done = false;
+		thread = std::thread(&event_timer::event_thread, this);
+	}
+
+	void stop()
+	{
+		done = true;
+		if(thread.joinable())
+			thread.join();
+	}
+
+private:
+	void event_thread()
+	{
+		steady_clock::time_point next_event = steady_clock::now() + delay;
+
+		while(!done)
+		{
+			std::this_thread::sleep_until(next_event);
+
+			if(done)
+				break;
+
+			auto now = system_clock::now();
+
+			for(auto& event: events)
+				event(now);
+
+			next_event += delay;
+		}
+	}
+
+	steady_clock::duration delay;
+	std::atomic_bool done{false};
+	std::thread thread;
+	std::vector<std::function<void(system_clock::time_point)>> events;
 };
 
 } // timers
