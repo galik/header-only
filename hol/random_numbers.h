@@ -123,7 +123,8 @@ auto const& random_data()
 inline
 auto& random_generator()
 {
-	thread_local static std::seed_seq seeds(std::begin(random_data()), std::end(random_data()));
+	auto const& data = random_data();
+	thread_local static std::seed_seq seeds(std::begin(data), std::end(data));
 	thread_local static Generator gen{seeds};
 
 	return gen;
