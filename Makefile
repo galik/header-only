@@ -9,7 +9,10 @@ RM := rm -fr
 INSTALL := install
 DOXYGEN := doxygen
 CPPFLAGS := -I. $(CPPFLAGS) $(GSL_CPPFLAGS)
-CXXFLAGS := -std=c++14 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
+#CXXFLAGS := -std=c++14 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
+CXX_11_FLAGS := -std=c++11 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
+CXX_14_FLAGS := -std=c++14 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
+CXX_17_FLAGS := -std=c++17 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
 
 HEADERS := $(wildcard hol/*.h)
 PKGCFGS := $(wildcard pkg-config/*.pc)
@@ -17,19 +20,39 @@ PKGCFGS := $(wildcard pkg-config/*.pc)
 DOCS := doxy-docs/*
 SRCS := $(wildcard src/*.cpp)
 DEPS := $(patsubst %.cpp,%.d,$(SRCS))
-PRGS := $(patsubst %.cpp,%,$(SRCS))
+#PRGS := $(patsubst %.cpp,%,$(SRCS))
+PRGS_11 := $(patsubst %.cpp,%-11,$(SRCS))
+PRGS_14 := $(patsubst %.cpp,%-14,$(SRCS))
+PRGS_17 := $(patsubst %.cpp,%-17,$(SRCS))
+PRGS := $(PRGS_11) $(PRGS_14) $(PRGS_17)
 
-all: $(PRGS)
+#all: $(PRGS_11) $(PRGS_14) $(PRGS_17)
+all: $(PRGS_14) $(PRGS_17)
 
 show:
 	@echo SRCS $(SRCS)
 	@echo DEPS $(DEPS)
 	@echo PRGS $(PRGS)
 
-%: %.cpp
+#%: %.cpp
+#	@echo "C: $@"
+#	@echo [triggered by changes in $?]
+#	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	
+#%-11: %.cpp
+#	@echo "C: $@"
+#	@echo [triggered by changes in $?]
+#	$(CXX) $(CXX_11_FLAGS) $(CPPFLAGS) -o $@ $<
+	
+%-14: %.cpp
 	@echo "C: $@"
 	@echo [triggered by changes in $?]
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) $(CXX_14_FLAGS) $(CPPFLAGS) -o $@ $<
+	
+%-17: %.cpp
+	@echo "C: $@"
+	@echo [triggered by changes in $?]
+	$(CXX) $(CXX_17_FLAGS) $(CPPFLAGS) -o $@ $<
 	
 docs: doxy-docs/index.html
 
