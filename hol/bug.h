@@ -56,6 +56,12 @@
 #include <stdexcept>
 #include <functional>
 
+#ifdef __GNUC__
+#define FUNC_MACRO __PRETTY_FUNCTION__
+#else
+#define FUNC_MACRO __func__
+#endif
+
 namespace header_only_library {
 
 inline
@@ -81,13 +87,13 @@ struct scope_bomb{};
 namespace private_details {
 
 template<typename C>
-constexpr auto size(const C& c) -> decltype(c.size())
+constexpr std::size_t size(C&& c)
 {
-    return c.size();
+    return std::forward<C>(c).size();
 }
 
 template<typename T, std::size_t N>
-constexpr std::size_t size(const T (&array)[N]) noexcept
+constexpr std::size_t size(const T(&)[N]) noexcept
 {
     return N;
 }
@@ -125,17 +131,9 @@ struct scope_bomb
 	~scope_bomb() { bug("<-- " << m); }
 };
 
-//#define bug_fun() hol::scope_bomb scope_bomb_inst(hol::get_edit_bug_fun()(__PRETTY_FUNCTION__))
-#define bug_fun() header_only_library::scope_bomb scope_bomb_inst(header_only_library::get_edit_bug_fun()(__func__))
+#define bug_fun() header_only_library::scope_bomb scope_bomb_inst(header_only_library::get_edit_bug_fun()(FUNC_MACRO))
 #define bug_scope(m) header_only_library::scope_bomb scope_bomb_inst(m)
 #endif
-
-class errno_error
-: public std::runtime_error
-{
-public:
-	errno_error(): std::runtime_error(std::strerror(errno)) {}
-};
 
 } // header_only_library
 
