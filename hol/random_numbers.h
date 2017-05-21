@@ -66,10 +66,6 @@ concept bool ValuesConvertableToDouble
 	 = std::is_convertible<typename std::iterator_traits<InputIt>::value_type,
 		double>::value;
 
-//template <typename UnaryOperation>
-//concept bool RealCallableReal
-//	 = std::is_convertible<F, std::function<double(double)>>::value;
-
 template <typename UnaryOperation>
 concept bool RealCallableReal
 	 = std::is_convertible<decltype(UnaryOperation(0.0)), double>::value;
@@ -258,8 +254,6 @@ HOL_CONCEPT(||       detail::StdInteger<Number>)
 	auto to = std::numeric_limits<Number>::max();
 	return detail::random_number(from, to);
 }
-// HOL_CONCEPT($1detail::$2)
-// bernoulli_distribution
 
 inline
 bool random_bernoulli(double p = 0.5)
