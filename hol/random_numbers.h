@@ -610,6 +610,12 @@ decltype(auto) random_iterator(Container&& c)
 		random_number(std::forward<Container>(c).size() - 1));
 }
 
+template<typename T, std::size_t N>
+decltype(auto) random_iterator(T(&arr)[N])
+{
+	return std::next(std::begin(arr), random_number(N - 1));
+}
+
 /**
  * Return a randomly selected container element. If the
  * container is empty the behavior is undefined.
