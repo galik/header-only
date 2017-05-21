@@ -104,6 +104,16 @@ constexpr wchar_t const* ws(wchar_t) { return L" \t\n\r\f\v\0"; }
 constexpr char16_t const* ws(char16_t) { return u" \t\n\r\f\v\0"; }
 constexpr char32_t const* ws(char32_t) { return U" \t\n\r\f\v\0"; }
 
+constexpr char const* empty(char) { return ""; }
+constexpr wchar_t const* empty(wchar_t) { return L""; }
+constexpr char16_t const* empty(char16_t) { return u""; }
+constexpr char32_t const* empty(char32_t) { return U""; }
+
+constexpr char const* space(char) { return " "; }
+constexpr wchar_t const* space(wchar_t) { return L" "; }
+constexpr char16_t const* space(char16_t) { return u" "; }
+constexpr char32_t const* space(char32_t) { return U" "; }
+
 } // namespace detail
 
 //--------------------------------------------------------------
@@ -280,20 +290,6 @@ std::u32string upper_copy(std::u32string s)
 {
 	return upper_mute(s);
 }
-
-namespace detail {
-
-constexpr char const* empty(char) { return ""; }
-constexpr wchar_t const* empty(wchar_t) { return L""; }
-constexpr char16_t const* empty(char16_t) { return u""; }
-constexpr char32_t const* empty(char32_t) { return U""; }
-
-constexpr char const* space(char) { return " "; }
-constexpr wchar_t const* space(wchar_t) { return L" "; }
-constexpr char16_t const* space(char16_t) { return u" "; }
-constexpr char32_t const* space(char32_t) { return U" "; }
-
-} // detail
 
 /**
  * Usage:
