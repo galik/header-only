@@ -77,7 +77,7 @@ constexpr Numeric from_bigendian(Numeric n)
 // I'll just put these here for now (they may move)
 
 template<typename Char, typename T>
-Char const* network_byte_order_copy(Char const* data, T& t)
+Char const* network_byte_order_decode(Char const* data, T& t)
 {
 	IF_CONSTEXPR(is_bigendian())
 		std::copy(data, data + sizeof(T), (Char*)&t);
@@ -88,7 +88,7 @@ Char const* network_byte_order_copy(Char const* data, T& t)
 }
 
 template<typename Char, typename T>
-Char* network_byte_order_copy(T const& t, Char* data)
+Char* network_byte_order_encode(T const& t, Char* data)
 {
 	IF_CONSTEXPR(is_bigendian())
 		std::copy((Char*)&t, (Char*)&t + sizeof(T), data);
