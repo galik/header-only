@@ -79,7 +79,7 @@ constexpr Numeric from_bigendian(Numeric n)
 template<typename Char, typename T>
 Char const* network_order_byte_copy(Char const* data, T& t)
 {
-	if(hol::is_bigendian())
+	if(is_bigendian())
 		std::copy(data, data + sizeof(T), (Char*)&t);
 	else
 		std::reverse_copy(data, data + sizeof(T), (Char*)&t);
@@ -90,7 +90,7 @@ Char const* network_order_byte_copy(Char const* data, T& t)
 template<typename Char, typename T>
 Char* network_order_byte_copy(T const& t, Char* data)
 {
-	if(hol::is_bigendian())
+	if(is_bigendian())
 		std::copy((Char*)&t, (Char*)&t + sizeof(T), data);
 	else
 		std::reverse_copy((Char*)&t, (Char*)&t + sizeof(T), data);
