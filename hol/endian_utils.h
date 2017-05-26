@@ -34,13 +34,16 @@
 namespace header_only_library {
 namespace endian_utils {
 
+enum class endian
+{
+	little = __ORDER_LITTLE_ENDIAN__,
+	big    = __ORDER_BIG_ENDIAN__,
+	native = __BYTE_ORDER__
+};
+
 constexpr bool is_littleendian()
 {
-	// C++11 Standard §9.5.5 should guarantee that this alias works
-	// when coupled with the rule §3.10.10 that char can alias any other type
-	// because it states that i and c[0] share the same address
-	static union { unsigned i = 1; char c[1]; };
-	return c[0];
+	return endian::native == endian::little;
 }
 
 constexpr bool is_bigendian()
@@ -69,6 +72,30 @@ constexpr Numeric from_bigendian(Numeric n)
 	IF_CONSTEXPR(is_bigendian())
 		return n;
 	return swap_endianness(n);
+}
+
+// I'll just put these here for now (they may move)
+
+template<typename Char, typename T>
+Char const* network_order_byte_copy(Char const* data, T& t)
+{
+	if(hol::is_bigendian())
+		std::copy(data, data + sizeof(T), (Char*)&t);
+	else
+		std::reverse_copy(data, data + sizeof(T), (Char*)&t);
+
+	return data + sizeof(T);
+}
+
+template<typename Char, typename T>
+Char* network_order_byte_copy(T const& t, Char* data)
+{
+	if(hol::is_bigendian())
+		std::copy((Char*)&t, (Char*)&t + sizeof(T), data);
+	else
+		std::reverse_copy((Char*)&t, (Char*)&t + sizeof(T), data);
+
+	return data + sizeof(T);
 }
 
 } // namespace endian_utils
