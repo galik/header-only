@@ -76,24 +76,24 @@ constexpr Numeric from_bigendian(Numeric n)
 
 // I'll just put these here for now (they may move)
 
-template<typename Char, typename T>
-Char const* network_byte_order_decode(Char const* data, T& t)
+template<typename CharPtr, typename T>
+CharPtr network_byte_order_decode(CharPtr const& data, T& t)
 {
 	IF_CONSTEXPR(is_bigendian())
-		std::copy(data, data + sizeof(T), (Char*)&t);
+		std::copy(data, data + sizeof(T), (typename std::remove_const<CharPtr>::type)&t);
 	else
-		std::reverse_copy(data, data + sizeof(T), (Char*)&t);
+		std::reverse_copy(data, data + sizeof(T), (CharPtr)&t);
 
 	return data + sizeof(T);
 }
 
-template<typename Char, typename T>
-Char* network_byte_order_encode(T const& t, Char* data)
+template<typename CharPtr, typename T>
+CharPtr network_byte_order_encode(T const& t, CharPtr data)
 {
 	IF_CONSTEXPR(is_bigendian())
-		std::copy((Char*)&t, (Char*)&t + sizeof(T), data);
+		std::copy((CharPtr)&t, (CharPtr)&t + sizeof(T), data);
 	else
-		std::reverse_copy((Char*)&t, (Char*)&t + sizeof(T), data);
+		std::reverse_copy((CharPtr)&t, (CharPtr)&t + sizeof(T), data);
 
 	return data + sizeof(T);
 }
