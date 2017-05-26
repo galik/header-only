@@ -10,3 +10,5 @@
 !/src/*.hpp
 !/src/*.cpp
 CMakeLists.txt
+/CMakeFiles/
+/CMakeCache.txt

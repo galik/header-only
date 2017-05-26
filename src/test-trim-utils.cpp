@@ -28,6 +28,7 @@
 #include <numeric>
 
 #include "test.h"
+#include <hol/bug.h>
 #include <hol/string_utils.h>
 #include <hol/macro_exceptions.h>
 
@@ -84,11 +85,14 @@ struct test_group
 	test_info::vec boths;
 };
 
-test_group::vec load_tests()
+test_group::vec load_tests(std::string const& test_name)
 {
 	test_group::vec tests;
 
-	std::ifstream ifs("data/test-trim-utils-01.txt");
+	std::ifstream ifs(test_name);
+
+	if(!ifs)
+		hol_throw_errno_msg(test_name);
 
 	str line;
 	auto id = 0U;
@@ -108,7 +112,7 @@ test_group::vec load_tests()
 //		if(trim_mutator().round(line).empty())
 //			continue;
 
-		//		S "{}"
+		//		T "{}"
 		//		L "{{{}}}" "}}}"
 		//		L "{ {} }" " {} }"
 		//		R "{{{}}}" "{{{"
@@ -116,7 +120,7 @@ test_group::vec load_tests()
 		//		B "{{{}}}" ""
 		//		B "{ {} }" " {} "
 
-		if(!line.find("S"))
+		if(!line.find("T"))
 		{
 			str s;
 			if(!sgl(sgl(std::istringstream(line) >> s, s, '"'), s, '"'))
@@ -207,7 +211,7 @@ int main()
 
 	try
 	{
-		auto tests = load_tests();
+		auto tests = load_tests("data/test-trim-utils-01.txt");
 
 		for(auto& test: tests)
 			generic_trimmer_tests("mute", test,
@@ -218,7 +222,7 @@ int main()
 
 		display_results("mute", tests);
 
-		tests = load_tests();
+		tests = load_tests("data/test-trim-utils-01.txt");
 
 		for(auto& test: tests)
 			generic_trimmer_tests("copy", test,

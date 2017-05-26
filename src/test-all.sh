@@ -1,8 +1,6 @@
 #!/bin/bash
 
-for prog in *.cpp
+for prog in $(find src -name test-*-1[47] -executable|sort)
 do
-	name=${prog%*.cpp}
-	echo ${name}
-	./${name}
+	./${prog}
 done
