@@ -41,14 +41,14 @@ enum class endian
 	native = __BYTE_ORDER__
 };
 
-constexpr bool is_littleendian()
+constexpr bool is_little_endian()
 {
 	return endian::native == endian::little;
 }
 
-constexpr bool is_bigendian()
+constexpr bool is_big_endian()
 {
-	return !is_littleendian();
+	return !is_little_endian();
 }
 
 template<typename Numeric>
@@ -59,17 +59,17 @@ Numeric swap_endianness(Numeric n)
 }
 
 template<typename Numeric>
-constexpr Numeric from_littleendian(Numeric n)
+constexpr Numeric from_little_endian(Numeric n)
 {
-	IF_CONSTEXPR(is_littleendian())
+	IF_CONSTEXPR(is_little_endian())
 		return n;
 	return swap_endianness(n);
 }
 
 template<typename Numeric>
-constexpr Numeric from_bigendian(Numeric n)
+constexpr Numeric from_big_endian(Numeric n)
 {
-	IF_CONSTEXPR(is_bigendian())
+	IF_CONSTEXPR(is_big_endian())
 		return n;
 	return swap_endianness(n);
 }
@@ -79,7 +79,7 @@ constexpr Numeric from_bigendian(Numeric n)
 template<typename CharPtr, typename T>
 CharPtr network_byte_order_decode(CharPtr const& data, T& t)
 {
-	IF_CONSTEXPR(is_bigendian())
+	IF_CONSTEXPR(is_big_endian())
 		std::copy(data, data + sizeof(T), (typename std::remove_const<CharPtr>::type)&t);
 	else
 		std::reverse_copy(data, data + sizeof(T), (CharPtr)&t);
@@ -90,7 +90,7 @@ CharPtr network_byte_order_decode(CharPtr const& data, T& t)
 template<typename CharPtr, typename T>
 CharPtr network_byte_order_encode(T const& t, CharPtr data)
 {
-	IF_CONSTEXPR(is_bigendian())
+	IF_CONSTEXPR(is_big_endian())
 		std::copy((CharPtr)&t, (CharPtr)&t + sizeof(T), data);
 	else
 		std::reverse_copy((CharPtr)&t, (CharPtr)&t + sizeof(T), data);
