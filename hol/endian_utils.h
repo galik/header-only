@@ -77,23 +77,35 @@ constexpr Numeric from_big_endian(Numeric n)
 // I'll just put these here for now (they may move)
 
 template<typename CharPtr, typename T>
-CharPtr network_byte_order_decode(CharPtr const& data, T& t)
+CharPtr encode_network_byte_order(T const& t, CharPtr data)
 {
+	static_assert(std::is_same<CharPtr, char*>::value
+		|| std::is_same<CharPtr, unsigned char*>::value,
+			"Second parmeter must be a char*, unsigned char* or std::byte*");
+
+	using char_type = typename std::remove_const<typename std::remove_pointer<CharPtr>::type>::type;
+
 	IF_CONSTEXPR(is_big_endian())
-		std::copy(data, data + sizeof(T), (typename std::remove_const<CharPtr>::type)&t);
+		std::copy((char_type const*)&t, (char_type const*)&t + sizeof(T), data);
 	else
-		std::reverse_copy(data, data + sizeof(T), (CharPtr)&t);
+		std::reverse_copy((char_type const*)&t, (char_type const*)&t + sizeof(T), data);
 
 	return data + sizeof(T);
 }
 
 template<typename CharPtr, typename T>
-CharPtr network_byte_order_encode(T const& t, CharPtr data)
+CharPtr decode_network_byte_order(CharPtr const& data, T& t)
 {
+	using char_type = typename std::remove_const<typename std::remove_pointer<CharPtr>::type>::type;
+
+	static_assert(std::is_same<char_type*, char*>::value
+		|| std::is_same<char_type*, unsigned char*>::value,
+			"Second parmeter must be a char const*, unsigned char const* or std::byte const*");
+
 	IF_CONSTEXPR(is_big_endian())
-		std::copy((CharPtr)&t, (CharPtr)&t + sizeof(T), data);
+		std::copy(data, data + sizeof(T), (char_type*)&t);
 	else
-		std::reverse_copy((CharPtr)&t, (CharPtr)&t + sizeof(T), data);
+		std::reverse_copy(data, data + sizeof(T), (char_type*)&t);
 
 	return data + sizeof(T);
 }
