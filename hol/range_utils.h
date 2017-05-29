@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <iterator>
 
+#include <cassert>
+
 namespace header_only_library {
 namespace range_utils {
 namespace detail {
@@ -67,10 +69,8 @@ public:
 	using const_pointer = value_type const*;
 	using reference = value_type&;
 	using const_reference = value_type const&;
-
 	using iterator = pointer;
 	using const_iterator = const_pointer;
-
 	using reverse_iterator = detail::basic_reverse_iterator<T>;
 	using const_reverse_iterator = detail::basic_reverse_iterator<T const>;
 
@@ -94,16 +94,26 @@ public:
 	iterator end() noexcept { return m_end; }
 	const_iterator end() const noexcept { return m_end; }
 
+	const_iterator cbegin() const noexcept { return m_beg; }
+	const_iterator cend() const noexcept { return m_end; }
+
 	reverse_iterator rbegin() { return reverse_iterator{m_end}; }
 	const_reverse_iterator rbegin() const { return const_reverse_iterator{m_end}; }
 
 	reverse_iterator rend() { return reverse_iterator{m_beg}; }
 	const_reverse_iterator rend() const { return const_reverse_iterator{m_beg}; }
 
+	const_reverse_iterator crbegin() const { return const_reverse_iterator{m_end}; }
+	const_reverse_iterator crend() const { return const_reverse_iterator{m_beg}; }
+
+	pointer data() { return m_beg; }
+	const_pointer data() const { return m_beg; }
+
 	reference operator[](std::size_t n) noexcept { assert(n < size()); return m_beg[n]; }
 	const_reference operator[](std::size_t n) const noexcept { assert(n < size()); return m_beg[n]; }
 
 	std::size_t size() const noexcept { return m_end - m_beg; }
+	bool empty() const noexcept { return !size(); }
 
 	range subrange(std::size_t pos, std::size_t len) noexcept
 	{
@@ -112,6 +122,15 @@ public:
 			return {m_beg + pos, m_end};
 		return {m_beg + pos, m_beg + pos + len};
 	}
+
+	bool operator==(range const& other) const
+	{
+		return std::lexicographical_compare(
+			std::begin(*this), std::end(*this),
+				std::begin(other), std::end(other));
+	}
+
+	bool operator!=(range const& other) const { return !(*this == other); }
 
 private:
 	pointer m_beg = nullptr;
