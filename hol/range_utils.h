@@ -128,7 +128,7 @@ public:
 	{
 		assert(pos < size());
 		if(pos + len > size())
-			return {m_beg + pos, m_end};
+			return range{m_beg + pos, m_end};
 		return range{m_beg + pos, m_beg + pos + len};
 	}
 
