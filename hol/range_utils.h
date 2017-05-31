@@ -390,6 +390,7 @@ using u16rmatch = std::match_results<u16srange::iterator>;
 using u32rmatch = std::match_results<u32srange::iterator>;
 
 using rregex_iterator = std::regex_iterator<srange::iterator>;
+using rregex_token_iterator = std::regex_token_iterator<srange::iterator>;
 
 std::vector<srange> regex_match(srange s, std::regex const& e,
 	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
