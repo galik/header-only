@@ -370,6 +370,52 @@ std::vector<range<typename Container::value_type>> divide_up_work(Container& v, 
 
 // SETS
 
+/**
+ * Return the leftmost range of two, potentially
+ * intersecting ranges. If all of r1 < r2 then r1
+ * is returned and vice versa. If the ranges intersect
+ * then the leftmost range after each range's borders
+ * "cut through" the intersecting range.
+ *
+ * The results are only meaningful of both ranges belong
+ * to the same array.
+ *
+ * @param r1 The first of two ranges that may intersect.
+ * @param r2 The second of two ranges that may intersect.
+ *
+ * @return The leftmost range after splicing.
+ */
+template<typename T>
+hol::range<T> left_splice(hol::range<T> r1, hol::range<T> r2)
+{
+	if(r1.data() < r2.data())
+		return hol::range<T>{r1.data(), std::min(r1.data() + r1.size(), r2.data())};
+	return hol::range<T>{r2.data(), std::min(r2.data() + r2.size(), r1.data())};
+}
+
+/**
+ * Return the rightmost range of two, potentially
+ * intersecting ranges. If all of r1 > r2 then r1
+ * is returned and vice versa. If the ranges intersect
+ * then the rightmost range after each range's borders
+ * "cut through" the intersecting range.
+ *
+ * The results are only meaningful of both ranges belong
+ * to the same array.
+ *
+ * @param r1 The first of two ranges that may intersect.
+ * @param r2 The second of two ranges that may intersect.
+ *
+ * @return The rightmost range after splicing.
+ */
+template<typename T>
+hol::range<T> right_splice(hol::range<T> r1, hol::range<T> r2)
+{
+	if(r1.data() + r1.size() < r2.data() + r2.size())
+		return hol::range<T>{std::max(r1.data() + r1.size(), r2.data()), r2.data() + r2.size()};
+	return hol::range<T>{std::max(r2.data() + r2.size(), r1.data()), r1.data() + r1.size()};
+}
+
 // STRINGS
 
 using srange = range<char>;
