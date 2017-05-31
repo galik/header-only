@@ -389,12 +389,14 @@ using wrmatch = std::match_results<wsrange::iterator>;
 using u16rmatch = std::match_results<u16srange::iterator>;
 using u32rmatch = std::match_results<u32srange::iterator>;
 
-std::vector<hol::srange> regex_match(hol::srange s, std::regex const& e,
+using rregex_iterator = std::regex_iterator<srange::iterator>;
+
+std::vector<srange> regex_match(srange s, std::regex const& e,
 	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
 {
-	std::vector<hol::srange> matches;
+	std::vector<srange> matches;
 
-	std::match_results<hol::srange::iterator> m;
+	std::match_results<srange::iterator> m;
 	if(std::regex_match(std::begin(s), std::end(s), m, e, flags))
 		for(auto& sm: m)
 			matches.emplace_back(sm.first, sm.second);
@@ -402,12 +404,12 @@ std::vector<hol::srange> regex_match(hol::srange s, std::regex const& e,
 	return matches;
 }
 
-std::vector<hol::srange> regex_search(hol::srange s, std::regex const& e,
+std::vector<srange> regex_search(srange s, std::regex const& e,
 	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
 {
-	std::vector<hol::srange> matches;
+	std::vector<srange> matches;
 
-	std::match_results<hol::srange::iterator> m;
+	std::match_results<srange::iterator> m;
 	if(std::regex_search(std::begin(s), std::end(s), m, e, flags))
 		for(auto& sm: m)
 			matches.emplace_back(sm.first, sm.second);
