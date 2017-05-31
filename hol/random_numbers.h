@@ -26,8 +26,8 @@
 #include <cassert>
 #include <limits>
 
-#ifndef HOL_RANDOM_UTILS_GENERATOR
-#define HOL_RANDOM_UTILS_GENERATOR std::mt19937
+#ifndef HOL_RANDOM_NUMBERS_GENERATOR
+#define HOL_RANDOM_NUMBERS_GENERATOR std::mt19937
 #endif
 
 #ifdef __cpp_concepts
@@ -40,7 +40,7 @@ namespace header_only_library {
 namespace random_numbers {
 namespace detail {
 
-using Generator = HOL_RANDOM_UTILS_GENERATOR;
+using Generator = HOL_RANDOM_NUMBERS_GENERATOR;
 
 #ifdef __cpp_concepts
 
