@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <regex>
 #include <utility>
 #include <vector>
 
@@ -193,7 +194,7 @@ template<typename T, typename UnaryPredicate>
 bool none_of(range<T> r, UnaryPredicate p)
 	{ return std::none_of(std::begin(r), std::end(r), p); }
 
-template<typename T, class UnaryFunction>
+template<typename T, typename UnaryFunction>
 UnaryFunction for_each(range<T> r, UnaryFunction f)
 	{ return std::for_each(std::begin(r), std::end(r), f); }
 
@@ -205,6 +206,49 @@ template<typename T,typename UnaryPredicate>
 auto count(range<T> r, UnaryPredicate p)
 	{ return std::count(std::begin(r), std::end(r), p); }
 
+template<typename T>
+std::pair<typename range<T>::iterator, typename range<T>::iterator>
+mismatch(range<T> r, typename range<T>::iterator i)
+{
+	return std::mismatch(std::begin(r), std::end(r), i);
+}
+
+template<typename T, typename BinaryPredicate>
+std::pair<typename range<T>::iterator, typename range<T>::iterator>
+mismatch(range<T> r, typename range<T>::iterator i, BinaryPredicate p)
+{
+	return std::mismatch(std::begin(r), std::end(r), p);
+}
+
+template<typename T>
+std::pair<typename range<T>::iterator, typename range<T>::iterator>
+mismatch(range<T> r1, range<T> r2)
+{
+	return std::mismatch(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2));
+}
+
+template<typename T, typename BinaryPredicate>
+std::pair<typename range<T>::iterator, typename range<T>::iterator>
+mismatch(range<T> r1, range<T> r2, BinaryPredicate p)
+{
+	return std::mismatch(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p);
+}
+
+template<typename T>
+bool equal(range<T> r, typename range<T>::iterator i)
+	{ return std::equal(std::begin(r), std::end(r), i); }
+
+template<typename T, typename BinaryPredicate>
+bool equal(range<T> r, typename range<T>::iterator i, BinaryPredicate p)
+	{ return std::equal(std::begin(r), std::end(r), i, p); }
+
+template<typename T>
+bool equal(range<T> r1, range<T> r2)
+	{ return std::equal(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
+
+template<typename T, typename BinaryPredicate>
+bool equal(range<T> r1, range<T> r2, BinaryPredicate p)
+	{ return std::equal(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
 
 
@@ -230,25 +274,25 @@ range<T> find_from(range<T> r, const T& value)
 	return range<T>(found, std::end(r));
 }
 
-//template< class ExecutionPolicy, class ForwardIt, class T >
+//template<typename ExecutionPolicy, typename ForwardIt, typename T>
 //ForwardIt find( ExecutionPolicy&& policy, ForwardIt first, ForwardIt last, const T& value );
 //	(2) 	(since C++17)
-//template< class InputIt, class UnaryPredicate >
+//template<typename InputIt, typename UnaryPredicate>
 //
 //InputIt find_if( InputIt first, InputIt last,
 //                 UnaryPredicate p );
 //	(3)
-//template< class ExecutionPolicy, class ForwardIt, class UnaryPredicate >
+//template<typename ExecutionPolicy, typename ForwardIt, typename UnaryPredicate>
 //
 //ForwardIt find_if( ExecutionPolicy&& policy, ForwardIt first, ForwardIt last,
 //                 UnaryPredicate p );
 //	(4) 	(since C++17)
-//template< class InputIt, class UnaryPredicate >
+//template<typename InputIt, typename UnaryPredicate>
 //
 //InputIt find_if_not( InputIt first, InputIt last,
 //                     UnaryPredicate q );
 //	(5) 	(since C++11)
-//template< class ExecutionPolicy, class ForwardIt, class UnaryPredicate >
+//template<typename ExecutionPolicy, typename ForwardIt, typename UnaryPredicate>
 //
 //ForwardIt find_if_not( ExecutionPolicy&& policy, ForwardIt first, ForwardIt last,
 //                     UnaryPredicate q );
@@ -296,13 +340,13 @@ void sort(range<T> r, Comp comp) { std::sort(std::begin(r), std::end(r), comp); 
 // for dividing a container into multiple threads
 // divides the work up equally giving the  lower indexes distribution priority
 template<typename Container>
-std::vector<hol::range<typename Container::value_type>> divide_up_work(Container& v, std::size_t n)
+std::vector<range<typename Container::value_type>> divide_up_work(Container& v, std::size_t n)
 {
 	if(!n)
 		return {};
 
 	if(n == 1)
-		return {hol::range<typename Container::value_type>(v)};
+		return {range<typename Container::value_type>(v)};
 
 	auto size = v.size();
 	auto batch_size = size / n;
@@ -313,7 +357,7 @@ std::vector<hol::range<typename Container::value_type>> divide_up_work(Container
 	for(std::size_t i = 0; i < extra % size; ++i)
 		++parts[i];
 
-	std::vector<hol::range<typename Container::value_type>> ranges;
+	std::vector<range<typename Container::value_type>> ranges;
 	ranges.reserve(n);
 
 	ranges.emplace_back(std::begin(v), parts[0]);
@@ -322,6 +366,53 @@ std::vector<hol::range<typename Container::value_type>> divide_up_work(Container
 	ranges.emplace_back(std::end(ranges.back()), std::end(v));
 
 	return ranges;
+}
+
+// SETS
+
+// STRINGS
+
+using srange = range<char>;
+using const_srange = range<char const>;
+
+using wsrange = range<wchar_t>;
+using const_wsrange = range<wchar_t const>;
+
+using u16srange = range<char16_t>;
+using const_u16srange = range<char16_t const>;
+
+using u32srange = range<char32_t>;
+using const_u32srange = range<char32_t const>;
+
+using rmatch = std::match_results<srange::iterator>;
+using wrmatch = std::match_results<wsrange::iterator>;
+using u16rmatch = std::match_results<u16srange::iterator>;
+using u32rmatch = std::match_results<u32srange::iterator>;
+
+std::vector<hol::srange> regex_match(hol::srange s, std::regex const& e,
+	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
+{
+	std::vector<hol::srange> matches;
+
+	std::match_results<hol::srange::iterator> m;
+	if(std::regex_match(std::begin(s), std::end(s), m, e, flags))
+		for(auto& sm: m)
+			matches.emplace_back(sm.first, sm.second);
+
+	return matches;
+}
+
+std::vector<hol::srange> regex_search(hol::srange s, std::regex const& e,
+	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
+{
+	std::vector<hol::srange> matches;
+
+	std::match_results<hol::srange::iterator> m;
+	if(std::regex_search(std::begin(s), std::end(s), m, e, flags))
+		for(auto& sm: m)
+			matches.emplace_back(sm.first, sm.second);
+
+	return matches;
 }
 
 } // namespace range_utils
