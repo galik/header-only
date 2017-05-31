@@ -386,11 +386,11 @@ std::vector<range<typename Container::value_type>> divide_up_work(Container& v, 
  * @return The leftmost range after splicing.
  */
 template<typename T>
-hol::range<T> left_splice(hol::range<T> r1, hol::range<T> r2)
+range<T> left_splice(range<T> r1, range<T> r2)
 {
 	if(r1.data() < r2.data())
-		return hol::range<T>{r1.data(), std::min(r1.data() + r1.size(), r2.data())};
-	return hol::range<T>{r2.data(), std::min(r2.data() + r2.size(), r1.data())};
+		return range<T>{r1.data(), std::min(r1.data() + r1.size(), r2.data())};
+	return range<T>{r2.data(), std::min(r2.data() + r2.size(), r1.data())};
 }
 
 /**
@@ -409,11 +409,11 @@ hol::range<T> left_splice(hol::range<T> r1, hol::range<T> r2)
  * @return The rightmost range after splicing.
  */
 template<typename T>
-hol::range<T> right_splice(hol::range<T> r1, hol::range<T> r2)
+range<T> right_splice(range<T> r1, range<T> r2)
 {
 	if(r1.data() + r1.size() < r2.data() + r2.size())
-		return hol::range<T>{std::max(r1.data() + r1.size(), r2.data()), r2.data() + r2.size()};
-	return hol::range<T>{std::max(r2.data() + r2.size(), r1.data()), r1.data() + r1.size()};
+		return range<T>{std::max(r1.data() + r1.size(), r2.data()), r2.data() + r2.size()};
+	return range<T>{std::max(r2.data() + r2.size(), r1.data()), r1.data() + r1.size()};
 }
 
 // STRINGS
