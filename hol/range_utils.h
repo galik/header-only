@@ -138,6 +138,34 @@ public:
 		return range{m_beg + pos, m_end};
 	}
 
+	template<typename U = T>
+	typename std::enable_if
+	<
+		std::is_same<U, char>::value
+		|| std::is_same<U, wchar_t>::value
+		|| std::is_same<U, char16_t>::value
+		|| std::is_same<U, char32_t>::value,
+		range
+	>::type
+	substr(std::size_t pos, std::size_t len) noexcept
+	{
+		return subrange(pos, len);
+	}
+
+	template<typename U = T>
+	typename std::enable_if
+	<
+		std::is_same<U, char>::value
+		|| std::is_same<U, wchar_t>::value
+		|| std::is_same<U, char16_t>::value
+		|| std::is_same<U, char32_t>::value,
+		range
+	>::type
+	substr(std::size_t pos) noexcept
+	{
+		return subrange(pos);
+	}
+
 	bool operator<(range const& other) const
 	{
 		return std::lexicographical_compare(
@@ -417,6 +445,12 @@ range<T> right_splice(range<T> r1, range<T> r2)
 }
 
 // STRINGS
+
+//template<>
+//class range<char>
+//{
+//
+//};
 
 using srange = range<char>;
 using const_srange = range<char const>;
