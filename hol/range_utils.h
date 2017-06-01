@@ -30,6 +30,14 @@
 
 #include <cassert>
 
+#ifndef HOL_CONCEPT
+#ifdef __cpp_concepts
+#define HOL_CONCEPT(c) c
+#else
+#define HOL_CONCEPT(c)
+#endif
+#endif // HOL_CONCEPT
+
 #ifndef HOL_DEBUG_ONLY_SECTION
 #ifndef NDEBUG
 #define HOL_DEBUG_ONLY_SECTION(code) code
@@ -40,6 +48,20 @@
 
 namespace header_only_library {
 namespace range_utils {
+
+namespace concepts {
+#ifdef __cpp_concepts
+
+template<typename Char>
+concept bool StdCharType
+	 = std::is_same<Char, char>::value
+	|| std::is_same<Char, wchar_t>::value
+	|| std::is_same<Char, char16_t>::value
+	|| std::is_same<Char, char32_t>::value;
+
+#endif // __cpp_concept
+} // namespace concepts
+
 namespace detail {
 
 template<typename T>
@@ -635,6 +657,7 @@ std::vector<range<Char>> regex_search(range<Char> s, std::regex const& e,
 // everywhere
 
 template<typename Char>
+HOL_CONCEPT(requires concepts::StdCharType<Char>)
 Char& at(range<Char> r, std::size_t n) { return r.at(n); }
 
 template<typename Char>
