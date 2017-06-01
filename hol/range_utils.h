@@ -30,6 +30,14 @@
 
 #include <cassert>
 
+#ifndef HOL_DEBUG_ONLY_SECTION
+#ifndef NDEBUG
+#define HOL_DEBUG_ONLY_SECTION(code) code
+#else
+#define HOL_DEBUG_ONLY_SECTION(code)
+#endif
+#endif // HOL_DEBUG_ONLY_SECTION
+
 namespace header_only_library {
 namespace range_utils {
 namespace detail {
@@ -79,23 +87,27 @@ public:
 
 	range() noexcept = default;
 
-	explicit range(T* beg, T* end) noexcept: m_beg(beg), m_end(end) { assert(m_beg <= m_end); }
-	explicit range(T* beg, std::size_t len) noexcept: m_beg(beg), m_end(beg + len) { assert(m_beg <= m_end); }
+	explicit range(T* beg, T* end) noexcept: m_beg(beg), m_end(end)
+	{
+		assert(m_beg <= m_end);
+		HOL_DEBUG_ONLY_SECTION
+		(
+			m_orig_beg = m_beg;
+			m_orig_end = m_end;
+		)
+	}
+
+	explicit range(T* beg, std::size_t len) noexcept: range(beg, beg + len) {}
 
 	template<std::size_t Size>
-	explicit range(T(&a)[Size]) noexcept
-	: m_beg(&*std::begin(a))
-	, m_end(&*std::end(a)) {}
+	explicit range(T(&a)[Size]) noexcept: range(&*std::begin(a), &*std::end(a)) {}
 
 	template<typename Container>
 	explicit range(Container&& c) noexcept
-	: m_beg(&*std::begin(std::forward<Container>(c)))
-	, m_end(&*std::end(std::forward<Container>(c))) {}
+	: range(&*std::begin(std::forward<Container>(c)), &*std::end(std::forward<Container>(c))) {}
 
 	template<typename ForwardIter>
-	explicit range(ForwardIter beg, ForwardIter end) noexcept
-	: m_beg(&*beg)
-	, m_end(&*end) {}
+	explicit range(ForwardIter beg, ForwardIter end) noexcept: range(&*beg, &*end) {}
 
 	constexpr iterator begin() noexcept { return m_beg; }
 	constexpr const_iterator begin() const noexcept { return m_beg; }
@@ -118,8 +130,17 @@ public:
 	pointer data() { return m_beg; }
 	const_pointer data() const { return m_beg; }
 
+	reference at(std::size_t n) noexcept { assert(n < size()); return m_beg[n]; }
+	const_reference at(std::size_t n) const noexcept { assert(n < size()); return m_beg[n]; }
+
 	reference operator[](std::size_t n) noexcept { assert(n < size()); return m_beg[n]; }
 	const_reference operator[](std::size_t n) const noexcept { assert(n < size()); return m_beg[n]; }
+
+	reference front() { assert(!empty()); return *m_beg; }
+	const_reference front() const { assert(!empty()); return *m_beg; }
+
+	reference back() { assert(!empty()); return *(m_end - 1); }
+	const_reference back() const { assert(!empty()); return *(m_end - 1); }
 
 	std::size_t size() const noexcept { return m_end - m_beg; }
 	bool empty() const noexcept { return !size(); }
@@ -205,11 +226,30 @@ public:
 	std::vector<value_type> vector() const { return {m_beg, m_end}; }
 
 	void swap(range& other) noexcept
-		{ std::swap(m_beg, other.m_beg); std::swap(m_end, other.m_end); }
+	{
+		std::swap(m_beg, other.m_beg);
+		std::swap(m_end, other.m_end);
+		HOL_DEBUG_ONLY_SECTION
+		(
+			std::swap(m_orig_beg, other.m_orig_beg);
+			std::swap(m_orig_end, other.m_orig_end);
+		)
+	}
+
+	void resize(std::size_t n)
+	{
+		assert(m_beg + n <= m_orig_end);
+		m_end = m_beg + n;
+	}
 
 private:
 	pointer m_beg = nullptr;
 	pointer m_end = nullptr;
+	HOL_DEBUG_ONLY_SECTION
+	(
+		pointer m_orig_beg = nullptr;
+		pointer m_orig_end = nullptr;
+	)
 };
 
 template<typename T>
@@ -220,15 +260,15 @@ using const_range_iterator = range_iterator<const T>;
 
 template<typename Container>
 auto make_range(Container& c)
-{
-	return range<typename Container::value_type>(c);
-}
+	{ return range<typename Container::value_type>(c); }
 
 template<typename T, std::size_t Size>
 auto make_range(T(&a)[Size])
-{
-	return range<T>(a);
-}
+	{ return range<T>(a); }
+
+template<typename T>
+auto make_range(T* beg, T* end)
+	{ return range<T>(beg, end); }
 
 template<typename T, typename UnaryPredicate>
 bool all_of(range<T> r, UnaryPredicate p)
@@ -257,30 +297,22 @@ auto count(range<T> r, UnaryPredicate p)
 template<typename T>
 std::pair<range_iterator<T>, range_iterator<T>>
 mismatch(range<T> r, range_iterator<T> i)
-{
-	return std::mismatch(std::begin(r), std::end(r), i);
-}
+	{ return std::mismatch(std::begin(r), std::end(r), i); }
 
 template<typename T, typename BinaryPredicate>
 std::pair<range_iterator<T>, range_iterator<T>>
 mismatch(range<T> r, range_iterator<T> i, BinaryPredicate p)
-{
-	return std::mismatch(std::begin(r), std::end(r), p);
-}
+	{ return std::mismatch(std::begin(r), std::end(r), p); }
 
 template<typename T>
 std::pair<range_iterator<T>, range_iterator<T>>
 mismatch(range<T> r1, range<T> r2)
-{
-	return std::mismatch(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2));
-}
+	{ return std::mismatch(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
 
 template<typename T, typename BinaryPredicate>
 std::pair<range_iterator<T>, range_iterator<T>>
 mismatch(range<T> r1, range<T> r2, BinaryPredicate p)
-{
-	return std::mismatch(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p);
-}
+	{ return std::mismatch(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
 template<typename T>
 bool equal(range<T> r, range_iterator<T> i)
@@ -345,6 +377,7 @@ range_iterator<T> search_n(range<T> r, Size count, T const& value)
 template<typename Size, typename T, typename BinaryPredicate>
 range_iterator<T> search_n(range<T> r, Size count, T const& value, BinaryPredicate p)
 { return std::search_n(std::begin(r), std::end(r), count, value, p); }
+
 
 
 template<typename T, typename OutIter>
@@ -561,31 +594,62 @@ using u32rmatch = std::match_results<u32srange::iterator>;
 using rregex_iterator = std::regex_iterator<srange::iterator>;
 using rregex_token_iterator = std::regex_token_iterator<srange::iterator>;
 
-std::vector<srange> regex_match(srange s, std::regex const& e,
+template<typename Char>
+std::vector<range<Char>> regex_match(range<Char> s, std::regex const& e,
 	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
 {
-	std::vector<srange> matches;
+	std::match_results<typename range<Char>::iterator> m;
+	if(!std::regex_match(std::begin(s), std::end(s), m, e, flags))
+		return {};
 
-	std::match_results<srange::iterator> m;
-	if(std::regex_match(std::begin(s), std::end(s), m, e, flags))
-		for(auto& sm: m)
-			matches.emplace_back(sm.first, sm.second);
+	std::vector<range<Char>> matches;
+	matches.reserve(m.size());
+
+	for(auto& sm: m)
+		matches.emplace_back(sm.first, sm.second);
 
 	return matches;
 }
 
-std::vector<srange> regex_search(srange s, std::regex const& e,
+template<typename Char>
+std::vector<range<Char>> regex_search(range<Char> s, std::regex const& e,
 	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
 {
-	std::vector<srange> matches;
 
-	std::match_results<srange::iterator> m;
-	if(std::regex_search(std::begin(s), std::end(s), m, e, flags))
-		for(auto& sm: m)
-			matches.emplace_back(sm.first, sm.second);
+	std::match_results<typename range<Char>::iterator> m;
+	if(!std::regex_search(std::begin(s), std::end(s), m, e, flags))
+		return {};
+
+	std::vector<range<Char>> matches;
+	matches.reserve(m.size());
+
+	for(auto& sm: m)
+		matches.emplace_back(sm.first, sm.second);
 
 	return matches;
 }
+
+// string functions (std::string members as free functions)
+
+// TODO: These are SLOW and wasteful. Rewrite without creating std::string objects
+// everywhere
+
+template<typename Char>
+Char& at(range<Char> r, std::size_t n) { return r.at(n); }
+
+template<typename Char>
+Char& front(range<Char> r) { return r.front(); }
+
+template<typename Char>
+Char& back(range<Char> r) { return r.back(); }
+
+template<typename Char>
+Char* c_str(range<Char> r) { return r.data(); }
+
+template<typename Char>
+int compare(range<Char> r1, range<Char> r2) { return r1.string().compare(r2.string()); }
+
+//std::string::
 
 } // namespace range_utils
 } // namespace header_only_library
