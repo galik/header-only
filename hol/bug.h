@@ -137,22 +137,4 @@ struct scope_bomb
 
 } // header_only_library
 
-#ifdef __GNUG__
-//
-// Branch Prediction Hints
-//
-// Usage:
-//
-// if(likely(my_condition(i)))
-// {
-//     // most visited code here
-// }
-//
-#define likely(x)    __builtin_expect(!!(x), 1)
-#define unlikely(x)  __builtin_expect(!!(x), 0)
-#else
-#define likely(x)    (x)
-#define unlikely(x)  (x)
-#endif
-
 #endif // HOL_BUG_H
