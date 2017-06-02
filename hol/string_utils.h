@@ -1464,19 +1464,25 @@ public:
 	erasing_buffer() noexcept: buff({}) {}
 	~erasing_buffer() { fill(data()); }
 
-	char* data() { return buff.data(); }
-	std::size_t size() { return buff.size(); }
+	char volatile* data() { return buff.data(); }
+	char volatile const* data() const { return buff.data(); }
+
+	std::size_t size() const { return buff.size(); }
+
+	auto begin() { return std::begin(buff); }
+	auto begin() const { return std::begin(buff); }
+
+	auto end() { return std::end(buff); }
+	auto end() const { return std::end(buff); }
 
 private:
-	static void opaque_fill(char* data)
-	{
-		std::fill(data, data + N, '\0');
-	}
+	static void opaque_fill(char volatile* data)
+		{ std::fill(data, data + N, '\0'); }
 
 	// call through function pointer can't be optimized away
 	// because it can't be inlined
-	void (*fill)(char*) = &opaque_fill;
-	std::array<char, N> buff;
+	void (*fill)(char volatile*) = &opaque_fill;
+	std::array<char volatile, N> buff;
 };
 
 // buffer-safe user input with std::strings
