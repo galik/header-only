@@ -26,145 +26,77 @@ Everything in this repository is released under the **MIT** license as follows:
 
 # The Library
 
-* `basic_serialization`
-
-This makes serializing simple objects easier by providing basic serialization functions.
-
-* `string_stream_view`
-
-This is a `std::istream` that wraps a `std::experimental::string_view` as its internal buffer.
-
-* `u8string`
-
-This is a `UTF-8` string class.
-
 * `string_utils`
 
 This is basic string manipulation functions like `trim()`.
 
-* `random_utils`
+* `random_numbers`
 
-This is basic random number functions
+This is basic random number functions making the post `C++11` random functions easier to use.
 
-##Basic Serialization
+* `unicode_utils`
 
-Simple object serialization in both text and binary mode
+Basic Unicode conversion routines making the post `C++11` unicode conversion functions easier to use. 
 
-Example usage:
+## String Utils
+
+Basic, efficiently implemented string handling utils for trimming, splitting, joining and replacing strings.
 
 ```cpp
-#include <hol/bug.h>
-#include <hol/basic_serialization.h>
+#include <iostream>
+#include <string>
 
-struct OtherType
-{
-	class SerializeMe* sm;
-	int i1;
-	int i2;
+#include <hol/string_utils.h>
 
-	OtherType(): sm(nullptr), i1(1), i2(2) {}
-
-	friend std::ostream& operator<<(std::ostream& s, OtherType const& me)
-	{
-		using namespace hol::basic_serialization::txt;
-		serialize_ptr(s, me.sm);
-		serialize(s, me.i1);
-		serialize(s, me.i2);
-
-		return s;
-	}
-
-	friend std::istream& operator>>(std::istream& s, OtherType& me)
-	{
-		using namespace hol::basic_serialization::txt;
-		deserialize_ptr(s, me.sm);
-		deserialize(s, me.i1);
-		deserialize(s, me.i2);
-
-		return s;
-	}
-};
-
-struct SerializeMe
-{
-	int i;
-	OtherType* otp1;
-	std::string s;
-	OtherType* otp2;
-
-	friend std::ostream& operator<<(std::ostream& s, SerializeMe const& me)
-	{
-		using namespace hol::basic_serialization::txt;
-		serialize(s, me.i);
-		serialize_ptr(s, me.otp1);
-		serialize(s, me.s);
-		serialize_ptr(s, me.otp2);
-
-		return s;
-	}
-
-	friend std::istream& operator>>(std::istream& s, SerializeMe& me)
-	{
-		using namespace hol::basic_serialization::txt;
-		deserialize(s, me.i);
-		deserialize_ptr(s, me.otp1);
-		deserialize(s, me.s);
-		deserialize_ptr(s, me.otp2);
-
-		return s;
-	}
-};
+namespace hol {using namespace header_only_library::string_utils;}
 
 int main()
 {
-	SerializeMe me;
-	me.i = 4;
-	me.s = "hello";
-	me.otp1 = new OtherType;
-	me.otp2 = new OtherType;
-	me.otp1->sm = &me;
-	if(me.otp1)
-	{
-		me.otp1->i1 = 3;
-		me.otp1->i2 = 5;
-	}
-	if(me.otp2)
-	{
-		me.otp2->i1 = 6;
-		me.otp2->i2 = 12;
-	}
+	std::string s = "   The quick brown fox    ";
 	
-	std::stringstream ss;
+	// The `mute` function change the passed in variable.
+	hol::trim_mute(s); // remove surrounding whitespace (by default)
+	
+	char const* cs = "   Mary had a little lamb.   ";
+	
+	// The `copy` functions return a new copy of the trimmed string leaving
+	// the original intact.
+	s = hol::trim_copy(cs);
+	
+	auto v = hol::split_copy(s); // divide sentence into a std::vector of words
+	
+	for(auto const& s: v)
+		std::cout << s << '\n';
+}
 
-	using namespace hol::basic_serialization::txt;
-	serialization_init();
-	ss << me;
+```
 
-	bug_var(ss.str());
+##Random Numbers
 
-	SerializeMe you;
+The library is self-seeding, efficient and thread safe so it is east to use without complicated setup.
 
-	using namespace hol::basic_serialization::txt;
-	serialization_init();
-	ss >> you;
+```cpp
+#include <algorithm>
+#include <iostream>
+#include <vector>
 
-	bug_var(you.i);
-	bug_var(you.s);
-	if(me.otp1)
-	{
-		bug_var(you.otp1->i1);
-		bug_var(you.otp1->i2);
-	}
-	if(me.otp2)
-	{
-		bug_var(you.otp2->i1);
-		bug_var(you.otp2->i2);
-	}
+#include <hol/random_numbers.h>
 
-	bug_var(you.otp1->sm->i);
-	bug_var(you.otp1->sm->s);
+namespace hol {using namespace header_only_library::random_numbers;}
 
-	bug_var(you.otp1->sm->otp1->i1);
-	bug_var(you.otp1->sm->otp2);
+int main()
+{
+	std::vector<int> v(hol::random_number(20)); // between 0-20 elements	
+	
+	// fill it with random numbers between 10 and 20
+	std::generate(std::begin(v), std::end(v), []{ return hol::random_number(10, 20); });
+	
+	// pick an element at random
+	auto i = std::random_element(v);
+	
+	// print it out 75% of the time
+	if(random_choice(0.75))
+		std::cout << "i: " << i << '\n';
 }
 ```
+
