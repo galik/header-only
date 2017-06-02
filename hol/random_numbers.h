@@ -26,8 +26,8 @@
 #include <cassert>
 #include <limits>
 
-#ifndef HOL_RANDOM_NUMBERS_GENERATOR
-#define HOL_RANDOM_NUMBERS_GENERATOR std::mt19937
+#ifndef HOL_RANDOM_NUMBER_GENERATOR
+#define HOL_RANDOM_NUMBER_GENERATOR std::mt19937
 #endif
 
 #ifndef HOL_CONCEPT
@@ -42,7 +42,7 @@ namespace header_only_library {
 namespace random_numbers {
 namespace detail {
 
-using Generator = HOL_RANDOM_NUMBERS_GENERATOR;
+using Generator = HOL_RANDOM_NUMBER_GENERATOR;
 
 #ifdef __cpp_concepts
 
@@ -114,32 +114,21 @@ auto const& random_data()
 {
 	thread_local static std::array<typename Generator::result_type, Generator::state_size> data;
 	thread_local static std::random_device rd;
+
 	std::generate(std::begin(data), std::end(data), std::ref(rd));
+
 	return data;
 }
 
 inline
-auto& random_generator()
+Generator& random_generator()
 {
 	auto const& data = random_data();
+
 	thread_local static std::seed_seq seeds(std::begin(data), std::end(data));
 	thread_local static Generator gen{seeds};
 
 	return gen;
-}
-
-inline
-void random_reseed()
-{
-	std::seed_seq seeds(std::begin(random_data()), std::end(random_data()));
-	random_generator().seed(seeds);
-}
-
-inline
-void random_reseed(typename Generator::result_type n)
-{
-	std::seed_seq seeds(&n, &n + 1);
-	random_generator().seed(seeds);
 }
 
 template<typename Number>
@@ -185,21 +174,43 @@ detail::Generator& random_generator()
 }
 
 /**
+ * Re-seed the underlying pseudo random number generator
+ * from a `std::seed_seq`.
+ * Every unique list of seeds value will cause the same stream
+ * of pseudo random numbers to be generated
+ *
+ * @param seeds The `std::seed_seq` to use.
+ */
+inline
+void random_reseed(std::seed_seq& seeds)
+{
+	random_generator().seed(seeds);
+}
+
+/**
  * Properly re-seed the underlying pseudo random number
  * generator from the std::random_device.
  */
 inline
-void random_reseed() { detail::random_reseed(); }
+void random_reseed()
+{
+	std::seed_seq seeds(std::begin(detail::random_data()), std::end(detail::random_data()));
+	random_reseed(seeds);
+}
 
 /**
  * Re-seed the underlying pseudo random number generator.
- * Every unique seed value will cause the same stream of pseudo random numbers
- * to be generated
+ * Every unique list of seeds value will cause the same stream
+ * of pseudo random numbers to be generated
  *
- * @param n The seed value to use.
+ * @param numbers The list of seed values to use.
  */
-inline
-void random_reseed(std::size_t n) { detail::random_reseed(n); }
+template<typename... Numbers>
+void random_reseed(Numbers... numbers)
+{
+	std::seed_seq ss({numbers...});
+	random_reseed(ss);
+}
 
 /**
  * Generate a pseudo random number that is uniformly distributed
@@ -208,7 +219,8 @@ void random_reseed(std::size_t n) { detail::random_reseed(n); }
  * @param from Lowest possible value.
  * @param to Highest possible value.
  *
- * @return A random number between `from` and `to` (inclusive)
+ * @return A random number between `from` and `to`
+ * (inclusive for integers, exclusive for floats)
  */
 template<typename Number>
 Number random_number(Number from, Number to)
@@ -257,16 +269,35 @@ HOL_CONCEPT(||       detail::StdInteger<Number>)
 	return detail::random_number(from, to);
 }
 
-// -------------------------
-
 /**
  * Randomly return true or false.
+ *
+ * @param p The probability that the function will return `true`.
  *
  * @return true or false
  */
 template<typename Real = double>
 bool random_choice(Real p = 0.5)
 	{ return detail::randomly_distributed_number<std::bernoulli_distribution>(p); }
+
+/**
+ * Return an iterator to a randomly selected container element
+ * from the `begin` iterator up to, but not including the `end` iterator.
+ * If the distance between the iterators is zero, the behavior is undefined.
+ *
+ * @param begin The first iterator in the range to be considered.
+ * @param end The last iterator in the range which will not be included.
+ *
+ * @return An iterator to a pseudo randomly selected element
+ * from the supplied range.
+ */
+template<typename Iter>
+decltype(auto) random_iteator(Iter begin, Iter end)
+{
+	assert(std::distance(begin, end) > 0);
+	return std::next(begin,
+		random_number(std::distance(begin, end) - 1));
+}
 
 /**
  * Return an iterator to a randomly selected container element. If the
@@ -279,18 +310,27 @@ bool random_choice(Real p = 0.5)
 template<typename Container>
 decltype(auto) random_iterator(Container&& c)
 {
-	return std::next(std::begin(std::forward<Container>(c)),
-		random_number(std::forward<Container>(c).size() - 1));
-}
-
-template<typename T, std::size_t N>
-decltype(auto) random_iterator(T(&arr)[N])
-{
-	return std::next(std::begin(arr), random_number(N - 1));
+	assert(!c.empty());
+	return random_iterator(std::begin(c), std::end(c));
 }
 
 /**
- * Return a randomly selected container element. If the
+ * Return an iterator to a randomly selected array element. If the
+ * array is empty the behavior is undefined.
+ *
+ * @param c The array to select an element from.
+ *
+ * @return An iterator to a pseudo randomly selected element from the supplied array.
+ */
+template<typename T, std::size_t N>
+decltype(auto) random_iterator(T(&array)[N])
+{
+	assert(N > 0);
+	return std::next(std::begin(array), random_number(N - 1));
+}
+
+/**
+ * Return a randomly selected element from a container. If the
  * container is empty the behavior is undefined.
  *
  * @param c The container to select an element from.
@@ -301,6 +341,22 @@ template<typename Container>
 decltype(auto) random_element(Container&& c)
 {
 	return *random_iterator(std::forward<Container>(c));
+}
+
+/**
+ * Return a randomly selected element from a range of iterators. If the
+ * distance between the iterators is zero,  the behavior is undefined.
+ *
+ * @param begin The first iterator in the range to be considered.
+ * @param end The last iterator in the range which will not be included.
+ *
+ * @return A reference to a pseudo randomly selected element from the supplied container.
+ */
+template<typename Iter>
+decltype(auto) random_element(Iter begin, Iter end)
+{
+	assert(std::distance(begin, end) > 0);
+	return *random_iterator(begin, end);
 }
 
 } // namespace random_numbers
