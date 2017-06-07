@@ -27,7 +27,8 @@ PRGS_17 := $(patsubst %.cpp,%-17,$(SRCS))
 PRGS := $(PRGS_11) $(PRGS_14) $(PRGS_17)
 
 #all: $(PRGS_11) $(PRGS_14) $(PRGS_17)
-all: $(PRGS_14) $(PRGS_17)
+#all: $(PRGS_14) $(PRGS_17)
+all: $(PRGS_14)
 
 show:
 	@echo SRCS $(SRCS)
