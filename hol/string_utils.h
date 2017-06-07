@@ -1334,36 +1334,6 @@ String<C, T, A> join(Container<String<C, T, A>> const& c)
 	return join(c, String<C, T, A>(header_only_library::string_utils::detail::empty(C())));
 }
 
-//template<class CharT, template<class> class String, template<class> class Container>
-//String<CharT> join(Container<String<CharT>> const& c, String<CharT> const& delim)
-//{
-//	String<CharT> ret, sep;
-//
-//	auto size = std::accumulate(std::begin(c), std::end(c), std::size_t(0), [](auto n, auto const& s)
-//	{
-//		return n + s.size();
-//	}) + ((c.size() - 1) * delim.size());
-//
-//	ret.reserve(size);
-//
-//	for(auto const& s: c)
-//		{ ret += sep + s; sep = delim; }
-//
-//	return ret;
-//}
-//
-//template<class CharT, template<class> class String, template<class> class Container>
-//String<CharT> join(Container<String<CharT>> const& c, CharT const* delim)
-//{
-//	return join(c, String<CharT>(delim));
-//}
-//
-//template<class CharT, template<class> class String, template<class> class Container>
-//String<CharT> join(Container<String<CharT>> const& c)
-//{
-//	return join(c, String<CharT>(detail::empty(CharT())));
-//}
-
 // --------------------------------------------------------------------
 // string conversions
 // --------------------------------------------------------------------
@@ -1374,15 +1344,15 @@ String<C, T, A> join(Container<String<C, T, A>> const& c)
 // they accept the same input as their corresponding
 // std::strtoxx() functions.
 
-bool s_to_l(const std::string& s, long& l);
-bool s_to_ll(const std::string& s, long long& ll);
-
-bool s_to_ul(const std::string& s, unsigned long& ul);
-bool s_to_ull(const std::string& s, unsigned long long& ull);
-
-bool s_to_f(const std::string& s, float& f);
-bool s_to_d(const std::string& s, double& d);
-bool s_to_ld(const std::string& s, long double& ld);
+//bool s_to_l(const std::string& s, long& l);
+//bool s_to_ll(const std::string& s, long long& ll);
+//
+//bool s_to_ul(const std::string& s, unsigned long& ul);
+//bool s_to_ull(const std::string& s, unsigned long long& ull);
+//
+//bool s_to_f(const std::string& s, float& f);
+//bool s_to_d(const std::string& s, double& d);
+//bool s_to_ld(const std::string& s, long double& ld);
 
 // string conversions
 
@@ -1398,8 +1368,49 @@ bool s_to_test(char const* s, char const* e)
 	return !(*e);
 }
 
+template<typename Signed>
+bool s_to_i(const std::string& s, Signed& i, int base = 10)
+{
+	static_assert(std::is_integral<Signed>::value, "s_to_i() requires an integral output value");
+	static_assert(std::is_signed<Signed>::value, "s_to_i() requires a signed output value, did you mean s_to_u()?");
+
+	char* end;
+	auto l = std::strtoll(s.c_str(), &end, base);
+
+	if(l > std::numeric_limits<Signed>::max()
+	|| l < std::numeric_limits<Signed>::min())
+		return false;
+
+	if(!s_to_test(s.c_str(), end))
+		return false;
+
+	i = static_cast<Signed>(l);
+
+	return true;
+}
+
+template<typename Unsigned>
+bool s_to_u(const std::string& s, Unsigned& i, int base = 10)
+{
+	static_assert(std::is_integral<Unsigned>::value, "s_to_u() requires an integral output value");
+	static_assert(std::is_unsigned<Unsigned>::value, "s_to_u() requires an unsigned output value, did you mean s_to_i()?");
+
+	char* end;
+	auto l = std::strtoull(s.c_str(), &end, base);
+
+	if(l > std::numeric_limits<Unsigned>::max())
+		return false;
+
+	if(!s_to_test(s.c_str(), end))
+		return false;
+
+	i = static_cast<Unsigned>(l);
+
+	return true;
+}
+
 inline
-bool s_to_l(const std::string& s, long int& l)
+bool s_to_i(const std::string& s, long int& l)
 {
 	char* end;
 	l = std::strtol(s.c_str(), &end, 10);
@@ -1407,7 +1418,7 @@ bool s_to_l(const std::string& s, long int& l)
 }
 
 inline
-bool s_to_ll(const std::string& s, long long int& ll)
+bool s_to_i(const std::string& s, long long int& ll)
 {
 	char* end;
 	ll = std::strtoll(s.c_str(), &end, 10);
@@ -1415,7 +1426,7 @@ bool s_to_ll(const std::string& s, long long int& ll)
 }
 
 inline
-bool s_to_ul(const std::string& s, unsigned long int& ul)
+bool s_to_u(const std::string& s, unsigned long int& ul)
 {
 	char* end;
 	ul = std::strtoul(s.c_str(), &end, 10);
@@ -1423,42 +1434,74 @@ bool s_to_ul(const std::string& s, unsigned long int& ul)
 }
 
 inline
-bool s_to_ull(const std::string& s, unsigned long long int& ull)
+bool s_to_u(const std::string& s, unsigned long long int& ull)
 {
 	char* end;
 	ull = std::strtoull(s.c_str(), &end, 10);
 	return s_to_test(s.c_str(), end);
 }
 
-inline
-bool s_to_f(const std::string& s, float& f)
-{
-	char* end;
-	f = std::strtof(s.c_str(), &end);
-	return s_to_test(s.c_str(), end);
-}
-
-inline
-bool s_to_d(const std::string& s, double& d)
-{
-	char* end;
-	d = std::strtod(s.c_str(), &end);
-	return s_to_test(s.c_str(), end);
-}
-
-inline
-bool s_to_ld(const std::string& s, long double& ld)
-{
-	char* end;
-	ld = std::strtold(s.c_str(), &end);
-	return s_to_test(s.c_str(), end);
-}
-
-inline
-long strtol_safe(const char* ptr, const char*& end, int base)
-{
-	return std::strtol(ptr, const_cast<char**>(&end), base);
-}
+//inline
+//bool s_to_l(const std::string& s, long int& l)
+//{
+//	char* end;
+//	l = std::strtol(s.c_str(), &end, 10);
+//	return s_to_test(s.c_str(), end);
+//}
+//
+//inline
+//bool s_to_ll(const std::string& s, long long int& ll)
+//{
+//	char* end;
+//	ll = std::strtoll(s.c_str(), &end, 10);
+//	return s_to_test(s.c_str(), end);
+//}
+//
+//inline
+//bool s_to_ul(const std::string& s, unsigned long int& ul)
+//{
+//	char* end;
+//	ul = std::strtoul(s.c_str(), &end, 10);
+//	return s_to_test(s.c_str(), end);
+//}
+//
+//inline
+//bool s_to_ull(const std::string& s, unsigned long long int& ull)
+//{
+//	char* end;
+//	ull = std::strtoull(s.c_str(), &end, 10);
+//	return s_to_test(s.c_str(), end);
+//}
+//
+//inline
+//bool s_to_f(const std::string& s, float& f)
+//{
+//	char* end;
+//	f = std::strtof(s.c_str(), &end);
+//	return s_to_test(s.c_str(), end);
+//}
+//
+//inline
+//bool s_to_d(const std::string& s, double& d)
+//{
+//	char* end;
+//	d = std::strtod(s.c_str(), &end);
+//	return s_to_test(s.c_str(), end);
+//}
+//
+//inline
+//bool s_to_ld(const std::string& s, long double& ld)
+//{
+//	char* end;
+//	ld = std::strtold(s.c_str(), &end);
+//	return s_to_test(s.c_str(), end);
+//}
+//
+//inline
+//long strtol_safe(const char* ptr, const char*& end, int base)
+//{
+//	return std::strtol(ptr, const_cast<char**>(&end), base);
+//}
 
 // --------------------------------------------------------------------
 
@@ -1545,6 +1588,29 @@ std::istream& getline(std::istream& is, std::string& s, std::streamsize num, cha
 	return is;
 }
 
+/**
+ * Usage:
+ *
+  	mapped_stencil ms;
+
+	mapped_stencil::dict d =
+	{
+		{"${a}", "A"},
+		{"${b}", "Beeeef"},
+		{"${c}", "C"},
+	};
+
+	std::string text = "${c}some text to ${a} test mapped_stencil ${b}";
+
+	ms.compile(text, std::set<std::string>{"${a}", "${b}", "${c}"});
+
+	ms.create(d, std::cout);
+	std::cout << '\n';
+
+	ms.preallocate(d);
+	auto s = ms.create(d);
+ *
+ */
 class mapped_stencil
 {
 	struct place
@@ -1561,8 +1627,9 @@ class mapped_stencil
 	};
 
 	// order: piece, var, piece, var, piece
-	place::set vars;
+	place::vec vars;
 	std::string text;
+	std::ptrdiff_t diff = 0;
 
 public:
 	using dict = std::map<std::string, std::string>;
@@ -1577,35 +1644,81 @@ public:
 	mapped_stencil& operator=(mapped_stencil&& s) { vars = std::move(s.vars); text = std::move(s.text); return *this; }
 	mapped_stencil& operator=(mapped_stencil const& s) { vars = s.vars; text = s.text; return *this; }
 
-	void clear() { vars.clear(); text.clear(); }
+	void clear() { vars.clear(); text.clear(); diff = 0; }
 
-	void compile_file(std::string const& filename, std::set<std::string> const& vars)
-	{
-		std::stringstream ss;
-		ss << std::ifstream(filename).rdbuf();
-		return compile(ss.str(), vars);
-	}
-
-	void compile(std::string const& text, std::set<std::string> const& vars)
+	template<typename Container>
+	void compile(std::string const& text, Container const& vars)
 	{
 		clear();
 
 		this->text = text;
 
-		for(auto const& v: vars)
+		for(auto&& v: vars)
 			for(auto pos = 0ULL; (pos = text.find(v, pos)) != std::string::npos; pos += v.size())
-				this->vars.emplace(this->text.data() + pos, v.size());
+				this->vars.emplace_back(this->text.data() + pos, v.size());
 
-		// embedded vars found in order
+		std::sort(std::begin(this->vars), std::end(this->vars));
+
+		diff = text.size();
 	}
 
-	std::string create(const dict& d) const
+	void create(dict const& d, std::ostream& os) const
+	{
+		auto pos = text.data();
+
+		for(auto const& v: vars)
+		{
+			if(v.pos > pos)
+				os.write(pos, v.pos - pos);
+
+			auto found = d.find({v.pos, v.len});
+
+			if(found != d.end())
+				os.write(found->second.data(), found->second.size());
+
+			pos = v.pos + v.len;
+		}
+
+		if(pos < text.data() + text.size())
+			os.write(pos, text.size());
+	}
+
+	/**
+	 * Call preallocate() before calling `std::string create(dict const& d)`
+	 * in order to set the internal string allocation size to exactly match
+	 * the created string (rather than using an estimation).
+	 *
+	 * This function only needs to be caled once every time the dictionary `dict`
+	 * changes.
+	 *
+	 * @param d The `dict` that will be used when calling the `create()` function.
+	 */
+	void preallocate(dict const& d)
+	{
+		for(auto const& v: vars)
+		{
+			auto found = d.find({v.pos, v.len});
+			if(found == d.end())
+				continue;
+
+			diff -= found->first.size();
+			diff += found->second.size();
+		}
+	}
+
+	/**
+	 * Call preallocate first to obtain exact string allocation.
+	 * Call preallocate only needed when `dict`changes.
+	 * @param d
+	 * @return
+	 */
+	std::string create(dict const& d) const
 	{
 		if(vars.empty())
 			return text;
 
 		std::string out;
-		out.reserve(text.size());
+		out.reserve(text.size() + diff);
 
 		auto pos = text.data();
 
