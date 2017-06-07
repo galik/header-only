@@ -46,6 +46,61 @@
 namespace header_only_library {
 namespace thread_utils {
 
+//types
+
+class joining_thread
+{
+public:
+	joining_thread() noexcept =default;
+
+	joining_thread(joining_thread const&) = delete;
+	joining_thread(joining_thread&& other) noexcept
+	: t(std::move(other.t)) {}
+
+	joining_thread(std::thread const&) = delete;
+	joining_thread(std::thread&& other) noexcept
+	: t(std::move(other)) {}
+
+	joining_thread& operator=(joining_thread const&) = delete;
+	joining_thread& operator=(joining_thread&& other) noexcept
+		{ t = std::move(other.t); return *this; }
+
+	joining_thread& operator=(std::thread const&) = delete;
+	joining_thread& operator=(std::thread&& other) noexcept
+		{ t = std::move(other); return *this; }
+
+	template <typename Callable, typename... Args>
+	explicit joining_thread(Callable&& f, Args&&... args)
+		: t(std::forward<Callable>(f), std::forward<Args>(args)...) {}
+
+	~joining_thread() { if (t.joinable()) t.join(); }
+
+	std::thread::id get_id() const noexcept { return t.get_id(); }
+
+	std::thread::native_handle_type native_handle()
+		{ return t.native_handle(); }
+
+	void swap(joining_thread& other) noexcept
+		{ using std::swap; swap(t, other.t); }
+
+private:
+	std::thread t;
+
+	friend void swap(joining_thread& t1, joining_thread& t2) noexcept
+	{
+	    using std::swap;
+	    swap(t1.t, t2.t);
+	}
+};
+
+using parallel_jobs = std::vector<joining_thread>;
+
+template<typename... Funcs>
+void parallel_invoke(Funcs... funcs)
+{
+	joining_thread _[]{joining_thread{funcs}...};
+}
+
 //=============================================================
 //== Lockable objects
 //=============================================================
