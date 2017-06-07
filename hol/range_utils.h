@@ -540,6 +540,24 @@ std::vector<range<typename Container::value_type>> divide_up_work(Container& v, 
 	return ranges;
 }
 
+// stuff
+
+template<typename T>
+bool is_sorted(range<T> r)
+	{ return std::is_sorted(std::begin(r), std::end(r)); }
+
+template<typename T,typename Compare>
+bool is_sorted(range<T> r, Compare comp)
+	{ return std::is_sorted(std::begin(r), std::end(r), comp); }
+
+template<typename T>
+range_iterator<T> is_sorted_until(range<T> r)
+	{ return std::is_sorted_until(std::begin(r), std::end(r)); }
+
+template<typename T,typename Compare>
+range_iterator<T> is_sorted_until(range<T> r, Compare comp)
+	{ return std::is_sorted_until(std::begin(r), std::end(r), comp); }
+
 // SETS
 
 /**
