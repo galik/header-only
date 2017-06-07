@@ -1276,43 +1276,97 @@ std::vector<std::wstring> split_copy_from(
 
 // JOIN
 
-//template<typename Container>
-//std::string join(const Container& c, std::string const& delim = " ")
-//{
-//	std::string ret, sep;
-//	for(auto const& s: c)
-//		{ ret += sep + s; sep = delim; }
-//	return ret;
-//}
-
-template<class CharT, template<class> class String, template<class> class Container>
-String<CharT> join(Container<String<CharT>> const& c, String<CharT> const& delim)
+template<typename Iter,
+	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> join(Iter begin, Iter end, String<C, T, A> const& delim)
 {
-	String<CharT> ret, sep;
+	auto distance = std::distance(begin, end);
 
-	auto size = std::accumulate(std::begin(c), std::end(c), std::size_t(0), [](auto n, auto const& s)
+	auto size = std::accumulate(begin, end, std::size_t(0),
+	[](auto n, auto const& s)
 	{
 		return n + s.size();
-	}) + ((c.size() - 1) * delim.size());
+	}) + ((distance - 1) * delim.size());
 
-	ret.reserve(size);
+	String<C, T, A> s;
 
-	for(auto const& s: c)
-		{ ret += sep + s; sep = delim; }
-	return ret;
+	s.reserve(size);
+
+	if(begin != end)
+		s = *begin;
+
+	for(++begin; begin != end; ++begin)
+		s.append(delim).append(*begin);
+
+	return s;
 }
 
-template<class CharT, template<class> class String, template<class> class Container>
-String<CharT> join(Container<String<CharT>> const& c, CharT const* delim)
+template<typename Iter,
+	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> join(Iter begin, Iter end, C const* delim)
 {
-	return join(c, String<CharT>(delim));
+	return join(begin, end, String<C, T, A>(delim));
 }
 
-template<class CharT, template<class> class String, template<class> class Container>
-String<CharT> join(Container<String<CharT>> const& c)
+template<typename Iter,
+	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> join(Iter begin, Iter end)
 {
-	return join(c, String<CharT>(detail::empty(CharT())));
+	return join(begin, end, String<C, T, A>(header_only_library::string_utils::detail::empty(C())));
 }
+
+//
+
+template<template<class> class Container,
+	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> join(Container<String<C, T, A>> const& c, String<C, T, A> const& delim)
+{
+	return join(std::begin(c), std::end(c), delim);
+}
+
+template<template<class> class Container,
+	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> join(Container<String<C, T, A>> const& c, C const* delim)
+{
+	return join(c, String<C, T, A>(delim));
+}
+
+template<template<class> class Container,
+	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> join(Container<String<C, T, A>> const& c)
+{
+	return join(c, String<C, T, A>(header_only_library::string_utils::detail::empty(C())));
+}
+
+//template<class CharT, template<class> class String, template<class> class Container>
+//String<CharT> join(Container<String<CharT>> const& c, String<CharT> const& delim)
+//{
+//	String<CharT> ret, sep;
+//
+//	auto size = std::accumulate(std::begin(c), std::end(c), std::size_t(0), [](auto n, auto const& s)
+//	{
+//		return n + s.size();
+//	}) + ((c.size() - 1) * delim.size());
+//
+//	ret.reserve(size);
+//
+//	for(auto const& s: c)
+//		{ ret += sep + s; sep = delim; }
+//
+//	return ret;
+//}
+//
+//template<class CharT, template<class> class String, template<class> class Container>
+//String<CharT> join(Container<String<CharT>> const& c, CharT const* delim)
+//{
+//	return join(c, String<CharT>(delim));
+//}
+//
+//template<class CharT, template<class> class String, template<class> class Container>
+//String<CharT> join(Container<String<CharT>> const& c)
+//{
+//	return join(c, String<CharT>(detail::empty(CharT())));
+//}
 
 // --------------------------------------------------------------------
 // string conversions
