@@ -292,7 +292,7 @@ bool random_choice(Real p = 0.5)
  * from the supplied range.
  */
 template<typename Iter>
-decltype(auto) random_iteator(Iter begin, Iter end)
+Iter random_iterator(Iter begin, Iter end)
 {
 	assert(std::distance(begin, end) > 0);
 	return std::next(begin,
