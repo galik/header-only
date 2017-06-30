@@ -25,11 +25,13 @@
 #include <cinttypes>
 #include <algorithm>
 
+#ifndef IF_CONSTEXPR
 #ifdef __cpp_if_constexpr
 #define IF_CONSTEXPR(cond) if constexpr(cond)
 #else
 #define IF_CONSTEXPR(cond) if(cond)
-#endif
+#endif // __cpp_if_constexpr
+#endif // IF_CONSTEXPR
 
 namespace header_only_library {
 namespace endian_utils {
@@ -80,8 +82,11 @@ template<typename CharPtr, typename T>
 CharPtr encode_network_byte_order(T const& t, CharPtr data)
 {
 	static_assert(std::is_same<CharPtr, char*>::value
-		|| std::is_same<CharPtr, unsigned char*>::value,
-			"Second parmeter must be a char*, unsigned char* or std::byte*");
+		|| std::is_same<CharPtr, unsigned char*>::value
+#if __cplusplus >= 201703
+		|| std::is_same<CharPtr, std::byte*>::value
+#endif
+		,	"Second parmeter must be a char*, unsigned char* or std::byte*");
 
 	using char_type = typename std::remove_const<typename std::remove_pointer<CharPtr>::type>::type;
 
@@ -99,8 +104,11 @@ CharPtr decode_network_byte_order(CharPtr const& data, T& t)
 	using char_type = typename std::remove_const<typename std::remove_pointer<CharPtr>::type>::type;
 
 	static_assert(std::is_same<char_type*, char*>::value
-		|| std::is_same<char_type*, unsigned char*>::value,
-			"Second parmeter must be a char const*, unsigned char const* or std::byte const*");
+		|| std::is_same<char_type*, unsigned char*>::value
+#if __cplusplus >= 201703
+		|| std::is_same<char_type*, std::byte*>::value
+#endif
+		, "Second parmeter must be a char const*, unsigned char const* or std::byte const*");
 
 	IF_CONSTEXPR(is_big_endian())
 		std::copy(data, data + sizeof(T), (char_type*)&t);
