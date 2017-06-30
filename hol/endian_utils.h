@@ -38,6 +38,7 @@ namespace endian_utils {
 
 enum class endian
 {
+	unknown = 0,
 	little = __ORDER_LITTLE_ENDIAN__,
 	big    = __ORDER_BIG_ENDIAN__,
 	native = __BYTE_ORDER__
@@ -74,6 +75,26 @@ constexpr Numeric from_big_endian(Numeric n)
 	IF_CONSTEXPR(is_big_endian())
 		return n;
 	return swap_endianness(n);
+}
+
+template<typename Numeric>
+endian discover_endianness(Numeric const& field, Numeric const&& expected_value)
+{
+	if(from_little_endian(field) == expected_value)
+		return endian::little;
+	else if(from_big_endian(field))
+		return endian::big;
+	return endian::unknown;
+}
+
+template<typename Numeric>
+constexpr Numeric from_endian(endian e, Numeric n)
+{
+	if(e == endian::little)
+		return from_little_endian(n);
+	else if(e == endian::big)
+		return from_big_endian(n);
+	return n;
 }
 
 // I'll just put these here for now (they may move)
