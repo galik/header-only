@@ -71,7 +71,7 @@ int main()
 
 ```
 
-##Random Numbers
+## Random Numbers
 
 The library is self-seeding, efficient and thread safe so it is east to use without complicated setup.
 
