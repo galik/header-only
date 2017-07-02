@@ -86,17 +86,35 @@ namespace hol {using namespace header_only_library::random_numbers;}
 
 int main()
 {
-	std::vector<int> v(hol::random_number(20)); // between 0-20 elements	
-	
+	// create between 1-20 (inclusive) elements
+	std::vector<int> v(hol::random_number(1, 20));
+
+	std::cout << "n: " << v.size() << '\n';
+
 	// fill it with random numbers between 10 and 20
-	std::generate(std::begin(v), std::end(v), []{ return hol::random_number(10, 20); });
-	
+	std::generate(std::begin(v), std::end(v),
+		[]{ return hol::random_number(10, 20); });
+
+	for_each(std::begin(v), std::end(v),
+		[](auto i){ std::cout << i << ' '; });
+	std::cout << '\n';
+
 	// pick an element at random
-	auto i = std::random_element(v);
-	
-	// print it out 75% of the time
-	if(random_choice(0.75))
-		std::cout << "i: " << i << '\n';
+	auto i = hol::random_element(v);
+
+	std::cout << "i: " << i << '\n';
+
+	// randomly copy about 75% of the values
+	std::vector<int> w;
+
+	std::copy_if(std::begin(v), std::end(v), std::back_inserter(w),
+		[](auto){ return hol::random_choice(0.75); });
+
+	std::cout << "n: " << w.size() << '\n';
+
+	for_each(std::begin(w), std::end(w),
+		[](auto i){ std::cout << i << ' '; });
+	std::cout << '\n';
 }
 ```
 
