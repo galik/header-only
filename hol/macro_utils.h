@@ -24,24 +24,33 @@
 
 #include <cassert>
 
+// Version Utils
+
+// AT LEAST
 #if __cplusplus >= 199711L
-#define HOL_IF_CPP98(code) do{code}while(0)
-#define HOL_IF_CPP03(code) do{code}while(0)
+#define HOL_IF_AT_LEAST_CPP98(code) do{code}while(0)
+#define HOL_IF_AT_LEAST_CPP03(code) do{code}while(0)
 #else
-#define HOL_IF_CPP98(code) do{}while(0)
-#define HOL_IF_CPP03(code) do{}while(0)
+#define HOL_IF_AT_LEAST_CPP98(code) do{}while(0)
+#define HOL_IF_AT_LEAST_CPP03(code) do{}while(0)
 #endif
 
 #if __cplusplus >= 201103L
-#define HOL_IF_CPP11(code) do{code}while(0)
+#define HOL_IF_AT_LEAST_CPP11(code) do{code}while(0)
 #else
-#define HOL_IF_CPP11(code) do{}while(0)
+#define HOL_IF_AT_LEAST_CPP11(code) do{}while(0)
 #endif
 
 #if __cplusplus >= 201402L
-#define HOL_IF_CPP14(code) do{code}while(0)
+#define HOL_IF_AT_LEAST_CPP14(code) do{code}while(0)
 #else
-#define HOL_IF_CPP14(code) do{}while(0)
+#define HOL_IF_AT_LEAST_CPP14(code) do{}while(0)
+#endif
+
+#if __cplusplus >= 201703L
+#define HOL_IF_AT_LEAST_CPP17(code) do{code}while(0)
+#else
+#define HOL_IF_AT_LEAST_CPP17(code) do{}while(0)
 #endif
 
 #ifdef NDEBUG
@@ -49,6 +58,64 @@
 #else
 #define HOL_IF_DEBUG(code) do{code}while(0)
 #endif
+
+// BEFORE
+
+#if __cplusplus < 199711L
+#define HOL_IF_BEFORE_CPP98(code) do{code}while(0)
+#define HOL_IF_BEFORE_CPP03(code) do{code}while(0)
+#else
+#define HOL_IF_BEFORE_CPP98(code) do{}while(0)
+#define HOL_IF_BEFORE_CPP03(code) do{}while(0)
+#endif
+
+#if __cplusplus < 201103L
+#define HOL_IF_BEFORE_CPP11(code) do{code}while(0)
+#else
+#define HOL_IF_BEFORE_CPP11(code) do{}while(0)
+#endif
+
+#if __cplusplus < 201402L
+#define HOL_IF_BEFORE_CPP14(code) do{code}while(0)
+#else
+#define HOL_IF_BEFORE_CPP14(code) do{}while(0)
+#endif
+
+#if __cplusplus < 201703L
+#define HOL_IF_BEFORE_CPP17(code) do{code}while(0)
+#else
+#define HOL_IF_BEFORE_CPP17(code) do{}while(0)
+#endif
+
+// EXACTLY
+
+#if __cplusplus == 199711L
+#define HOL_IF_EXACTLY_CPP98(code) do{code}while(0)
+#define HOL_IF_EXACTLY_CPP03(code) do{code}while(0)
+#else
+#define HOL_IF_EXACTLY_CPP98(code) do{}while(0)
+#define HOL_IF_EXACTLY_CPP03(code) do{}while(0)
+#endif
+
+#if __cplusplus == 201103L
+#define HOL_IF_EXACTLY_CPP11(code) do{code}while(0)
+#else
+#define HOL_IF_EXACTLY_CPP11(code) do{}while(0)
+#endif
+
+#if __cplusplus == 201402L
+#define HOL_IF_EXACTLY_CPP14(code) do{code}while(0)
+#else
+#define HOL_IF_EXACTLY_CPP14(code) do{}while(0)
+#endif
+
+#if __cplusplus == 201703L
+#define HOL_IF_EXACTLY_CPP17(code) do{code}while(0)
+#else
+#define HOL_IF_EXACTLY_CPP17(code) do{}while(0)
+#endif
+
+// ASERTS
 
 #ifdef NDEBUG
 #define HOL_ASSERT(expr) do{}while(0)
