@@ -51,13 +51,22 @@
 #endif
 
 #ifdef NDEBUG
+#define HOL_ASSERT(expr) do{}while(0)
 #define HOL_ASSERT_MSG(expr, msg) do{}while(0)
 #else
+#define HOL_ASSERT(expr) \
+do { \
+	if(!(expr)) \
+	{ \
+		std::cerr << "assertion '" << #expr << "' failed." << "\nfile: " << __FILE__ << "\nline: " << __LINE__ << '\n'; \
+		std::abort(); \
+	} \
+}while(0)
 #define HOL_ASSERT_MSG(expr, msg) \
 do { \
 	if(!(expr)) \
 	{ \
-		std::cerr << "assertion fail: " << msg << " file: " << __FILE__ << " line: " << __LINE__ << '\n'; \
+		std::cerr << "assertion '" << #expr << "' failed.\ninfo: " << msg << "\nfile: " << __FILE__ << "\nline: " << __LINE__ << '\n'; \
 		std::abort(); \
 	} \
 }while(0)
