@@ -669,13 +669,49 @@ std::vector<range<Char>> regex_search(range<Char> s, std::regex const& e,
 	return matches;
 }
 
-// string functions (std::string members as free functions)
+// trimming
 
-// TODO: These are SLOW and wasteful. Rewrite without creating std::string objects
-// everywhere
+namespace detail {
+
+constexpr auto const& ws(char) { return " \t\n\r\f\v\0"; }
+constexpr auto const& ws(wchar_t) { return L" \t\n\r\f\v\0"; }
+constexpr auto const& ws(char16_t) { return u" \t\n\r\f\v\0"; }
+constexpr auto const& ws(char32_t) { return U" \t\n\r\f\v\0"; }
+
+//range<char const> wsr(char c) { return range<char const>(std::begin(ws(c)), std::end(ws(c))); }
+//range<wchar_t const> wsr(wchar_t c) { return range<wchar_t const>(std::begin(ws(c)), std::end(ws(c))); }
+//range<char16_t const> wsr(char16_t c) { return range<char16_t const>(std::begin(ws(c)), std::end(ws(c))); }
+//range<char32_t const> wsr(char32_t c) { return range<char32_t const>(std::begin(ws(c)), std::end(ws(c))); }
+} // namespace detail
 
 template<typename Char>
-HOL_CONCEPT(requires concepts::StdCharType<Char>)
+range<Char> trim_left(range<Char> r, range<Char> ws = detail::ws(Char()))
+{
+	auto pos = std::find_if_not(std::begin(r), std::end(r), [&](auto c)
+		{ return std::find(std::begin(ws), std::end(ws), c) != std::end(ws); });
+
+	return make_range(pos, std::end(r));
+}
+
+template<typename Char>
+range<Char> trim_right(range<Char> r, range<Char> ws = detail::ws(Char()))
+{
+	auto rpos = std::find_if_not(std::rbegin(r), std::rend(r), [&](auto c)
+		{ return std::find(std::begin(ws), std::end(ws), c) != std::end(ws); });
+
+	return make_range(std::begin(r), rpos.base());
+}
+
+template<typename Char>
+range<Char> trim(range<Char> r, range<Char> ws = detail::ws(Char()))
+{
+	return trim_left(trim_right(r, ws), ws);
+}
+
+// string functions (std::string members as free functions)
+
+template<typename Char>
+//HOL_CONCEPT(requires concepts::StdCharType<Char>)
 Char& at(range<Char> r, std::size_t n) { return r.at(n); }
 
 template<typename Char>
@@ -685,12 +721,210 @@ template<typename Char>
 Char& back(range<Char> r) { return r.back(); }
 
 template<typename Char>
+Char* data(range<Char> r) { return r.data(); }
+
+template<typename Char>
 Char* c_str(range<Char> r) { return r.data(); }
 
 template<typename Char>
-int compare(range<Char> r1, range<Char> r2) { return r1.string().compare(r2.string()); }
+bool empty(range<Char> r) { return r.empty(); }
 
-//std::string::
+template<typename Char>
+std::size_t size(range<Char> r) { return r.size(); }
+
+template<typename Char>
+std::size_t length(range<Char> r) { return r.size(); }
+
+template<typename Char>
+void clear(range<Char>& r) { return r = r.subrange(0, 0); }
+
+template<typename Char>
+int compare(range<Char> r1, range<Char> r2)
+{
+	auto len = std::min(r1.size(), r2.size());
+	return std::char_traits<Char>::compare(r1.data(), r2.data(), len);
+}
+
+template<typename Char>
+std::size_t copy(range<Char> r1, range<Char> r2, std::size_t pos = 0)
+{
+	assert(pos <= r1.size());
+
+	auto beg = std::begin(r1) + pos;
+	auto end = std::end(r1);
+	if(beg + r2.size() < end)
+		end = beg + r2.size();
+
+	std::copy(beg, end, std::begin(r2));
+}
+
+int stoi(range<char> r, std::size_t* pos = 0, int base = 10)
+{
+	auto ptr = r.data();
+	auto i = std::strtol(r.data(), &ptr, base);
+
+	if(ptr == r.data())
+		throw std::invalid_argument("invalid argument: stoi(" + std::string(std::begin(r), std::end(r)) + ")");
+
+	if(i > std::numeric_limits<int>::max()
+	|| i < std::numeric_limits<int>::min())
+		throw std::out_of_range("out of range: stoi(" + std::string(std::begin(r), std::end(r)) + ")");
+
+	if(pos)
+		*pos = std::size_t(std::distance(r.data(), ptr));
+
+	return int(i);
+}
+
+long stol(range<char> r, std::size_t* pos = 0, int base = 10)
+{
+	auto ptr = r.data();
+	auto i = std::strtoll(r.data(), &ptr, base);
+
+	if(ptr == r.data())
+		throw std::invalid_argument("invalid argument: stol(" + std::string(std::begin(r), std::end(r)) + ")");
+
+	if(i > std::numeric_limits<long>::max()
+	|| i < std::numeric_limits<long>::min())
+		throw std::out_of_range("out of range: stol(" + std::string(std::begin(r), std::end(r)) + ")");
+
+	if(pos)
+		*pos = std::size_t(std::distance(r.data(), ptr));
+
+	return int(i);
+}
+
+long long stoll(range<char> r, std::size_t* pos = 0, int base = 10)
+{
+	auto ptr = r.data();
+	auto i = std::strtoll(r.data(), &ptr, base);
+
+	if(ptr == r.data())
+		throw std::invalid_argument("invalid argument: stoll(" + std::string(std::begin(r), std::end(r)) + ")");
+
+	if(errno == ERANGE)
+		throw std::out_of_range("out of range: stoll(" + std::string(std::begin(r), std::end(r)) + ")");
+
+	if(pos)
+		*pos = std::size_t(std::distance(r.data(), ptr));
+
+	return int(i);
+}
+
+// range_istream
+
+template<typename CharT, typename Traits>
+class basic_range_istream;
+
+template<typename CharT, typename Traits = std::char_traits<CharT>>
+class basic_range_buf
+: public std::basic_streambuf<CharT, Traits>
+{
+	friend class basic_range_istream<CharT, Traits>;
+
+public:
+	using stream_buf = std::basic_streambuf<CharT, Traits>;
+
+	using int_type = typename stream_buf::int_type;
+
+	basic_range_buf(range<CharT> r): r(r)
+		{ stream_buf::setg(r.data(), r.data(), r.data() + r.size()); }
+
+protected:
+	using stream_buf::eback;
+	using stream_buf::gptr;
+	using stream_buf::egptr;
+	using stream_buf::gbump;
+
+	int_type underflow() override
+	{
+		if(gptr() < egptr())
+			return *gptr();
+		return EOF;
+	}
+
+private:
+	range<CharT> _getline(CharT delim)
+	{
+		auto pos = std::find(gptr(), egptr(), delim);
+		range<CharT> line(gptr(), pos);
+		if(pos < egptr())
+			++pos; // skip delim
+
+		gbump(int(pos - gptr()));
+		return line;
+	}
+
+	range<CharT> r;
+};
+
+template<typename CharT, typename Traits = std::char_traits<CharT>>
+basic_range_istream<CharT, Traits>&
+getline(basic_range_istream<CharT, Traits>& is, range<CharT>& sp, CharT delim);
+
+template<typename CharT, typename Traits = std::char_traits<CharT>>
+class basic_range_istream
+: public std::basic_istream<CharT, Traits>
+{
+	friend basic_range_istream& getline<CharT, Traits>(basic_range_istream& is, range<CharT>& sp, CharT delim);
+
+public:
+	basic_range_istream(range<CharT> sp): std::istream(&buf), buf(sp) {}
+
+private:
+	using istream = std::basic_istream<CharT, Traits>;
+
+	range<CharT> _getline(CharT delim)
+	{
+		if(std::basic_istream<CharT, Traits>::eof())
+		{
+			istream::setstate(istream::failbit);
+			return {};
+		}
+		range<CharT> line = buf._getline(delim);
+		if(buf.gptr() == buf.egptr())
+			istream::setstate(istream::eofbit);
+		return line;
+	}
+	basic_range_buf<CharT, Traits> buf;
+};
+
+using range_istream = basic_range_istream<char>;
+using wrange_istream = basic_range_istream<wchar_t>;
+using u16range_istream = basic_range_istream<char16_t>;
+using u32range_istream = basic_range_istream<char32_t>;
+
+template<typename CharT, typename Traits = std::char_traits<CharT>>
+basic_range_istream<CharT, Traits>&
+getline(basic_range_istream<CharT, Traits>& is, range<CharT>& sp, CharT delim)
+{
+	sp = is._getline(delim);
+	return is;
+}
+
+range_istream&
+getline(range_istream& is, range<char>& r, char delim = '\n')
+{
+	return getline<char>(is, r, delim);
+}
+
+wrange_istream&
+getline(wrange_istream& is, range<wchar_t>& r, wchar_t delim = L'\n')
+{
+	return getline<wchar_t>(is, r, delim);
+}
+
+u16range_istream&
+getline(u16range_istream& is, range<char16_t>& r, char16_t delim = u'\n')
+{
+	return getline<char16_t>(is, r, delim);
+}
+
+u32range_istream&
+getline(u32range_istream& is, range<char32_t>& r, char32_t delim = U'\n')
+{
+	return getline<char32_t>(is, r, delim);
+}
 
 } // namespace range_utils
 } // namespace header_only_library
