@@ -26,6 +26,42 @@
 #include <cassert>
 #include <limits>
 
+/**
+ * Configuration:
+ *
+ * std::random_device Does not work on MinGW so another one may be selected
+ * by setting the macro `HOL_RANDOM_DEVICE` to another qualified class.
+ *
+ * std::random_device allows different non-deterministic sources to be selected
+ * through a parameter to its constructor. This parameter can be set using the
+ * macro `HOL_RANDOM_NUMBER_SOURCE`.
+ *
+ * The Pseudo Random Number Generator may be selected by setting the macro
+ * `HOL_RANDOM_NUMBER_GENERATOR`. Otherwise it defaults to std::mt19937.
+ *
+ * Examples:
+ *
+ * 1) Typically the default values do not need changing. On MinGW, because
+ * `std::random_device` is broken you might do something like this:
+ *
+ * #include <boost/random/random_device.hpp>
+ * #define HOL_RANDOM_DEVICE boost::random_device
+ * #include <hol/random_numbers.h>
+ *
+ * 2) If you wich to use the 64bit version of the Mersenne Twister you might
+ * do something like this:
+ *
+ * #define HOL_RANDOM_NUMBER_GENERATOR std::mt19937_64
+ * #include <hol/random_numbers.h>
+ *
+ */
+
+#ifndef HOL_RANDOM_DEVICE
+#define HOL_RANDOM_DEVICE std::random_device
+#endif
+#ifndef HOL_RANDOM_NUMBER_SOURCE // (select implementation specific source)
+#define HOL_RANDOM_NUMBER_SOURCE
+#endif
 #ifndef HOL_RANDOM_NUMBER_GENERATOR
 #define HOL_RANDOM_NUMBER_GENERATOR std::mt19937
 #endif
@@ -109,11 +145,17 @@ struct std_real_type_test
 
 #endif // __cpp_concepts
 
+//#if defined(__MINGW32__) || defined(__MINGW64__)
+//#error Not compatable with MinGW due to a MinGW bug in std::random_device
+//#else
+//using random_device = std::random_device;
+//#endif
+
 inline
 auto const& random_data()
 {
-	thread_local static std::array<typename Generator::result_type, Generator::state_size> data;
-	thread_local static std::random_device rd;
+	thread_local static std::array<std::random_device::result_type, Generator::state_size> data;
+	thread_local static HOL_RANDOM_DEVICE rd{HOL_RANDOM_NUMBER_SOURCE};
 
 	std::generate(std::begin(data), std::end(data), std::ref(rd));
 
