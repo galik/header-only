@@ -34,7 +34,7 @@
  *
  * std::random_device allows different non-deterministic sources to be selected
  * through a parameter to its constructor. This parameter can be set using the
- * macro `HOL_RANDOM_NUMBER_SOURCE`.
+ * macro `HOL_RANDOM_DEVICE_SOURCE`.
  *
  * The Pseudo Random Number Generator may be selected by setting the macro
  * `HOL_RANDOM_NUMBER_GENERATOR`. Otherwise it defaults to std::mt19937.
@@ -59,8 +59,8 @@
 #ifndef HOL_RANDOM_DEVICE
 #define HOL_RANDOM_DEVICE std::random_device
 #endif
-#ifndef HOL_RANDOM_NUMBER_SOURCE // (select implementation specific source)
-#define HOL_RANDOM_NUMBER_SOURCE
+#ifndef HOL_RANDOM_DEVICE_SOURCE // (select implementation specific source)
+#define HOL_RANDOM_DEVICE_SOURCE
 #endif
 #ifndef HOL_RANDOM_NUMBER_GENERATOR
 #define HOL_RANDOM_NUMBER_GENERATOR std::mt19937
@@ -155,7 +155,7 @@ inline
 auto const& random_data()
 {
 	thread_local static std::array<std::random_device::result_type, Generator::state_size> data;
-	thread_local static HOL_RANDOM_DEVICE rd{HOL_RANDOM_NUMBER_SOURCE};
+	thread_local static HOL_RANDOM_DEVICE rd{HOL_RANDOM_DEVICE_SOURCE};
 
 	std::generate(std::begin(data), std::end(data), std::ref(rd));
 
