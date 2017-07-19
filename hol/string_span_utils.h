@@ -122,6 +122,104 @@ offset_type find_last_not_of(
 	return s.size();
 }
 
+// Nowhere else to put this yet
+
+//template<typename CharT, typename Traits = std::char_traits<CharT>>
+//class basic_char_span_istream;
+//
+//template<typename CharT, typename Traits = std::char_traits<CharT>>
+//class basic_char_span_buf
+//: public std::basic_streambuf<CharT, Traits>
+//{
+//	friend class basic_char_span_istream<CharT, Traits>;
+//
+//public:
+//	using stream_buf = std::basic_streambuf<CharT, Traits>;
+//
+//	using int_type = typename stream_buf::int_type;
+//
+//	basic_char_span_buf(gsl::span<CharT> sp): sp(sp)
+//		{ stream_buf::setg(sp.data(), sp.data(), sp.data() + sp.size()); }
+//
+//protected:
+//	using stream_buf::eback;
+//	using stream_buf::gptr;
+//	using stream_buf::egptr;
+//	using stream_buf::gbump;
+//
+//	int_type underflow() override
+//	{
+//		if(gptr() < egptr())
+//			return *gptr();
+//		return EOF;
+//	}
+//
+//private:
+//	gsl::span<CharT> _getline(CharT delim)
+//	{
+//		auto pos = std::find(gptr(), egptr(), delim);
+//		gsl::span<char> line(gptr(), pos);
+//		if(pos < egptr())
+//			++pos; // skip delim
+//
+//		gbump(int(pos - gptr()));
+//		return line;
+//	}
+//
+//	gsl::span<CharT> sp;
+//};
+//
+//template<typename CharT, typename Traits = std::char_traits<CharT>>
+//basic_char_span_istream<CharT, Traits>&
+//getline(basic_char_span_istream<CharT, Traits>& is, gsl::span<CharT>& sp, CharT delim);
+//
+//template<typename CharT, typename Traits>
+//class basic_char_span_istream
+//: public std::basic_istream<CharT, Traits>
+//{
+//	friend basic_char_span_istream& getline<CharT,Traits>(basic_char_span_istream& is, gsl::span<CharT>& sp, CharT delim);
+//
+//public:
+//	basic_char_span_istream(gsl::span<CharT> sp): std::istream(&buf), buf(sp) {}
+//
+//private:
+//	using istream = std::basic_istream<CharT, Traits>;
+//
+//	gsl::span<CharT> _getline(CharT delim)
+//	{
+//		if(std::basic_istream<CharT, Traits>::eof())
+//		{
+//			istream::setstate(istream::failbit);
+//			return {};
+//		}
+//		gsl::span<CharT> line = buf._getline(delim);
+//		if(buf.gptr() == buf.egptr())
+//			istream::setstate(istream::eofbit);
+//		return line;
+//	}
+//	basic_char_span_buf<CharT, Traits> buf;
+//};
+//
+//using char_span_istream = basic_char_span_istream<char>;
+//using wchar_span_istream = basic_char_span_istream<wchar_t>;
+//using char16_span_istream = basic_char_span_istream<char16_t>;
+//using char32_span_istream = basic_char_span_istream<char32_t>;
+//
+//template<typename CharT, typename Traits = std::char_traits<CharT>>
+//basic_char_span_istream<CharT, Traits>&
+//getline(basic_char_span_istream<CharT, Traits>& is, gsl::span<CharT>& sp, CharT delim)
+//{
+//	sp = is._getline(delim);
+//	return is;
+//}
+//
+//char_span_istream&
+//getline(char_span_istream& is, gsl::span<char>& sp, char delim = '\n')
+//{
+//	return getline<char>(is, sp, delim);
+//}
+
+
 } // string_span_utils
 } // header_only_library
 
