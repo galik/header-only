@@ -284,6 +284,18 @@ template<typename Container>
 auto make_range(Container& c)
 	{ return range<typename Container::value_type>(c); }
 
+template<typename Container>
+auto make_range(Container const& c)
+	{ return range<typename Container::value_type const>(c); }
+
+template<typename Char>
+auto make_range(Char* s, std::size_t n)
+	{ return range<Char>(s, n); }
+
+//template<typename Char>
+//auto make_range(Char const* s, std::size_t n)
+//	{ return range<Char const>(s, n); }
+
 template<typename T, std::size_t Size>
 auto make_range(T(&a)[Size])
 	{ return range<T>(a); }
@@ -313,8 +325,8 @@ auto count(range<T> r, const T& value)
 	{ return std::count(std::begin(r), std::end(r), value); }
 
 template<typename T,typename UnaryPredicate>
-auto count(range<T> r, UnaryPredicate p)
-	{ return std::count(std::begin(r), std::end(r), p); }
+auto count_if(range<T> r, UnaryPredicate p)
+	{ return std::count_if(std::begin(r), std::end(r), p); }
 
 template<typename T>
 std::pair<range_iterator<T>, range_iterator<T>>
@@ -631,8 +643,30 @@ using wrmatch = std::match_results<wsrange::iterator>;
 using u16rmatch = std::match_results<u16srange::iterator>;
 using u32rmatch = std::match_results<u32srange::iterator>;
 
-using rregex_iterator = std::regex_iterator<srange::iterator>;
-using rregex_token_iterator = std::regex_token_iterator<srange::iterator>;
+template<typename BiIter, typename Char = typename std::iterator_traits<BiIter>::value_type>
+using basic_rregex_iterator = std::regex_iterator<BiIter, Char>;
+
+template<typename BiIter, typename Char = typename std::iterator_traits<BiIter>::value_type>
+using basic_rregex_token_iterator = std::regex_token_iterator<BiIter, Char>;
+
+using rregex_iterator = basic_rregex_iterator<srange::iterator>;
+using rregex_token_iterator = basic_rregex_token_iterator<srange::iterator>;
+
+namespace detail {
+
+template<typename MatchType>
+std::vector<range<typename MatchType::char_type>> convert_matches(MatchType const& m)
+{
+	std::vector<range<typename MatchType::char_type>> matches;
+	matches.reserve(m.size());
+
+	for(auto& sm: m)
+		matches.emplace_back(sm.first, sm.second);
+
+	return matches;
+}
+
+} // namespace detail
 
 template<typename Char>
 std::vector<range<Char>> regex_match(range<Char> s, std::regex const& e,
@@ -642,13 +676,15 @@ std::vector<range<Char>> regex_match(range<Char> s, std::regex const& e,
 	if(!std::regex_match(std::begin(s), std::end(s), m, e, flags))
 		return {};
 
-	std::vector<range<Char>> matches;
-	matches.reserve(m.size());
+	return detail::convert_matches(m);
 
-	for(auto& sm: m)
-		matches.emplace_back(sm.first, sm.second);
-
-	return matches;
+//	std::vector<range<Char>> matches;
+//	matches.reserve(m.size());
+//
+//	for(auto& sm: m)
+//		matches.emplace_back(sm.first, sm.second);
+//
+//	return matches;
 }
 
 template<typename Char>
@@ -660,11 +696,33 @@ std::vector<range<Char>> regex_search(range<Char> s, std::regex const& e,
 	if(!std::regex_search(std::begin(s), std::end(s), m, e, flags))
 		return {};
 
-	std::vector<range<Char>> matches;
-	matches.reserve(m.size());
+	return detail::convert_matches(m);
 
-	for(auto& sm: m)
-		matches.emplace_back(sm.first, sm.second);
+//	std::vector<range<Char>> matches;
+//	matches.reserve(m.size());
+//
+//	for(auto& sm: m)
+//		matches.emplace_back(sm.first, sm.second);
+//
+//	return matches;
+}
+
+template<typename Char>
+std::vector<std::vector<range<Char>>> regex_search_all(range<Char> s, std::regex const& e,
+	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
+{
+
+	std::match_results<typename range<Char>::iterator> m;
+	if(!std::regex_search(std::begin(s), std::end(s), m, e, flags))
+		return {};
+
+	std::vector<std::vector<range<Char>>> matches;
+
+	basic_rregex_iterator<typename range<Char>::iterator> end;
+	basic_rregex_iterator<typename range<Char>::iterator> itr(std::begin(s), std::end(s), e, flags);
+
+	for(; itr != end; ++itr)
+		matches.emplace_back(detail::convert_matches(*itr));
 
 	return matches;
 }
@@ -813,6 +871,114 @@ long long stoll(range<char> r, std::size_t* pos = 0, int base = 10)
 
 // range_istream
 
+//template<typename CharT, typename Traits>
+//class basic_range_istream;
+//
+//template<typename CharT, typename Traits = std::char_traits<CharT>>
+//class basic_range_buf
+//: public std::basic_streambuf<CharT, Traits>
+//{
+//	friend class basic_range_istream<CharT, Traits>;
+//
+//public:
+//	using stream_buf = std::basic_streambuf<CharT, Traits>;
+//
+//	using int_type = typename stream_buf::int_type;
+//
+//	basic_range_buf(range<CharT> r): r(r)
+//		{ stream_buf::setg(r.data(), r.data(), r.data() + r.size()); }
+//
+//protected:
+//	using stream_buf::eback;
+//	using stream_buf::gptr;
+//	using stream_buf::egptr;
+//	using stream_buf::gbump;
+//
+//	int_type underflow() override
+//	{
+//		if(gptr() < egptr())
+//			return *gptr();
+//		return EOF;
+//	}
+//
+//private:
+//	range<CharT> _getline(CharT delim)
+//	{
+//		auto pos = std::find(gptr(), egptr(), delim);
+//		range<CharT> line(gptr(), pos);
+//		if(pos < egptr())
+//			++pos; // skip delim
+//
+//		gbump(int(pos - gptr()));
+//		return line;
+//	}
+//
+//	range<CharT> r;
+//};
+//
+//template<typename CharT, typename Traits = std::char_traits<CharT>>
+//basic_range_istream<CharT, Traits>&
+//getline(basic_range_istream<CharT, Traits>& is, range<CharT>& sp, CharT delim);
+//
+//template<typename CharT, typename Traits = std::char_traits<CharT>>
+//class basic_range_istream
+//: public std::basic_istream<CharT, Traits>
+//{
+//	using char_type = typename std::remove_cv<CharT>::type;
+//	using const_char_type = char_type const;
+//
+//	friend basic_range_istream& getline<CharT, Traits>(basic_range_istream& is, range<CharT>& sp, CharT delim);
+//
+//public:
+//	basic_range_istream(range<CharT> sp): std::istream(&buf), buf(sp) {}
+//
+//private:
+//	using istream = std::basic_istream<CharT, Traits>;
+//
+//	range<CharT> _getline(CharT delim)
+//	{
+//		if(std::basic_istream<CharT, Traits>::eof())
+//		{
+//			istream::setstate(istream::failbit);
+//			return {};
+//		}
+//		range<CharT> line = buf._getline(delim);
+//		if(buf.gptr() == buf.egptr())
+//			istream::setstate(istream::eofbit);
+//		return line;
+//	}
+//	basic_range_buf<CharT, Traits> buf;
+//};
+//
+//using range_istream = basic_range_istream<char>;
+//using wrange_istream = basic_range_istream<wchar_t>;
+//using u16range_istream = basic_range_istream<char16_t>;
+//using u32range_istream = basic_range_istream<char32_t>;
+//
+//template<typename CharT, typename Traits = std::char_traits<CharT>>
+//basic_range_istream<CharT, Traits>&
+//getline(basic_range_istream<CharT, Traits>& is, range<CharT>& sp, CharT delim)
+//{
+//	sp = is._getline(delim);
+//	return is;
+//}
+//
+//range_istream&
+//getline(range_istream& is, range<char>& r, char delim = '\n')
+//	{ return getline<char>(is, r, delim); }
+//
+//wrange_istream&
+//getline(wrange_istream& is, range<wchar_t>& r, wchar_t delim = L'\n')
+//	{ return getline<wchar_t>(is, r, delim); }
+//
+//u16range_istream&
+//getline(u16range_istream& is, range<char16_t>& r, char16_t delim = u'\n')
+//	{ return getline<char16_t>(is, r, delim); }
+//
+//u32range_istream&
+//getline(u32range_istream& is, range<char32_t>& r, char32_t delim = U'\n')
+//	{ return getline<char32_t>(is, r, delim); }
+
 template<typename CharT, typename Traits>
 class basic_range_istream;
 
@@ -835,6 +1001,8 @@ protected:
 	using stream_buf::gptr;
 	using stream_buf::egptr;
 	using stream_buf::gbump;
+
+	std::streamsize showmanyc() override { return egptr() - gptr(); }
 
 	int_type underflow() override
 	{
@@ -866,10 +1034,13 @@ template<typename CharT, typename Traits = std::char_traits<CharT>>
 class basic_range_istream
 : public std::basic_istream<CharT, Traits>
 {
+	using char_type = typename std::remove_cv<CharT>::type;
+	using const_char_type = char_type const;
+
 	friend basic_range_istream& getline<CharT, Traits>(basic_range_istream& is, range<CharT>& sp, CharT delim);
 
 public:
-	basic_range_istream(range<CharT> sp): std::istream(&buf), buf(sp) {}
+	basic_range_istream(range<CharT> sp): std::basic_istream<CharT, Traits>(&buf), buf(sp) {}
 
 private:
 	using istream = std::basic_istream<CharT, Traits>;
@@ -886,6 +1057,7 @@ private:
 			istream::setstate(istream::eofbit);
 		return line;
 	}
+
 	basic_range_buf<CharT, Traits> buf;
 };
 
@@ -894,38 +1066,60 @@ using wrange_istream = basic_range_istream<wchar_t>;
 using u16range_istream = basic_range_istream<char16_t>;
 using u32range_istream = basic_range_istream<char32_t>;
 
+//using const_range_istream = basic_range_istream<char const>;
+//using wrange_istream = basic_range_istream<wchar_t>;
+//using u16range_istream = basic_range_istream<char16_t>;
+//using u32range_istream = basic_range_istream<char32_t>;
+
 template<typename CharT, typename Traits = std::char_traits<CharT>>
 basic_range_istream<CharT, Traits>&
 getline(basic_range_istream<CharT, Traits>& is, range<CharT>& sp, CharT delim)
 {
-	sp = is._getline(delim);
+	if(is)
+		sp = is._getline(delim);
 	return is;
 }
 
 range_istream&
 getline(range_istream& is, range<char>& r, char delim = '\n')
-{
-	return getline<char>(is, r, delim);
-}
+	{ return getline<char>(is, r, delim); }
 
 wrange_istream&
 getline(wrange_istream& is, range<wchar_t>& r, wchar_t delim = L'\n')
-{
-	return getline<wchar_t>(is, r, delim);
-}
+	{ return getline<wchar_t>(is, r, delim); }
 
 u16range_istream&
 getline(u16range_istream& is, range<char16_t>& r, char16_t delim = u'\n')
-{
-	return getline<char16_t>(is, r, delim);
-}
+	{ return getline<char16_t>(is, r, delim); }
 
 u32range_istream&
 getline(u32range_istream& is, range<char32_t>& r, char32_t delim = U'\n')
-{
-	return getline<char32_t>(is, r, delim);
-}
+	{ return getline<char32_t>(is, r, delim); }
 
+namespace literals {
+
+auto operator""_sr(char const* s, std::size_t n) noexcept
+	{ return const_srange{s, n}; }
+
+auto operator""_wsr(wchar_t const* s, std::size_t n) noexcept
+	{ return const_wsrange{s, n}; }
+
+auto operator""_u16sr(char16_t const* s, std::size_t n) noexcept
+	{ return const_u16srange{s, n}; }
+
+auto operator""_u32sr(char32_t const* s, std::size_t n) noexcept
+	{ return const_u32srange{s, n}; }
+
+//	using range_istream = basic_range_istream<char>;
+//	using wrange_istream = basic_range_istream<wchar_t>;
+//	using u16range_istream = basic_range_istream<char16_t>;
+//	using u32range_istream = basic_range_istream<char32_t>;
+
+//auto operator""_ris(char const* s, std::size_t n) noexcept
+//	{ return range_istream(const_srange(s, n)); }
+
+
+} // literals
 } // namespace range_utils
 } // namespace header_only_library
 
