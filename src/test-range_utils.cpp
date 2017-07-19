@@ -29,12 +29,12 @@
 
 //#include "test.h"
 #include "hol/bug.h"
-//#include "hol/random_numbers.h"
+#include "hol/random_numbers.h"
 #include "hol/range_utils.h"
 //#include "hol/unicode_utils.h"
 
 namespace hol{
-//	using namespace header_only_library::random_numbers;
+	using namespace header_only_library::random_numbers;
 	using namespace header_only_library::range_utils;
 //	using namespace header_only_library::unicode_utils;
 }
@@ -80,5 +80,193 @@ TEST_CASE("String operations", "[]")
 		hol::copy(r1, r2);
 
 		REQUIRE(s2 == "abc");
+	}
+}
+
+std::ostream& operator<<(std::ostream& os, hol::srange sr)
+{
+	return os << sr.string();
+}
+
+TEST_CASE("Stream operations", "[]")
+{
+	SECTION("getline")
+	{
+		char s[] = "\none\n\ntwo\n\n\nthree\n\n";
+		{
+			hol::srange r = hol::make_range(s);
+			hol::range_istream ris(r);
+
+			std::vector<hol::srange> v;
+			for(hol::srange r; hol::getline(ris, r);)
+				v.push_back(r);
+
+			bug_cnt(v);
+		}
+		{
+			std::istringstream ris(s);
+
+			std::vector<std::string> v;
+			for(std::string r; std::getline(ris, r);)
+				v.push_back(r);
+
+			bug_cnt(v);
+		}
+	}
+}
+
+TEST_CASE("Regex operations", "[]")
+{
+	SECTION("match")
+	{
+		std::string s = "[some stuff]";
+		std::regex  e{R"~(\[(\w+)\s+(\w+)\])~"};
+
+		std::vector<std::string> answers =
+		{
+			"[some stuff]",
+			"some",
+			"stuff",
+		};
+
+		auto matches = hol::regex_match(hol::make_range(s), e);
+
+		REQUIRE(matches.size() == answers.size());
+
+		for(auto i = 0U; i < matches.size(); ++i)
+			REQUIRE(std::equal(std::begin(matches[i]), std::end(matches[i]),
+				std::begin(answers[i]), std::end(answers[i])));
+	}
+
+	SECTION("search")
+	{
+		std::string s = " [some1 stuff1] [some2 stuff2] [some3 stuff3] ";
+		std::regex  e{R"~(\[(\w+)\s+(\w+)\])~"};
+
+		std::vector<std::string> answers =
+		{
+			"[some1 stuff1]",
+			"some1",
+			"stuff1",
+		};
+
+		auto matches = hol::regex_search(hol::make_range(s), e);
+
+		REQUIRE(matches.size() == answers.size());
+
+		for(auto i = 0U; i < matches.size(); ++i)
+			REQUIRE(std::equal(std::begin(matches[i]), std::end(matches[i]),
+				std::begin(answers[i]), std::end(answers[i])));
+	}
+
+	SECTION("search_all")
+	{
+		std::string s = " [some1 stuff1] [some2 stuff2] [some3 stuff3] ";
+		std::regex  e{R"~(\[(\w+)\s+(\w+)\])~"};
+
+		std::vector<std::vector<std::string>> answers =
+		{
+			{
+				"[some1 stuff1]",
+				"some1",
+				"stuff1",
+			},
+			{
+				"[some2 stuff2]",
+				"some2",
+				"stuff2",
+			},
+			{
+				"[some3 stuff3]",
+				"some3",
+				"stuff3",
+			},
+		};
+
+		auto matches = hol::regex_search_all(hol::make_range(s), e);
+
+		REQUIRE(matches.size() == answers.size());
+
+		for(auto i = 0U; i < matches.size(); ++i)
+		{
+			REQUIRE(matches[i].size() == answers[i].size());
+
+			for(auto j = 0U; j < matches[i].size(); ++j)
+			{
+				REQUIRE(std::equal(std::begin(matches[i][j]), std::end(matches[i][j]),
+					std::begin(answers[i][j]), std::end(answers[i][j])));
+			}
+		}
+	}
+}
+
+TEST_CASE("Algorithms", "[]")
+{
+	SECTION("all_of")
+	{
+		std::string s1 = "aaaaaaa";
+		std::string s2 = "aabaaaa";
+
+		auto r1 = hol::make_range(s1);
+		auto r2 = hol::make_range(s2);
+
+		REQUIRE(hol::all_of(r1, [](auto c){ return c == 'a'; }));
+		REQUIRE_FALSE(hol::all_of(r2, [](auto c){ return c == 'a'; }));
+	}
+
+	SECTION("any_of")
+	{
+		std::string s = "aaaaaab";
+
+		auto r = hol::make_range(s);
+
+		REQUIRE(hol::any_of(r, [](auto c){ return c == 'a'; }));
+		REQUIRE(hol::any_of(r, [](auto c){ return c == 'b'; }));
+		REQUIRE_FALSE(hol::any_of(r, [](auto c){ return c == 'c'; }));
+	}
+
+	SECTION("none_of")
+	{
+		std::string s = "ababab";
+
+		auto r = hol::make_range(s);
+
+		REQUIRE_FALSE(hol::none_of(r, [](auto c){ return c == 'a'; }));
+		REQUIRE_FALSE(hol::none_of(r, [](auto c){ return c == 'b'; }));
+		REQUIRE(hol::none_of(r, [](auto c){ return c == 'c'; }));
+	}
+
+	SECTION("for_each")
+	{
+		std::string s = u8"abcde";
+
+		auto r = hol::make_range(s);
+
+		hol::for_each(r, [](char& c){ c += 1; });
+
+		REQUIRE(s == u8"bcdef");
+	}
+
+	SECTION("count")
+	{
+		std::vector<int> v;
+		std::generate_n(std::back_inserter(v), 10,
+			[]{ return hol::random_number(100); });
+
+		auto r = hol::make_range(v);
+
+		REQUIRE(hol::count(r, v[0]) == std::count(std::begin(v), std::end(v), v[0]));
+	}
+
+	SECTION("count_if")
+	{
+		std::vector<int> v;
+		std::generate_n(std::back_inserter(v), 10,
+			[]{ return hol::random_number(100); });
+
+		auto r = hol::make_range(v);
+		auto p = [](auto i){ return i > 50; };
+
+		REQUIRE(hol::count_if(r, p) == std::count_if(std::begin(v), std::end(v), p));
 	}
 }
