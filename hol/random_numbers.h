@@ -22,9 +22,11 @@
 // SOFTWARE.
 //
 
-#include <random>
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <limits>
+#include <random>
 
 /**
  * Configuration:
