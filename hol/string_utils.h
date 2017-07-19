@@ -22,20 +22,25 @@
 // SOFTWARE.
 //
 
-#include <set>
-#include <regex>
-#include <cerrno>
-#include <string>
-#include <vector>
+// TODO: split std::string_view and gsl::string_span parts to different header
+// TODO: generalize mapped_stencil for other string types
+// TODO: Rework split() SIMPLIFY
+
+#include <algorithm>
 #include <array>
-#include <locale>
-#include <numeric>
-#include <cstdlib> // std::strtol
+#include <cerrno>
 #include <codecvt>
+#include <cstdlib> // std::strtol
 #include <cstring>
 #include <fstream>
+#include <locale>
+#include <numeric>
+#include <regex>
+#include <set>
 #include <sstream>
-#include <algorithm>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #ifdef HOL_USE_STRING_VIEW
 #	include <experimental/string_view>
@@ -600,6 +605,26 @@ template<typename C, typename T = std::char_traits<C>, typename A = std::allocat
 String<C, T, A> trim_copy(String<C, T, A> s)
 {
 	return trim_mute(s);
+}
+
+// const char* versions
+// TODO: specify ws? seek a more holistic solution?
+
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_left_copy(C const* s)
+{
+	return trim_left_copy(String<C, T, A>(s));
+}
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_right_copy(C const* s)
+{
+	return trim_right_copy(String<C, T, A>(s));
+}
+
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+String<C, T, A> trim_copy(C const* s)
+{
+	return trim_copy(String<C, T, A>(s));
 }
 
 //---------------------------------------------------------
@@ -1632,7 +1657,7 @@ class mapped_stencil
 	std::ptrdiff_t diff = 0;
 
 public:
-	using dict = std::map<std::string, std::string>;
+	using dict = std::unordered_map<std::string, std::string>;
 
 	/**
 	 * Create an empty stencil
