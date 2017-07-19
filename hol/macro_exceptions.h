@@ -43,22 +43,23 @@
 #define hol_throw_errno() hol_throw_runtime_error(std::strerror(errno))
 #define hol_throw_errno_msg(m) hol_throw_runtime_error(m << ": " << std::strerror(errno))
 
-#ifdef __GNUG__
-//
-// Branch Prediction Hints
-//
-// Usage:
-//
-// if(likely(my_condition(i)))
-// {
-//     // most visited code here
-// }
-//
-#define hol_likely(x)    __builtin_expect(!!(x), 1)
-#define hol_unlikely(x)  __builtin_expect(!!(x), 0)
-#else
-#define hol_likely(x)    (x)
-#define hol_unlikely(x)  (x)
-#endif
+// Moved to macro_utils.h
+//#ifdef __GNUG__
+////
+//// Branch Prediction Hints
+////
+//// Usage:
+////
+//// if(likely(my_condition(i)))
+//// {
+////     // most visited code here
+//// }
+////
+//#define hol_likely(x)    __builtin_expect(!!(x), 1)
+//#define hol_unlikely(x)  __builtin_expect(!!(x), 0)
+//#else
+//#define hol_likely(x)    (x)
+//#define hol_unlikely(x)  (x)
+//#endif
 
 #endif // HOL_MACRO_EXCEPTIONS_H
