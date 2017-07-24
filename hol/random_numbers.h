@@ -147,19 +147,17 @@ struct std_real_type_test
 
 #endif // __cpp_concepts
 
-//#if defined(__MINGW32__) || defined(__MINGW64__)
-//#error Not compatable with MinGW due to a MinGW bug in std::random_device
-//#else
-//using random_device = std::random_device;
-//#endif
-
 inline
 auto const& random_data()
 {
-	thread_local static std::array<std::random_device::result_type, Generator::state_size> data;
-	thread_local static HOL_RANDOM_DEVICE rd{HOL_RANDOM_DEVICE_SOURCE};
-
-	std::generate(std::begin(data), std::end(data), std::ref(rd));
+//	thread_local static std::array<std::random_device::result_type, Generator::state_size> data;
+	thread_local static std::array<std::random_device::result_type, 32> data = []
+	{
+		HOL_RANDOM_DEVICE rd{HOL_RANDOM_DEVICE_SOURCE};
+		std::array<std::random_device::result_type, 32> data;
+		std::generate(std::begin(data), std::end(data), std::ref(rd));
+		return data;
+	}();
 
 	return data;
 }
@@ -167,9 +165,7 @@ auto const& random_data()
 inline
 Generator& random_generator()
 {
-	auto const& data = random_data();
-
-	thread_local static std::seed_seq seeds(std::begin(data), std::end(data));
+	thread_local static std::seed_seq seeds(std::begin(random_data()), std::end(random_data()));
 	thread_local static Generator gen{seeds};
 
 	return gen;
