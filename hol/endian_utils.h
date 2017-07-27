@@ -119,6 +119,13 @@ CharPtr encode_network_byte_order(T const& t, CharPtr data)
 	return data + sizeof(T);
 }
 
+
+template<typename Char, std::size_t N, typename T>
+Char* encode_network_byte_order(T const& t, Char(&data)[N])
+{
+	return encode_network_byte_order(t, data);
+}
+
 template<typename CharPtr, typename T>
 CharPtr decode_network_byte_order(CharPtr const& data, T& t)
 {
@@ -137,6 +144,12 @@ CharPtr decode_network_byte_order(CharPtr const& data, T& t)
 		std::reverse_copy(data, data + sizeof(T), (char_type*)&t);
 
 	return data + sizeof(T);
+}
+
+template<typename Char, std::size_t N, typename T>
+Char* decode_network_byte_order(Char const(&data)[N] , T& t)
+{
+	return decode_network_byte_order(data, t);
 }
 
 } // namespace endian_utils
