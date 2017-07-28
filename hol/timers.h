@@ -22,9 +22,11 @@
 // SOFTWARE.
 //
 
+#include <atomic>
 #include <chrono>
 #include <ostream>
 #include <iomanip>
+#include <thread>
 
 namespace header_only_library {
 namespace timers {
