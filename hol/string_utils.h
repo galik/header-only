@@ -1305,7 +1305,12 @@ template<typename Iter,
 	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
 String<C, T, A> join(Iter begin, Iter end, String<C, T, A> const& delim)
 {
-	auto size = ((std::distance(begin, end) - 1) * delim.size());
+	auto dist = std::distance(begin, end);
+
+	if(!dist)
+		return {};
+
+	auto size = ((dist - 1) * delim.size());
 
 	size += std::accumulate(begin, end, std::size_t(0),
 		[](auto n, auto const& s){ return n + s.size(); });
