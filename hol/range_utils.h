@@ -91,6 +91,14 @@ private:
 	T* m_pos;
 };
 
+template<typename CharT>
+std::size_t length_of(CharT const* s)
+{
+	auto b = s;
+	while(*s) ++s;
+	return std::size_t(s - b);
+}
+
 } // namespace detail
 
 template<typename T>
@@ -121,15 +129,24 @@ public:
 
 	explicit range(T* beg, std::size_t len) noexcept: range(beg, beg + len) {}
 
+	// TODO: This constructor accepts the null terminator of
+	// zero terminated string literals
 	template<std::size_t Size>
-	explicit range(T(&a)[Size]) noexcept: range(&*std::begin(a), &*std::end(a)) {}
+	explicit range(T(&a)[Size]) noexcept: range(a, a + Size) {}
 
 	template<typename Container>
 	explicit range(Container&& c) noexcept
-	: range(&*std::begin(std::forward<Container>(c)), &*std::end(std::forward<Container>(c))) {}
+	: range(&std::forward<Container>(c)[0], std::forward<Container>(c).size()) {}
 
 	template<typename ForwardIter>
-	explicit range(ForwardIter beg, ForwardIter end) noexcept: range(&*beg, &*end) {}
+	explicit range(ForwardIter beg, ForwardIter end) noexcept: range(&*beg, std::distance(beg, end)) {}
+
+	template<typename U = T>
+	range(U* s, typename std::enable_if<std::is_same<U, char>::value
+		|| std::is_same<U, wchar_t>::value
+		|| std::is_same<U, char16_t>::value
+		|| std::is_same<U, char32_t>::value>::type* = 0) noexcept
+	: range(s, detail::length_of(s)) {}
 
 	constexpr iterator begin() noexcept { return m_beg; }
 	constexpr const_iterator begin() const noexcept { return m_beg; }
@@ -184,10 +201,10 @@ public:
 	template<typename U = T>
 	typename std::enable_if
 	<
-		std::is_same<U, char>::value
-		|| std::is_same<U, wchar_t>::value
-		|| std::is_same<U, char16_t>::value
-		|| std::is_same<U, char32_t>::value,
+		std::is_same<typename std::remove_const<U>::type, char>::value
+		|| std::is_same<typename std::remove_const<U>::type, wchar_t>::value
+		|| std::is_same<typename std::remove_const<U>::type, char16_t>::value
+		|| std::is_same<typename std::remove_const<U>::type, char32_t>::value,
 		range
 	>::type
 	substr(std::size_t pos, std::size_t len) noexcept
@@ -198,10 +215,10 @@ public:
 	template<typename U = T>
 	typename std::enable_if
 	<
-		std::is_same<U, char>::value
-		|| std::is_same<U, wchar_t>::value
-		|| std::is_same<U, char16_t>::value
-		|| std::is_same<U, char32_t>::value,
+		std::is_same<typename std::remove_const<U>::type, char>::value
+		|| std::is_same<typename std::remove_const<U>::type, wchar_t>::value
+		|| std::is_same<typename std::remove_const<U>::type, char16_t>::value
+		|| std::is_same<typename std::remove_const<U>::type, char32_t>::value,
 		range
 	>::type
 	substr(std::size_t pos) noexcept
@@ -212,11 +229,11 @@ public:
 	template<typename U = T>
 	typename std::enable_if
 	<
-		std::is_same<U, char>::value
-		|| std::is_same<U, wchar_t>::value
-		|| std::is_same<U, char16_t>::value
-		|| std::is_same<U, char32_t>::value,
-		std::basic_string<U>
+		std::is_same<typename std::remove_const<U>::type, char>::value
+		|| std::is_same<typename std::remove_const<U>::type, wchar_t>::value
+		|| std::is_same<typename std::remove_const<U>::type, char16_t>::value
+		|| std::is_same<typename std::remove_const<U>::type, char32_t>::value,
+		std::basic_string<typename std::remove_const<U>::type>
 	>::type
 	string()
 	{

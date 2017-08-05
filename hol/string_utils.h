@@ -1241,6 +1241,49 @@ std::vector<std::wstring> split_copy_from(
 	return basic_split_from(s, v, delims, fold, strict);
 }
 
+// ============================================
+// The last word in splitting
+
+template<typename RefsType, typename CRefsType>
+void split_refs(RefsType s, CRefsType t, std::vector<RefsType>& v, bool prealloc = false)
+{
+	auto beg = s.data();
+	auto const end = s.data() + s.size();
+	decltype(beg) pos;
+
+	if(prealloc)
+	{
+		auto n = 0U;
+		while((pos = std::search(beg, end, t.data(), t.data() + t.size())) != end)
+		{
+			++n;
+			beg = pos + t.size();
+		}
+
+		if(n)
+			v.reserve(v.size() + n + 1);
+
+		beg = s.data();
+	}
+
+	while((pos = std::search(beg, end, t.data(), t.data() + t.size())) != end)
+	{
+		v.emplace_back(beg, pos);
+		beg = pos + t.size();
+	}
+
+	if(!v.empty())
+		v.emplace_back(beg, pos);
+}
+
+template<typename RefsType, typename CRefsType>
+std::vector<RefsType> split_refs(RefsType s, CRefsType t, bool prealloc = false)
+{
+	std::vector<RefsType> v;
+	split_refs(s, t, v, prealloc);
+	return v;
+}
+
 // JOIN
 
 template<typename Iter,
