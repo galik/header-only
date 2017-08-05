@@ -99,57 +99,45 @@ constexpr Numeric from_endian(endian e, Numeric n)
 
 // I'll just put these here for now (they may move)
 
-template<typename CharPtr, typename T>
-CharPtr encode_network_byte_order(T const& t, CharPtr data)
+template<typename Char, typename T>
+Char* encode_network_byte_order(T const& t, Char* data)
 {
-	static_assert(std::is_same<CharPtr, char*>::value
-		|| std::is_same<CharPtr, unsigned char*>::value
+	static_assert(std::is_same<Char*, char*>::value
+		|| std::is_same<Char*, unsigned char*>::value
 #if __cplusplus >= 201703
-		|| std::is_same<CharPtr, std::byte*>::value
+		|| std::is_same<Char*, std::byte*>::value
 #endif
 		,	"Second parmeter must be a char*, unsigned char* or std::byte*");
 
-	using char_type = typename std::remove_const<typename std::remove_pointer<CharPtr>::type>::type;
+//	using char_type = typename std::remove_const<typename std::remove_pointer<CharPtr>::type>::type;
 
 	IF_CONSTEXPR(is_big_endian())
-		std::copy((char_type const*)&t, (char_type const*)&t + sizeof(T), data);
+		std::copy((Char const*)&t, (Char const*)&t + sizeof(T), data);
 	else
-		std::reverse_copy((char_type const*)&t, (char_type const*)&t + sizeof(T), data);
+		std::reverse_copy((Char const*)&t, (Char const*)&t + sizeof(T), data);
 
 	return data + sizeof(T);
 }
 
-
-template<typename Char, std::size_t N, typename T>
-Char* encode_network_byte_order(T const& t, Char(&data)[N])
+template<typename Char, typename T>
+Char const* decode_network_byte_order(Char const* data, T& t)
 {
-	return encode_network_byte_order(t, data);
-}
+//	bug_fun();
+//	using char_type = typename std::remove_const<typename std::remove_pointer<CharPtr>::type>::type;
 
-template<typename CharPtr, typename T>
-CharPtr decode_network_byte_order(CharPtr const& data, T& t)
-{
-	using char_type = typename std::remove_const<typename std::remove_pointer<CharPtr>::type>::type;
-
-	static_assert(std::is_same<char_type*, char*>::value
-		|| std::is_same<char_type*, unsigned char*>::value
+	static_assert(std::is_same<Char*, char*>::value
+		|| std::is_same<Char*, unsigned char*>::value
 #if __cplusplus >= 201703
-		|| std::is_same<char_type*, std::byte*>::value
+		|| std::is_same<Char*, std::byte*>::value
 #endif
 		, "Second parmeter must be a char const*, unsigned char const* or std::byte const*");
 
 	IF_CONSTEXPR(is_big_endian())
-		std::copy(data, data + sizeof(T), (char_type*)&t);
+		std::copy(data, data + sizeof(T), (Char*)&t);
 	else
-		std::reverse_copy(data, data + sizeof(T), (char_type*)&t);
+		std::reverse_copy(data, data + sizeof(T), (Char*)&t);
 
 	return data + sizeof(T);
-}
-
-template<typename Char, std::size_t N, typename T>
-Char* decode_network_byte_order(Char const(&data)[N] , T& t)
-{
-	return decode_network_byte_order(data, t);
 }
 
 } // namespace endian_utils
