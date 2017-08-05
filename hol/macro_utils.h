@@ -119,7 +119,9 @@
 
 #ifdef NDEBUG
 #define HOL_ASSERT(expr) do{}while(0)
-#define HOL_ASSERT_MSG(expr, msg) do{}while(0)
+#define HOL_ASSERT_IF(cond,expr) do{}while(0)
+#define HOL_ASSERT_MSG(expr,msg) do{}while(0)
+#define HOL_ASSERT_MSG_IF(cond,expr,msg) do{}while(0)
 #else
 #define HOL_ASSERT(expr) \
 do { \
@@ -129,7 +131,8 @@ do { \
 		std::abort(); \
 	} \
 }while(0)
-#define HOL_ASSERT_MSG(expr, msg) \
+#define HOL_ASSERT_IF(cond,expr) do { if(cond) HOL_ASSERT(expr); }while(0)
+#define HOL_ASSERT_MSG(expr,msg) \
 do { \
 	if(!(expr)) \
 	{ \
@@ -137,6 +140,7 @@ do { \
 		std::abort(); \
 	} \
 }while(0)
+#define HOL_ASSERT_MSG_IF(cond,expr,msg) do { if(cond) HOL_ASSERT_MSG(expr,msg); }while(0)
 #endif
 
 #ifdef __GNUG__
@@ -156,5 +160,23 @@ do { \
 #define HOL_LIKELY(x)    (x)
 #define HOL_UNLIKELY(x)  (x)
 #endif
+
+// casting
+
+namespace header_only_library {
+namespace macro_utils {
+
+template <class T, class U>
+inline T narrow_cast(U u) noexcept
+{
+	T t = static_cast<T>(u);
+	HOL_ASSERT_MSG(static_cast<U>(t) == u, "narrowing changed the value from: " << std::size_t(u) << " to: " << std::size_t(t));
+	HOL_ASSERT_MSG_IF(std::is_signed<T>::value != std::is_signed<U>::value,(t < T{}) == (u < U{}),
+		"narrowing changed the sign of the value from: " << std::size_t(u) << " to: " << std::size_t(t));
+	return t;
+}
+
+} // namespace macro_utils
+} // namespace header_only_library
 
 #endif // HOL_MACRO_UTILS_H
