@@ -297,12 +297,6 @@ SpanType trim_span(SpanType s, CSpanType t = detail::ws(typename CSpanType::elem
 
 // Splitting
 
-//template<typename SpanType, typename CSpanType>
-//auto find(SpanType s, CSpanType t)
-//{
-//	return std::search(s.data(), s.data() + s.size(), t.data(), t.data() + t.size());
-//}
-
 template<typename SpanType, typename CSpanType>
 std::vector<SpanType> split_span(SpanType s, CSpanType t)
 {
@@ -323,7 +317,6 @@ std::vector<SpanType> split_span(SpanType s, CSpanType t)
 
 	return v;
 }
-
 
 } // string_span_utils
 } // header_only_library

@@ -1118,6 +1118,28 @@ auto operator""_u32sr(char32_t const* s, std::size_t n) noexcept
 //auto operator""_ris(char const* s, std::size_t n) noexcept
 //	{ return range_istream(const_srange(s, n)); }
 
+// Splitting
+
+template<typename RangeType, typename CRangeType>
+std::vector<RangeType> split_range(RangeType s, CRangeType t)
+{
+	std::vector<RangeType> v;
+
+	auto beg = s.data();
+	auto const end = s.data() + s.size();
+	decltype(beg) pos;
+
+	while((pos = std::search(beg, end, t.data(), t.data() + t.size())) != end)
+	{
+		v.emplace_back(beg, pos);
+		beg = pos + t.size();
+	}
+
+	if(!v.empty())
+		v.emplace_back(beg, pos);
+
+	return v;
+}
 
 } // literals
 } // namespace range_utils
