@@ -118,4 +118,147 @@ TEST_CASE("string_span string function tests", "string_span_utils")
 	}
 }
 
+TEST_CASE("Trimming Utils", "[trimming]")
+{
+	using string_span = gsl::string_span<>;
+	using cstring_span = gsl::cstring_span<>;
+
+	SECTION("trim_left_span")
+	{
+		{
+			auto const t = cstring_span("");
+			auto const s = cstring_span("");
+			auto const x = cstring_span("");
+			auto const o = s;
+			auto const r = hol::trim_left_span(s, t);
+			REQUIRE(r == x);
+			REQUIRE(s == o);
+		}
+
+		{
+			auto const t = cstring_span("");
+			auto const s = cstring_span("{}");
+			auto const x = cstring_span("{}");
+			auto const o = s;
+			auto const& r = hol::trim_left_span(s, t);
+			REQUIRE(r == x);
+			REQUIRE(s == o);
+		}
+
+		{
+			auto const t = cstring_span("{}");
+			auto const s = cstring_span("");
+			auto const x = cstring_span("");
+			auto const& r = hol::trim_left_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("{");
+			auto const s = cstring_span("{{{}}}");
+			auto const x = cstring_span("}}}");
+			auto const& r = hol::trim_left_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("{");
+			auto const s = cstring_span("{ {} }");
+			auto const x = cstring_span(" {} }");
+			auto const& r = hol::trim_left_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("{");
+			auto const s = cstring_span(" {{}} ");
+			auto const x = cstring_span(" {{}} ");
+			auto const& r = hol::trim_left_span(s, t);
+			REQUIRE(r == x);
+		}
+	}
+
+	SECTION("trim_right_span")
+	{
+		{
+			auto const t = cstring_span("");
+			auto const s = cstring_span("");
+			auto const x = cstring_span("");
+			auto const& r = hol::trim_right_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("");
+			auto const s = cstring_span("{}");
+			auto const x = cstring_span("{}");
+			auto const& r = hol::trim_right_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("{}");
+			auto const s = cstring_span("");
+			auto const x = cstring_span("");
+			auto const& r = hol::trim_right_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("}");
+			auto const s = cstring_span("{{{}}}");
+			auto const x = cstring_span("{{{");
+			auto const& r = hol::trim_right_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("}");
+			auto const s = cstring_span("{ {} }");
+			auto const x = cstring_span("{ {} ");
+			auto const& r = hol::trim_right_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("}");
+			auto const s = cstring_span(" {{}} ");
+			auto const x = cstring_span(" {{}} ");
+			auto const& r = hol::trim_right_span(s, t);
+			REQUIRE(r == x);
+		}
+	}
+
+	SECTION("trim_span")
+	{
+		{
+			auto const t = cstring_span("");
+			auto const s = cstring_span("");
+			auto const x = cstring_span("");
+			auto const& r = hol::trim_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("");
+			auto const s = cstring_span("{}");
+			auto const x = cstring_span("{}");
+			auto const& r = hol::trim_span(s, t);
+			REQUIRE(r == x);
+		}
+
+		{
+			auto const t = cstring_span("{}");
+			auto const s = cstring_span("");
+			auto const x = cstring_span("");
+			auto const& r = hol::trim_span(s, t);
+			REQUIRE(r == x);
+		}
+	}
+//		T "{}"
+//		B "{{{}}}" ""
+//		B "{ {} }" " {} "
+//		B " {{}} " " {{}} "
+
+}
 

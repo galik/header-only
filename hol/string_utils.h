@@ -46,19 +46,11 @@
 #	include <experimental/string_view>
 #endif
 
-#ifdef HOL_USE_STRING_SPAN
-#	include <gsl/string_span>
-#endif
-
 namespace header_only_library {
 namespace string_utils {
 
 #ifdef HOL_USE_STRING_VIEW
 using string_view = std::experimental::string_view;
-#endif
-
-#ifdef HOL_USE_STRING_SPAN
-using string_span = gsl::string_span<>;
 #endif
 
 // replace_all
@@ -972,56 +964,6 @@ auto trim_keep(String<C, T, A> s)
 //}
 
 // GSL_STRING_SPAN
-
-#ifdef HOL_USE_STRING_SPAN
-namespace gsl_detail {
-namespace {
-gsl::cstring_span<> ws{" \t\n\r\f\v\0"};//(::header_only_library::string_utils::detail::ws(char()));
-}
-
-inline
-string_span::index_type find_first_not_of(string_span s, gsl::cstring_span<> t)
-{
-	for(string_span::index_type i = 0; i < s.size(); ++i)
-		if(std::find(t.begin(), t.end(), s[i]) == t.end())
-			return i;
-	return -1; // 0?
-}
-
-inline
-string_span::index_type find_last_not_of(string_span s, gsl::cstring_span<> t)
-{
-	for(string_span::index_type i = s.size(); i; --i)
-		if(std::find(t.begin(), t.end(), s[i - 1]) == t.end())
-			return i - 1;
-	return -1; // s.size() ?
-}
-} // gsl_detail
-
-inline
-string_span trim_left_span(string_span s, gsl::cstring_span<> t = gsl_detail::ws)
-{
-	auto found = gsl_detail::find_first_not_of(s, t);
-
-	if(found == -1)
-		return {};
-
-	return s.subspan(found);
-}
-
-inline
-string_span trim_right_span(string_span s, gsl::cstring_span<> t = gsl_detail::ws)
-{
-	return s.subspan(0, gsl_detail::find_last_not_of(s, t) + 1);
-}
-
-inline
-string_span trim_span(string_span s, gsl::cstring_span<> t = gsl_detail::ws)
-{
-	return trim_left_span(trim_right_span(s, t), t);
-}
-
-#endif
 
 // NEW DEFINITIVE SPLIT ALGORITHM??
 

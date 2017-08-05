@@ -219,6 +219,101 @@ offset_type find_last_not_of(
 //	return getline<char>(is, sp, delim);
 //}
 
+// Trimming
+
+template<typename CharT>
+using string_span = typename gsl::basic_string_span<CharT>;
+
+template<typename CharT>
+using cstring_span = typename gsl::basic_string_span<CharT const>;
+
+template<typename CharT>
+using index_type = typename string_span<CharT>::index_type;
+
+namespace detail {
+constexpr cstring_span<char>    ws(char)      { return cstring_span<char>    ( " \t\n\r\f\v\0"); }
+constexpr cstring_span<wchar_t> ws(wchar_t)   { return cstring_span<wchar_t> (L" \t\n\r\f\v\0"); }
+constexpr cstring_span<char16_t> ws(char16_t) { return cstring_span<char16_t>(u" \t\n\r\f\v\0"); }
+constexpr cstring_span<char32_t> ws(char32_t) { return cstring_span<char32_t>(U" \t\n\r\f\v\0"); }
+
+//template<typename CharT>
+//index_type<CharT> find_first_not_of(string_span<CharT> s, cstring_span<CharT> t)
+//{
+//	for(index_type<CharT> i = 0; i < s.size(); ++i)
+//		if(std::find(t.begin(), t.end(), s[i]) == t.end())
+//			return i;
+//	return -1; // 0?
+//}
+//
+//template<typename CharT>
+//index_type<CharT> find_last_not_of(string_span<CharT> s, cstring_span<CharT> t)
+//{
+//	for(index_type<CharT> i = s.size(); i; --i)
+//		if(std::find(t.begin(), t.end(), s[i - 1]) == t.end())
+//			return i - 1;
+//	return -1; // s.size() ?
+//}
+//
+//template<typename CharT>
+//index_type<CharT> find_first_not_of(cstring_span<CharT> s, cstring_span<CharT> t)
+//{
+//	for(index_type<CharT> i = 0; i < s.size(); ++i)
+//		if(std::find(t.begin(), t.end(), s[i]) == t.end())
+//			return i;
+//	return -1; // 0?
+//}
+//
+//template<typename CharT>
+//index_type<CharT> find_last_not_of(cstring_span<CharT> s, cstring_span<CharT> t)
+//{
+//	for(index_type<CharT> i = s.size(); i; --i)
+//		if(std::find(t.begin(), t.end(), s[i - 1]) == t.end())
+//			return i - 1;
+//	return -1; // s.size() ?
+//}
+
+template<typename SpanType, typename CSpanType>
+typename SpanType::index_type find_first_not_of(SpanType s, CSpanType t)
+{
+	for(typename SpanType::index_type i = 0; i < s.size(); ++i)
+		if(std::find(t.begin(), t.end(), s[i]) == t.end())
+			return i;
+	return -1; // 0?
+}
+
+template<typename SpanType, typename CSpanType>
+typename SpanType::index_type find_last_not_of(SpanType s, CSpanType t)
+{
+	for(typename SpanType::index_type i = s.size(); i; --i)
+		if(std::find(t.begin(), t.end(), s[i - 1]) == t.end())
+			return i - 1;
+	return -1; // s.size() ?
+}
+
+} // detail
+
+template<typename SpanType, typename CSpanType>
+SpanType trim_left_span(SpanType s, CSpanType t = detail::ws(typename CSpanType::element_type()))
+{
+	auto found = detail::find_first_not_of(s, t);
+
+	if(found == -1)
+		return {};
+
+	return s.subspan(found);
+}
+
+template<typename SpanType, typename CSpanType>
+SpanType trim_right_span(SpanType s, CSpanType t = detail::ws(typename CSpanType::element_type()))
+{
+	return s.subspan(0, detail::find_last_not_of(s, t) + 1);
+}
+
+template<typename SpanType, typename CSpanType>
+SpanType trim_span(SpanType s, CSpanType t = detail::ws(typename CSpanType::element_type()))
+{
+	return trim_left_span(trim_right_span(s, t), t);
+}
 
 } // string_span_utils
 } // header_only_library
