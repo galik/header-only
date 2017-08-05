@@ -140,7 +140,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const s = cstring_span("{}");
 			auto const x = cstring_span("{}");
 			auto const o = s;
-			auto const& r = hol::trim_left_span(s, t);
+			auto const r = hol::trim_left_span(s, t);
 			REQUIRE(r == x);
 			REQUIRE(s == o);
 		}
@@ -149,7 +149,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("{}");
 			auto const s = cstring_span("");
 			auto const x = cstring_span("");
-			auto const& r = hol::trim_left_span(s, t);
+			auto const r = hol::trim_left_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -157,7 +157,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("{");
 			auto const s = cstring_span("{{{}}}");
 			auto const x = cstring_span("}}}");
-			auto const& r = hol::trim_left_span(s, t);
+			auto const r = hol::trim_left_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -165,7 +165,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("{");
 			auto const s = cstring_span("{ {} }");
 			auto const x = cstring_span(" {} }");
-			auto const& r = hol::trim_left_span(s, t);
+			auto const r = hol::trim_left_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -173,7 +173,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("{");
 			auto const s = cstring_span(" {{}} ");
 			auto const x = cstring_span(" {{}} ");
-			auto const& r = hol::trim_left_span(s, t);
+			auto const r = hol::trim_left_span(s, t);
 			REQUIRE(r == x);
 		}
 	}
@@ -184,7 +184,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("");
 			auto const s = cstring_span("");
 			auto const x = cstring_span("");
-			auto const& r = hol::trim_right_span(s, t);
+			auto const r = hol::trim_right_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -192,7 +192,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("");
 			auto const s = cstring_span("{}");
 			auto const x = cstring_span("{}");
-			auto const& r = hol::trim_right_span(s, t);
+			auto const r = hol::trim_right_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -200,7 +200,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("{}");
 			auto const s = cstring_span("");
 			auto const x = cstring_span("");
-			auto const& r = hol::trim_right_span(s, t);
+			auto const r = hol::trim_right_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -208,7 +208,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("}");
 			auto const s = cstring_span("{{{}}}");
 			auto const x = cstring_span("{{{");
-			auto const& r = hol::trim_right_span(s, t);
+			auto const r = hol::trim_right_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -216,7 +216,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("}");
 			auto const s = cstring_span("{ {} }");
 			auto const x = cstring_span("{ {} ");
-			auto const& r = hol::trim_right_span(s, t);
+			auto const r = hol::trim_right_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -224,7 +224,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("}");
 			auto const s = cstring_span(" {{}} ");
 			auto const x = cstring_span(" {{}} ");
-			auto const& r = hol::trim_right_span(s, t);
+			auto const r = hol::trim_right_span(s, t);
 			REQUIRE(r == x);
 		}
 	}
@@ -235,7 +235,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("");
 			auto const s = cstring_span("");
 			auto const x = cstring_span("");
-			auto const& r = hol::trim_span(s, t);
+			auto const r = hol::trim_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -243,7 +243,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("");
 			auto const s = cstring_span("{}");
 			auto const x = cstring_span("{}");
-			auto const& r = hol::trim_span(s, t);
+			auto const r = hol::trim_span(s, t);
 			REQUIRE(r == x);
 		}
 
@@ -251,7 +251,7 @@ TEST_CASE("Trimming Utils", "[trimming]")
 			auto const t = cstring_span("{}");
 			auto const s = cstring_span("");
 			auto const x = cstring_span("");
-			auto const& r = hol::trim_span(s, t);
+			auto const r = hol::trim_span(s, t);
 			REQUIRE(r == x);
 		}
 	}
@@ -261,4 +261,90 @@ TEST_CASE("Trimming Utils", "[trimming]")
 //		B " {{}} " " {{}} "
 
 }
+
+//std::ostream& operator<<(std::ostream& os, gsl::string_span<> s)
+//{
+//	os << gsl::to_string(s);
+//	return os;
+//}
+
+TEST_CASE("Splitting Utils", "[splitting]")
+{
+	using string_span = gsl::string_span<>;
+	using cstring_span = gsl::cstring_span<>;
+
+	SECTION("split_span")
+	{
+		{
+			cstring_span s("");
+			cstring_span t("||");
+			std::vector<cstring_span> const x = {};
+
+			auto const r = hol::split_span(s, t);
+
+			REQUIRE(r == x);
+		}
+
+		{
+			cstring_span s("||");
+			cstring_span t("||");
+			std::vector<cstring_span> const x = {"", ""};
+
+			auto const r = hol::split_span(s, t);
+
+			REQUIRE(r == x);
+		}
+
+		{
+			cstring_span s("");
+			cstring_span t("||");
+			std::vector<cstring_span> const x = {};
+
+			auto const r = hol::split_span(s, t);
+
+			REQUIRE(r == x);
+		}
+
+		{
+			cstring_span s("some||text||to||split");
+			cstring_span t("||");
+			std::vector<cstring_span> const x = {"some", "text", "to", "split"};
+
+			auto const r = hol::split_span(s, t);
+
+			REQUIRE(r == x);
+		}
+
+		{
+			cstring_span s("||text");
+			cstring_span t("||");
+			std::vector<cstring_span> const x = {"", "text"};
+
+			auto const r = hol::split_span(s, t);
+
+			REQUIRE(r == x);
+		}
+
+		{
+			cstring_span s("text||");
+			cstring_span t("||");
+			std::vector<cstring_span> const x = {"text", ""};
+
+			auto const r = hol::split_span(s, t);
+
+			REQUIRE(r == x);
+		}
+
+		{
+			cstring_span s("||||");
+			cstring_span t("||");
+			std::vector<cstring_span> const x = {"", "k", ""};
+
+			auto const r = hol::split_span(s, t);
+
+			REQUIRE(r == x);
+		}
+	}
+}
+
 

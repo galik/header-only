@@ -22,9 +22,10 @@
 // SOFTWARE.
 //
 
+#include <algorithm>
 #include <cassert>
 #include <string>
-#include <algorithm>
+#include <vector>
 
 #include <gsl/string_span>
 
@@ -293,6 +294,36 @@ SpanType trim_span(SpanType s, CSpanType t = detail::ws(typename CSpanType::elem
 {
 	return trim_left_span(trim_right_span(s, t), t);
 }
+
+// Splitting
+
+//template<typename SpanType, typename CSpanType>
+//auto find(SpanType s, CSpanType t)
+//{
+//	return std::search(s.data(), s.data() + s.size(), t.data(), t.data() + t.size());
+//}
+
+template<typename SpanType, typename CSpanType>
+std::vector<SpanType> split_span(SpanType s, CSpanType t)
+{
+	std::vector<SpanType> v;
+
+	auto beg = s.data();
+	auto const end = s.data() + s.size();
+	decltype(beg) pos;
+
+	while((pos = std::search(beg, end, t.data(), t.data() + t.size())) != end)
+	{
+		v.emplace_back(beg, pos);
+		beg = pos + t.size();
+	}
+
+	if(!v.empty())
+		v.emplace_back(beg, pos);
+
+	return v;
+}
+
 
 } // string_span_utils
 } // header_only_library
