@@ -22,10 +22,10 @@
 // SOFTWARE.
 //
 
+#include <cassert>
 #include <string>
 #include <algorithm>
 
-#include <gsl/gsl_assert>
 #include <gsl/string_span>
 
 namespace header_only_library {
@@ -39,8 +39,9 @@ gsl::basic_string_span<CharT> substr(
 	offset_type offset,
 	offset_type count)
 {
-	Expects(offset >= 0);
-	Expects(offset <= s.size());
+	assert(offset >= 0);
+	assert(offset <= s.size());
+
 	return s.subspan(offset, count);
 }
 
@@ -50,11 +51,13 @@ offset_type find(
 	Char2 c,
 	offset_type offset = 0)
 {
-	Expects(offset >= 0);
-	Expects(offset <= s.size());
+	assert(offset >= 0);
+	assert(offset <= s.size());
+
 	for(; offset < s.size(); ++offset)
 		if(s[offset] == c)
 			return offset;
+
 	return s.size();
 }
 
@@ -64,11 +67,13 @@ offset_type find_first_of(
 	gsl::basic_string_span<Char2> r,
 	offset_type offset = 0)
 {
-	Expects(offset >= 0);
-	Expects(offset <= s.size());
+	assert(offset >= 0);
+	assert(offset <= s.size());
+
 	for(; offset < s.size(); ++offset)
 		if(find(r, s[offset]) != r.size())
 			return offset;
+
 	return s.size();
 }
 
@@ -78,11 +83,13 @@ offset_type find_first_not_of(
 	gsl::basic_string_span<Char2> r,
 	offset_type offset = 0)
 {
-	Expects(offset >= 0);
-	Expects(offset <= s.size());
+	assert(offset >= 0);
+	assert(offset <= s.size());
+
 	for(; offset < s.size(); ++offset)
 		if(find(r, s[offset]) == r.size())
 			return offset;
+
 	return s.size();
 }
 
@@ -92,8 +99,8 @@ offset_type find_last_of(
 	gsl::basic_string_span<Char2> r,
 	offset_type offset = -1)
 {
-	Expects(offset >= -1);
-	Expects(offset <= s.size());
+	assert(offset >= -1);
+	assert(offset <= s.size());
 
 	if(s.empty())
 		return 0;
@@ -101,6 +108,7 @@ offset_type find_last_of(
 	for(offset = offset < 0 ? s.size():offset + 1; offset; --offset)
 		if(find(r, s[offset - 1]) != r.size())
 			return offset - 1;
+
 	return s.size();
 }
 
@@ -110,8 +118,8 @@ offset_type find_last_not_of(
 	gsl::basic_string_span<Char2> r,
 	offset_type offset = -1)
 {
-	Expects(offset >= -1);
-	Expects(offset <= s.size());
+	assert(offset >= -1);
+	assert(offset <= s.size());
 
 	if(s.empty())
 		return 0;
@@ -119,6 +127,7 @@ offset_type find_last_not_of(
 	for(offset = offset < 0 ? s.size():offset + 1; offset; --offset)
 		if(find(r, s[offset - 1]) == r.size())
 			return offset - 1;
+
 	return s.size();
 }
 
@@ -231,46 +240,14 @@ template<typename CharT>
 using index_type = typename string_span<CharT>::index_type;
 
 namespace detail {
-constexpr cstring_span<char>    ws(char)      { return cstring_span<char>    ( " \t\n\r\f\v\0"); }
-constexpr cstring_span<wchar_t> ws(wchar_t)   { return cstring_span<wchar_t> (L" \t\n\r\f\v\0"); }
+constexpr cstring_span<char>     ws(char)     { return cstring_span<char>    ( " \t\n\r\f\v\0"); }
+constexpr cstring_span<wchar_t>  ws(wchar_t)  { return cstring_span<wchar_t> (L" \t\n\r\f\v\0"); }
 constexpr cstring_span<char16_t> ws(char16_t) { return cstring_span<char16_t>(u" \t\n\r\f\v\0"); }
 constexpr cstring_span<char32_t> ws(char32_t) { return cstring_span<char32_t>(U" \t\n\r\f\v\0"); }
 
-//template<typename CharT>
-//index_type<CharT> find_first_not_of(string_span<CharT> s, cstring_span<CharT> t)
-//{
-//	for(index_type<CharT> i = 0; i < s.size(); ++i)
-//		if(std::find(t.begin(), t.end(), s[i]) == t.end())
-//			return i;
-//	return -1; // 0?
-//}
-//
-//template<typename CharT>
-//index_type<CharT> find_last_not_of(string_span<CharT> s, cstring_span<CharT> t)
-//{
-//	for(index_type<CharT> i = s.size(); i; --i)
-//		if(std::find(t.begin(), t.end(), s[i - 1]) == t.end())
-//			return i - 1;
-//	return -1; // s.size() ?
-//}
-//
-//template<typename CharT>
-//index_type<CharT> find_first_not_of(cstring_span<CharT> s, cstring_span<CharT> t)
-//{
-//	for(index_type<CharT> i = 0; i < s.size(); ++i)
-//		if(std::find(t.begin(), t.end(), s[i]) == t.end())
-//			return i;
-//	return -1; // 0?
-//}
-//
-//template<typename CharT>
-//index_type<CharT> find_last_not_of(cstring_span<CharT> s, cstring_span<CharT> t)
-//{
-//	for(index_type<CharT> i = s.size(); i; --i)
-//		if(std::find(t.begin(), t.end(), s[i - 1]) == t.end())
-//			return i - 1;
-//	return -1; // s.size() ?
-//}
+// The following functions have different semantics to the
+// standard library ones but they are more efficient for trimming
+// so they are in `detail` namespace.
 
 template<typename SpanType, typename CSpanType>
 typename SpanType::index_type find_first_not_of(SpanType s, CSpanType t)
@@ -278,6 +255,7 @@ typename SpanType::index_type find_first_not_of(SpanType s, CSpanType t)
 	for(typename SpanType::index_type i = 0; i < s.size(); ++i)
 		if(std::find(t.begin(), t.end(), s[i]) == t.end())
 			return i;
+
 	return -1; // 0?
 }
 
@@ -287,6 +265,7 @@ typename SpanType::index_type find_last_not_of(SpanType s, CSpanType t)
 	for(typename SpanType::index_type i = s.size(); i; --i)
 		if(std::find(t.begin(), t.end(), s[i - 1]) == t.end())
 			return i - 1;
+
 	return -1; // s.size() ?
 }
 
