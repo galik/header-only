@@ -804,7 +804,7 @@ int compare(range<Char> r1, range<Char> r2)
 }
 
 template<typename Char>
-std::size_t copy(range<Char> r1, range<Char> r2, std::size_t pos = 0)
+void copy(range<Char> r1, range<Char> r2, std::size_t pos = 0)
 {
 	assert(pos <= r1.size());
 
