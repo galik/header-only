@@ -352,7 +352,7 @@ mismatch(Range r, typename Range::iterator i)
 template<typename Range, typename BinaryPredicate>
 std::pair<typename Range::iterator, typename Range::iterator>
 mismatch(Range r, typename Range::iterator i, BinaryPredicate p)
-	{ return std::mismatch(std::begin(r), std::end(r), p); }
+	{ return std::mismatch(std::begin(r), std::end(r), i, p); }
 
 template<typename Range>
 std::pair<typename Range::iterator, typename Range::iterator>

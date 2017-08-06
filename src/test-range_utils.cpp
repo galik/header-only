@@ -269,4 +269,33 @@ TEST_CASE("Algorithms", "[]")
 
 		REQUIRE(hol::count_if(r, p) == std::count_if(std::begin(v), std::end(v), p));
 	}
+
+	SECTION("mismatch")
+	{
+		std::vector<int> v1 = {0, 1, 2, 3};
+		std::vector<int> v2 = {0, 1, 9};
+
+		auto r1 = hol::make_range(v1);
+		auto r2 = hol::make_range(v2);
+
+		auto p = hol::mismatch(r1, std::begin(r2));
+
+		REQUIRE(*p.first == 2);
+		REQUIRE(*p.second == 9);
+
+		p = hol::mismatch(r1, std::begin(r2), [](auto& e1,auto& e2){ return e1 == e2; });
+
+		REQUIRE(*p.first == 2);
+		REQUIRE(*p.second == 9);
+
+		p = hol::mismatch(r1, r2);
+
+		REQUIRE(*p.first == 2);
+		REQUIRE(*p.second == 9);
+
+		p = hol::mismatch(r1, r2, [](auto& e1,auto& e2){ return e1 == e2; });
+
+		REQUIRE(*p.first == 2);
+		REQUIRE(*p.second == 9);
+	}
 }
