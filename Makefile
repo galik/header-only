@@ -19,12 +19,13 @@ PKGCFGS := $(wildcard pkg-config/*.pc)
 
 DOCS := doxy-docs/*
 SRCS := $(wildcard src/*.cpp)
-DEPS := $(patsubst %.cpp,%.d,$(SRCS))
+#DEPS := $(patsubst %.cpp,%.d,$(SRCS))
 #PRGS := $(patsubst %.cpp,%,$(SRCS))
 PRGS_11 := $(patsubst %.cpp,%-11,$(SRCS))
 PRGS_14 := $(patsubst %.cpp,%-14,$(SRCS))
 PRGS_17 := $(patsubst %.cpp,%-17,$(SRCS))
 PRGS := $(PRGS_11) $(PRGS_14) $(PRGS_17)
+DEPS := $(patsubst %.cpp,%-14.d,$(SRCS))
 
 #all: $(PRGS_11) $(PRGS_14) $(PRGS_17)
 #all: $(PRGS_14) $(PRGS_17)

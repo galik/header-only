@@ -94,7 +94,7 @@ TEST_CASE("Stream operations", "[]")
 	{
 		char s[] = "\none\n\ntwo\n\n\nthree\n\n";
 		{
-			hol::srange r = hol::make_range(s);
+			hol::srange r = hol::make_srange(s);
 			hol::range_istream ris(r);
 
 			std::vector<hol::srange> v;
