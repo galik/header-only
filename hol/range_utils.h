@@ -117,6 +117,12 @@ public:
 
 	basic_range() noexcept = default;
 
+	basic_range(basic_range const& r) noexcept = default;
+	basic_range(basic_range&& r) noexcept = default;
+
+	basic_range& operator=(basic_range const& r) noexcept = default;
+	basic_range& operator=(basic_range&& r) noexcept = default;
+
 	explicit basic_range(T* beg, T* end) noexcept: m_beg(beg), m_end(end)
 	{
 		assert(m_beg <= m_end);
@@ -253,6 +259,13 @@ class basic_srange
 public:
 	basic_srange() noexcept: basic_range<CharT>() {}
 
+//	basic_srange(basic_srange const& r) noexcept: basic_range<CharT>(r.data(), r.size()) {}
+	basic_srange(basic_srange const& r) noexcept = default;
+	basic_srange(basic_srange&& r) noexcept = default;
+
+	basic_srange& operator=(basic_srange const& r) noexcept = default;
+	basic_srange& operator=(basic_srange&& r) noexcept = default;
+
 	explicit basic_srange(CharT* beg, CharT* end) noexcept: basic_range<CharT>(beg, end) {}
 
 	explicit basic_srange(CharT* beg, std::size_t len) noexcept: basic_srange(beg, beg + len) {}
@@ -260,7 +273,7 @@ public:
 	explicit basic_srange(basic_range<CharT> r): basic_srange(r.data(), r.size()) {}
 
 
-	//This constructor removes the end character (null terminator)
+	// This constructor removes the end character (null terminator)
 	template<std::size_t Size>
 	explicit basic_srange(CharT(&a)[Size]) noexcept: basic_srange(a, a + Size - 1) {}
 
@@ -564,6 +577,37 @@ std::vector<basic_range<typename Container::value_type>> divide_up_work(Containe
 	for(std::size_t i = 1; i < n; ++i)
 		ranges.emplace_back(std::end(ranges.back()), std::end(ranges.back()) + parts[i]);
 	ranges.emplace_back(std::end(ranges.back()), std::end(v));
+
+	return ranges;
+}
+
+namespace detail {
+inline
+std::size_t calc_part(std::size_t rem, std::size_t div, std::size_t part_id)
+{
+	if(part_id < rem)
+		return (div * part_id) + part_id;
+
+	return (div * part_id) + rem;
+}
+} // namespace detail
+
+template<typename T>
+std::vector<range<T>> divide_up_work(range<T> r, std::size_t n)
+{
+	std::size_t rem = r.size() % n;
+	std::size_t div = r.size() / n;
+
+	std::vector<range<T>> ranges;
+	ranges.reserve(n);
+
+	for(std::size_t i = 0; i < n; ++i)
+	{
+		std::size_t beg = detail::calc_part(rem, div, i);
+		std::size_t end = detail::calc_part(rem, div, i + 1);
+
+		ranges.emplace_back(r.data() + beg, r.data() + end);
+	}
 
 	return ranges;
 }
