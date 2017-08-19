@@ -50,7 +50,7 @@
  * #define HOL_RANDOM_DEVICE boost::random_device
  * #include <hol/random_numbers.h>
  *
- * 2) If you wich to use the 64bit version of the Mersenne Twister you might
+ * 2) If you wish to use the 64bit version of the Mersenne Twister you might
  * do something like this:
  *
  * #define HOL_RANDOM_NUMBER_GENERATOR std::mt19937_64
@@ -59,7 +59,21 @@
  */
 
 #ifndef HOL_RANDOM_DEVICE
+#ifdef __MINGW32__
+#include <chrono>
+struct ____rd
+{
+	using result_type = std::size_t;
+	std::size_t operator()() const
+	{
+		std::chrono::system_clock::time_point then{};
+		return std::size_t((std::chrono::system_clock::now() - then).count());
+	}
+};
+#define HOL_RANDOM_DEVICE ____rd
+#else
 #define HOL_RANDOM_DEVICE std::random_device
+#endif
 #endif
 #ifndef HOL_RANDOM_DEVICE_SOURCE // (select implementation specific source)
 #define HOL_RANDOM_DEVICE_SOURCE
@@ -147,14 +161,20 @@ struct std_real_type_test
 
 #endif // __cpp_concepts
 
+constexpr std::size_t gen_size()
+{
+	// max number of bytes needed from random_devide
+	return sizeof(Generator)/sizeof(HOL_RANDOM_DEVICE::result_type);
+}
+
 inline
 auto const& random_data()
 {
-//	thread_local static std::array<std::random_device::result_type, Generator::state_size> data;
-	thread_local static std::array<std::random_device::result_type, 32> data = []
+//	thread_local static std::array<HOL_RANDOM_DEVICE::result_type, Generator::state_size> data;
+	thread_local static std::array<HOL_RANDOM_DEVICE::result_type, gen_size()> data = []
 	{
 		HOL_RANDOM_DEVICE rd{HOL_RANDOM_DEVICE_SOURCE};
-		std::array<std::random_device::result_type, 32> data;
+		std::array<HOL_RANDOM_DEVICE::result_type, gen_size()> data;
 		std::generate(std::begin(data), std::end(data), std::ref(rd));
 		return data;
 	}();
