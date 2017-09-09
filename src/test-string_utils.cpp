@@ -295,14 +295,14 @@ TEST_CASE("Output Utils", "[output_separator]")
 
 TEST_CASE("Splitting Utils", "[split ref types]")
 {
-	SECTION("split_refs")
+	SECTION("split")
 	{
 		{
 			std::string s("");
 			std::string t("||");
 			std::vector<std::string> const x = {};
 
-			auto const r = hol::split_refs(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -312,7 +312,7 @@ TEST_CASE("Splitting Utils", "[split ref types]")
 			std::string t("||");
 			std::vector<std::string> const x = {"", ""};
 
-			auto const r = hol::split_refs(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -322,7 +322,7 @@ TEST_CASE("Splitting Utils", "[split ref types]")
 			std::string t("||");
 			std::vector<std::string> const x = {};
 
-			auto const r = hol::split_refs(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -332,7 +332,7 @@ TEST_CASE("Splitting Utils", "[split ref types]")
 			std::string t("||");
 			std::vector<std::string> const x = {"some", "text", "to", "split"};
 
-			auto const r = hol::split_refs(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -342,7 +342,7 @@ TEST_CASE("Splitting Utils", "[split ref types]")
 			std::string t("||");
 			std::vector<std::string> const x = {"", "text"};
 
-			auto const r = hol::split_refs(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -352,7 +352,7 @@ TEST_CASE("Splitting Utils", "[split ref types]")
 			std::string t("||");
 			std::vector<std::string> const x = {"text", ""};
 
-			auto const r = hol::split_refs(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -362,7 +362,7 @@ TEST_CASE("Splitting Utils", "[split ref types]")
 			std::string t("||");
 			std::vector<std::string> const x = {"", "", ""};
 
-			auto const r = hol::split_refs(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}

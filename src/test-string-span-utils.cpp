@@ -280,7 +280,7 @@ TEST_CASE("Splitting Utils", "[splitting]")
 			cstring_span t("||");
 			std::vector<cstring_span> const x = {};
 
-			auto const r = hol::split_span(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -290,7 +290,7 @@ TEST_CASE("Splitting Utils", "[splitting]")
 			cstring_span t("||");
 			std::vector<cstring_span> const x = {"", ""};
 
-			auto const r = hol::split_span(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -300,7 +300,7 @@ TEST_CASE("Splitting Utils", "[splitting]")
 			cstring_span t("||");
 			std::vector<cstring_span> const x = {};
 
-			auto const r = hol::split_span(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -310,7 +310,7 @@ TEST_CASE("Splitting Utils", "[splitting]")
 			cstring_span t("||");
 			std::vector<cstring_span> const x = {"some", "text", "to", "split"};
 
-			auto const r = hol::split_span(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -320,7 +320,7 @@ TEST_CASE("Splitting Utils", "[splitting]")
 			cstring_span t("||");
 			std::vector<cstring_span> const x = {"", "text"};
 
-			auto const r = hol::split_span(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -330,7 +330,7 @@ TEST_CASE("Splitting Utils", "[splitting]")
 			cstring_span t("||");
 			std::vector<cstring_span> const x = {"text", ""};
 
-			auto const r = hol::split_span(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}
@@ -340,7 +340,7 @@ TEST_CASE("Splitting Utils", "[splitting]")
 			cstring_span t("||");
 			std::vector<cstring_span> const x = {"", "", ""};
 
-			auto const r = hol::split_span(s, t);
+			auto const r = hol::split(s, t);
 
 			REQUIRE(r == x);
 		}

@@ -57,8 +57,8 @@ public:
 
 
 	// This constructor removes the end character (null terminator)
-	template<std::size_t Size>
-	explicit basic_srange(CharT(&a)[Size]) noexcept: basic_srange(a, a + Size - 1) {}
+	template<std::size_t N>
+	explicit basic_srange(CharT(&a)[N]) noexcept: basic_srange(a, a + N - 1) {}
 
 	template<typename Container>
 	explicit basic_srange(Container&& c) noexcept
@@ -113,13 +113,13 @@ using const_u16srange = basic_srange<char16_t const>;
 using u32srange = basic_srange<char32_t>;
 using const_u32srange = basic_srange<char32_t const>;
 
-template<typename String>
-auto make_srange(String& c)
-	{ return basic_srange<typename String::value_type>(c); }
+template<typename CharT, typename Traits, typename Alloc>
+auto make_srange(std::basic_string<CharT, Traits, Alloc>& s)
+	{ return basic_srange<CharT>(s); }
 
-template<typename String>
-auto make_srange(String const& c)
-	{ return basic_srange<typename String::value_type const>(c); }
+template<typename CharT, typename Traits, typename Alloc>
+auto make_srange(std::basic_string<CharT, Traits, Alloc> const& s)
+	{ return basic_srange<CharT const>(s); }
 
 template<typename CharT>
 auto make_srange(CharT* s, std::size_t n)
@@ -137,13 +137,13 @@ template<typename CharT>
 auto make_srange(CharT const* s)
 	{ return make_srange(s, detail::strlen(s)); }
 
-template<typename CharT, std::size_t Size>
-auto make_srange(CharT(&a)[Size])
-	{ return basic_srange<CharT>(a, Size); }
+//template<typename CharT, std::size_t N>
+//auto make_srange(CharT(&a)[N])
+//	{ return basic_srange<CharT>(a, N); }
 
-template<typename CharT, std::size_t Size>
-auto make_srange(CharT const(&a)[Size])
-	{ return basic_srange<CharT const>(a, Size); }
+//template<typename CharT, std::size_t N>
+//auto make_srange(CharT const(&a)[N])
+//	{ return basic_srange<CharT const>(a, N); }
 
 template<typename CharT>
 auto make_srange(CharT* beg, CharT* end)

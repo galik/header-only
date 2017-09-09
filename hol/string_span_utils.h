@@ -338,9 +338,25 @@ std::vector<gsl::basic_string_span<CharT>> split(
 	return v;
 }
 
+template<typename CharT>
+std::vector<gsl::basic_string_span<CharT const>> split(
+	gsl::basic_string_span<CharT const> s,
+		gsl::basic_string_span<CharT const> t = gsl::ensure_z(algorithm::chr::space(CharT())))
+{
+	std::vector<gsl::basic_string_span<CharT const>> v;
+	algorithm::split(std::begin(s), std::end(s), std::begin(t), std::end(t), detail::span_inserter(v));
+	return v;
+}
+
 template<typename CharT, std::size_t N>
 std::vector<gsl::basic_string_span<CharT>> split(
 	gsl::basic_string_span<CharT> s,
+		CharT const(&t)[N])
+			{ return split(s, gsl::basic_string_span<CharT const>(t)); }
+
+template<typename CharT, std::size_t N>
+std::vector<gsl::basic_string_span<CharT const>> split(
+	gsl::basic_string_span<CharT const> s,
 		CharT const(&t)[N])
 			{ return split(s, gsl::basic_string_span<CharT const>(t)); }
 
@@ -354,9 +370,25 @@ std::vector<gsl::basic_string_span<CharT>> split_fold(
 	return v;
 }
 
+template<typename CharT>
+std::vector<gsl::basic_string_span<CharT const>> split_fold(
+	gsl::basic_string_span<CharT const> s,
+		gsl::basic_string_span<CharT const> t = gsl::ensure_z(algorithm::chr::space(CharT())))
+{
+	std::vector<gsl::basic_string_span<CharT const>> v;
+	algorithm::split_fold(std::begin(s), std::end(s), std::begin(t), std::end(t), detail::span_inserter(v));
+	return v;
+}
+
 template<typename CharT, std::size_t N>
 std::vector<gsl::basic_string_span<CharT>> split_fold(
 	gsl::basic_string_span<CharT> s,
+		CharT const(&t)[N])
+			{ return split_fold(s, gsl::basic_string_span<CharT const>(t)); }
+
+template<typename CharT, std::size_t N>
+std::vector<gsl::basic_string_span<CharT const>> split_fold(
+	gsl::basic_string_span<CharT const> s,
 		CharT const(&t)[N])
 			{ return split_fold(s, gsl::basic_string_span<CharT const>(t)); }
 
