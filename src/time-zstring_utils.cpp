@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-#include "../../hol/zstring_utils.h"
+#include "hol/zstring_utils.h"
 #include "hol/bug.h"
 #include "hol/random_numbers.h"
 #include "hol/string_utils.h"

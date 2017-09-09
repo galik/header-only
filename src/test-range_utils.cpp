@@ -40,6 +40,31 @@ namespace hol{
 }
 
 //using namespace std::literals;
+TEST_CASE("Making ranges", "[]")
+{
+	SECTION("Container")
+	{
+		std::vector<int> v{0, 1, 2};
+		auto r = hol::make_range(v);
+
+		REQUIRE(r[0] == v[0]);
+		REQUIRE(r[1] == v[1]);
+		REQUIRE(r[2] == v[2]);
+
+		r[1] = 9;
+		REQUIRE(v[1] == 9);
+	}
+
+	SECTION("Container const")
+	{
+		std::vector<int> const v{0, 1, 2};
+		auto r = hol::make_range(v);
+
+		REQUIRE(r[0] == v[0]);
+		REQUIRE(r[1] == v[1]);
+		REQUIRE(r[2] == v[2]);
+	}
+}
 
 TEST_CASE("String operations", "[]")
 {

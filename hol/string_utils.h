@@ -42,6 +42,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "split_algos.h"
+
 #ifdef HOL_USE_STRING_VIEW
 #	include <experimental/string_view>
 #endif
@@ -965,326 +967,366 @@ auto trim_keep(String<C, T, A> s)
 
 // GSL_STRING_SPAN
 
-// NEW DEFINITIVE SPLIT ALGORITHM??
-
-// TODO: add char delim versions
-// TODO: add view versions
-// TODO: add span versions
-// TODO: add multi_span versions
-
-// split_with
-
-template
-<
-	typename StringType = std::string
-	, typename StringType2 = std::string
-	, typename VectorType = std::vector<StringType>
->
-auto basic_split(
-	StringType const& s
-	, VectorType& v
-	, StringType2 const& delim_in
-	, bool fold = true
-	, bool strict = false) -> VectorType
-{
-	if(s.empty())
-		return {};
-
-	StringType delim = delim_in;
-
+//// NEW DEFINITIVE SPLIT ALGORITHM??
+//
+//// TODO: add char delim versions
+//// TODO: add view versions
+//// TODO: add span versions
+//// TODO: add multi_span versions
+//
+//// split_with
+//
+//template
+//<
+//	typename StringType = std::string
+//	, typename StringType2 = std::string
+//	, typename VectorType = std::vector<StringType>
+//>
+//auto basic_split(
+//	StringType const& s
+//	, VectorType& v
+//	, StringType2 const& delim_in
+//	, bool fold = true
+//	, bool strict = false) -> VectorType
+//{
+//	if(s.empty())
+//		return {};
+//
+//	StringType delim = delim_in;
+//
+////	VectorType v;
+////	v.reserve(reserve);
+//
+//	if(delim.empty())
+//	{
+//		for(auto c: s)
+//			v.emplace_back(1, c);
+//		return v;
+//	}
+//
+//	auto done = s.data() + s.size();
+//	auto end = s.data();
+//	auto pos = end;
+//
+//	if((end = std::search(pos, done, delim.begin(), delim.end())) == done)
+//		return strict ? VectorType{}:VectorType{s};
+//
+//	if(end > pos)
+//		v.emplace_back(pos, end - pos);
+//	else if(!fold)
+//		v.emplace_back();
+//
+//	pos = end + delim.size();
+//
+//	while((end = std::search(pos, done, delim.begin(), delim.end())) != done)
+//	{
+//		if(end > pos)
+//			v.emplace_back(pos, end - pos);
+//		else if(!fold)
+//			v.emplace_back();
+//
+//		pos = end + delim.size();
+//	}
+//
+//	if(end > pos)
+//		v.emplace_back(pos, end - pos);
+//	else if(!fold)
+//		v.emplace_back();
+//
+//	return v;
+//}
+//
+//template
+//<
+//	typename StringType = std::string
+//	, typename StringType2 = std::string
+//	, typename VectorType = std::vector<StringType>
+//>
+//auto basic_split(
+//	StringType const& s
+//	, StringType2 const& delim_in
+//	, bool fold = true
+//	, bool strict = false) -> VectorType
+//{
 //	VectorType v;
-//	v.reserve(reserve);
-
-	if(delim.empty())
-	{
-		for(auto c: s)
-			v.emplace_back(1, c);
-		return v;
-	}
-
-	auto done = s.data() + s.size();
-	auto end = s.data();
-	auto pos = end;
-
-	if((end = std::search(pos, done, delim.begin(), delim.end())) == done)
-		return strict ? VectorType{}:VectorType{s};
-
-	if(end > pos)
-		v.emplace_back(pos, end - pos);
-	else if(!fold)
-		v.emplace_back();
-
-	pos = end + delim.size();
-
-	while((end = std::search(pos, done, delim.begin(), delim.end())) != done)
-	{
-		if(end > pos)
-			v.emplace_back(pos, end - pos);
-		else if(!fold)
-			v.emplace_back();
-
-		pos = end + delim.size();
-	}
-
-	if(end > pos)
-		v.emplace_back(pos, end - pos);
-	else if(!fold)
-		v.emplace_back();
-
-	return v;
-}
-
-template
-<
-	typename StringType = std::string
-	, typename StringType2 = std::string
-	, typename VectorType = std::vector<StringType>
->
-auto basic_split(
-	StringType const& s
-	, StringType2 const& delim_in
-	, bool fold = true
-	, bool strict = false) -> VectorType
-{
-	VectorType v;
-	return basic_split(s, v, delim_in, fold, strict);
-}
-
-/**
- *
- * @param s The string that is to be divided into pieces surrounding
- * the occurrence of specified a delimiter.
- * @param delim Delimiting string used to divide a larger string into pieces.
- * @param fold If true, ignores adjacent duplicate delimiters. So multiple spaces
- * are treated as one space (for example).
- * @param strict If true returns empty vector if delim not found (no splits)
- * otherwise returns whole string if delim not found.
- * @return A std::vector<std::string> containing all the pieces.
- */
-inline
-std::vector<std::string> split_copy(
-	std::string const& s
-	, std::string const& delim = " "
-	, bool fold = true
-	, bool strict = false)
-{
-	return basic_split(s, delim, fold, strict);
-}
-
-inline
-std::vector<std::string> split_copy(
-	std::string const& s
-	, std::vector<std::string>& v
-	, std::string const& delim = " "
-	, bool fold = true
-	, bool strict = false)
-{
-	return basic_split(s, v, delim, fold, strict);
-}
-
-inline
-std::vector<std::wstring> split_copy(
-	std::wstring const& s
-	, std::wstring const& delim = L" "
-	, bool fold = true
-	, bool strict = false)
-{
-	return basic_split(s, delim, fold, strict);
-}
-
-inline
-std::vector<std::wstring> split_copy(
-	std::wstring const& s
-	, std::vector<std::wstring>& v
-	, std::wstring const& delim = L" "
-	, bool fold = true
-	, bool strict = false)
-{
-	return basic_split(s, v, delim, fold, strict);
-}
-
-// split_from (split string from selection of characters)
-// grossly untested code, probably broken
-
-template
-<
-	typename StringType = std::string
-	, typename StringType2 = std::string
-	, typename VectorType = std::vector<StringType>
->
-auto basic_split_from(
-	StringType const& s
-	, VectorType& v
-	, StringType2 const& delims_in
-	, bool fold = true
-	, bool strict = false) -> VectorType
-{
-	if(s.empty())
-		return {};
-
-	StringType delims = delims_in;
-
+//	return basic_split(s, v, delim_in, fold, strict);
+//}
+//
+///**
+// *
+// * @param s The string that is to be divided into pieces surrounding
+// * the occurrence of specified a delimiter.
+// * @param delim Delimiting string used to divide a larger string into pieces.
+// * @param fold If true, ignores adjacent duplicate delimiters. So multiple spaces
+// * are treated as one space (for example).
+// * @param strict If true returns empty vector if delim not found (no splits)
+// * otherwise returns whole string if delim not found.
+// * @return A std::vector<std::string> containing all the pieces.
+// */
+//inline
+//std::vector<std::string> split_copy(
+//	std::string const& s
+//	, std::string const& delim = " "
+//	, bool fold = true
+//	, bool strict = false)
+//{
+//	return basic_split(s, delim, fold, strict);
+//}
+//
+//inline
+//std::vector<std::string> split_copy(
+//	std::string const& s
+//	, std::vector<std::string>& v
+//	, std::string const& delim = " "
+//	, bool fold = true
+//	, bool strict = false)
+//{
+//	return basic_split(s, v, delim, fold, strict);
+//}
+//
+//inline
+//std::vector<std::wstring> split_copy(
+//	std::wstring const& s
+//	, std::wstring const& delim = L" "
+//	, bool fold = true
+//	, bool strict = false)
+//{
+//	return basic_split(s, delim, fold, strict);
+//}
+//
+//inline
+//std::vector<std::wstring> split_copy(
+//	std::wstring const& s
+//	, std::vector<std::wstring>& v
+//	, std::wstring const& delim = L" "
+//	, bool fold = true
+//	, bool strict = false)
+//{
+//	return basic_split(s, v, delim, fold, strict);
+//}
+//
+//// split_from (split string from selection of characters)
+//// grossly untested code, probably broken
+//
+//template
+//<
+//	typename StringType = std::string
+//	, typename StringType2 = std::string
+//	, typename VectorType = std::vector<StringType>
+//>
+//auto basic_split_from(
+//	StringType const& s
+//	, VectorType& v
+//	, StringType2 const& delims_in
+//	, bool fold = true
+//	, bool strict = false) -> VectorType
+//{
+//	if(s.empty())
+//		return {};
+//
+//	StringType delims = delims_in;
+//
+////	VectorType v;
+////	v.reserve(reserve);
+//
+//	if(delims.empty())
+//	{
+//		for(auto c: s)
+//			v.emplace_back(1, c);
+//		return v;
+//	}
+//
+//	auto done = s.data() + s.size();
+//	auto end = s.data();
+//	auto pos = end;
+//
+//	if((end = std::find_first_of(pos, done, delims.begin(), delims.end())) == done)
+//		return strict ? VectorType{}:VectorType{s};
+//
+//	if(end > pos)
+//		v.emplace_back(pos, end - pos);
+//	else if(!fold)
+//		v.emplace_back();
+//
+//	pos = std::find_first_of(end + 1, done, delims.begin(), delims.end(), [](auto c, auto d)
+//	{
+//		return c != d;
+//	});//end + 1;//delims.size();
+//
+//	while((end = std::find_first_of(pos, done, delims.begin(), delims.end())) != done)
+//	{
+//		if(end > pos)
+//			v.emplace_back(pos, end - pos);
+//		else if(!fold)
+//			v.emplace_back();
+//
+//		pos = std::find_first_of(end + 1, done, delims.begin(), delims.end(), [](auto c, auto d)
+//		{
+//			return c != d;
+//		});//end + 1;//delims.size();
+//	}
+//
+//	if(end > pos)
+//		v.emplace_back(pos, end - pos);
+//	else if(!fold)
+//		v.emplace_back();
+//
+//	return v;
+//}
+//
+//template
+//<
+//	typename StringType = std::string
+//	, typename StringType2 = std::string
+//	, typename VectorType = std::vector<StringType>
+//>
+//auto basic_split_from(
+//	StringType const& s
+//	, StringType2 const& delims_in
+//	, bool fold = true
+//	, bool strict = false) -> VectorType
+//{
 //	VectorType v;
-//	v.reserve(reserve);
+//	return basic_split_from(s, v, delims_in, fold, strict);
+//}
+//
+///**
+// *
+// * @param s The string that is to be divided into pieces surrounding
+// * the occurrence of specified set of delimiters.
+// * @param delims String of delimiting characters used to divide a string into pieces.
+// * @param fold If true, ignores adjacent duplicate delimiters. So multiple spaces
+// * are treated as one space (for example).
+// * @param strict If true returns empty vector if delim not found (no splits)
+// * otherwise returns whole string if delim not found.
+// * @return A std::vector<std::string> containing all the pieces.
+// */
+//inline
+//std::vector<std::string> split_copy_from(
+//	std::string const& s
+//	, std::string const& delims = " "
+//	, bool fold = true
+//	, bool strict = false)
+//{
+//	return basic_split_from(s, delims, fold, strict);
+//}
+//
+//inline
+//std::vector<std::string> split_copy_from(
+//	std::string const& s
+//	, std::vector<std::string>& v
+//	, std::string const& delims = " "
+//	, bool fold = true
+//	, bool strict = false)
+//{
+//	return basic_split_from(s, v, delims, fold, strict);
+//}
+//
+//inline
+//std::vector<std::wstring> split_copy_from(
+//	std::wstring const& s
+//	, std::wstring const& delims = L" "
+//	, bool fold = true
+//	, bool strict = false)
+//{
+//	return basic_split_from(s, delims, fold, strict);
+//}
+//
+//inline
+//std::vector<std::wstring> split_copy_from(
+//	std::wstring const& s
+//	, std::vector<std::wstring>& v
+//	, std::wstring const& delims = L" "
+//	, bool fold = true
+//	, bool strict = false)
+//{
+//	return basic_split_from(s, v, delims, fold, strict);
+//}
+//
+//// ============================================
+//// The last word in splitting
+//
+//template<typename RefsType, typename CRefsType>
+//void split_refs(RefsType s, CRefsType t, std::vector<RefsType>& v, bool prealloc = false)
+//{
+//	auto beg = s.data();
+//	auto const end = s.data() + s.size();
+//	decltype(beg) pos;
+//
+//	if(prealloc)
+//	{
+//		auto n = 0U;
+//		while((pos = std::search(beg, end, t.data(), t.data() + t.size())) != end)
+//		{
+//			++n;
+//			beg = pos + t.size();
+//		}
+//
+//		if(n)
+//			v.reserve(v.size() + n + 1);
+//
+//		beg = s.data();
+//	}
+//
+//	while((pos = std::search(beg, end, t.data(), t.data() + t.size())) != end)
+//	{
+//		v.emplace_back(beg, std::size_t(pos - beg));
+//		beg = pos + t.size();
+//	}
+//
+//	if(!v.empty())
+//		v.emplace_back(beg, std::size_t(pos - beg));
+//}
+//
+//template<typename RefsType, typename CRefsType>
+//std::vector<RefsType> split_refs(RefsType s, CRefsType t, bool prealloc = false)
+//{
+//	std::vector<RefsType> v;
+//	split_refs(s, t, v, prealloc);
+//	return v;
+//}
 
-	if(delims.empty())
-	{
-		for(auto c: s)
-			v.emplace_back(1, c);
-		return v;
-	}
+// SPLIT ======================================================================================
 
-	auto done = s.data() + s.size();
-	auto end = s.data();
-	auto pos = end;
-
-	if((end = std::find_first_of(pos, done, delims.begin(), delims.end())) == done)
-		return strict ? VectorType{}:VectorType{s};
-
-	if(end > pos)
-		v.emplace_back(pos, end - pos);
-	else if(!fold)
-		v.emplace_back();
-
-	pos = std::find_first_of(end + 1, done, delims.begin(), delims.end(), [](auto c, auto d)
-	{
-		return c != d;
-	});//end + 1;//delims.size();
-
-	while((end = std::find_first_of(pos, done, delims.begin(), delims.end())) != done)
-	{
-		if(end > pos)
-			v.emplace_back(pos, end - pos);
-		else if(!fold)
-			v.emplace_back();
-
-		pos = std::find_first_of(end + 1, done, delims.begin(), delims.end(), [](auto c, auto d)
-		{
-			return c != d;
-		});//end + 1;//delims.size();
-	}
-
-	if(end > pos)
-		v.emplace_back(pos, end - pos);
-	else if(!fold)
-		v.emplace_back();
-
+template<typename CharT, typename Traits, typename Alloc>
+std::vector<std::basic_string<CharT, Traits, Alloc>> split(
+	std::basic_string<CharT, Traits, Alloc> const& s,
+		std::basic_string<CharT, Traits, Alloc> const& t = algorithm::chr::space(CharT()))
+{
+	std::vector<std::basic_string<CharT, Traits, Alloc>> v;
+	algorithm::split(std::begin(s), std::end(s), std::begin(t), std::end(t), algorithm::inserter(v));
 	return v;
 }
 
-template
-<
-	typename StringType = std::string
-	, typename StringType2 = std::string
-	, typename VectorType = std::vector<StringType>
->
-auto basic_split_from(
-	StringType const& s
-	, StringType2 const& delims_in
-	, bool fold = true
-	, bool strict = false) -> VectorType
+template<typename CharT, typename Traits, typename Alloc, std::size_t N>
+std::vector<std::basic_string<CharT, Traits, Alloc>> split(
+	std::basic_string<CharT, Traits, Alloc> const& s,
+		CharT const(&t)[N])
+			{ return split(s, std::basic_string<CharT, Traits, Alloc>(t)); }
+
+template<typename CharT, std::size_t N, typename Traits = std::char_traits<CharT>, typename Alloc = std::allocator<CharT>>
+std::vector<std::basic_string<CharT, Traits, Alloc>> split(
+	CharT const* s,
+		CharT const(&t)[N])
+			{ return split(std::basic_string<CharT, Traits, Alloc>(s), std::basic_string<CharT, Traits, Alloc>(t)); }
+
+template<typename CharT, typename Traits, typename Alloc>
+std::vector<std::basic_string<CharT, Traits, Alloc>> split_fold(
+	std::basic_string<CharT, Traits, Alloc> const& s,
+		std::basic_string<CharT, Traits, Alloc> const& t = algorithm::chr::space(CharT()))
 {
-	VectorType v;
-	return basic_split_from(s, v, delims_in, fold, strict);
-}
-
-/**
- *
- * @param s The string that is to be divided into pieces surrounding
- * the occurrence of specified set of delimiters.
- * @param delims String of delimiting characters used to divide a string into pieces.
- * @param fold If true, ignores adjacent duplicate delimiters. So multiple spaces
- * are treated as one space (for example).
- * @param strict If true returns empty vector if delim not found (no splits)
- * otherwise returns whole string if delim not found.
- * @return A std::vector<std::string> containing all the pieces.
- */
-inline
-std::vector<std::string> split_copy_from(
-	std::string const& s
-	, std::string const& delims = " "
-	, bool fold = true
-	, bool strict = false)
-{
-	return basic_split_from(s, delims, fold, strict);
-}
-
-inline
-std::vector<std::string> split_copy_from(
-	std::string const& s
-	, std::vector<std::string>& v
-	, std::string const& delims = " "
-	, bool fold = true
-	, bool strict = false)
-{
-	return basic_split_from(s, v, delims, fold, strict);
-}
-
-inline
-std::vector<std::wstring> split_copy_from(
-	std::wstring const& s
-	, std::wstring const& delims = L" "
-	, bool fold = true
-	, bool strict = false)
-{
-	return basic_split_from(s, delims, fold, strict);
-}
-
-inline
-std::vector<std::wstring> split_copy_from(
-	std::wstring const& s
-	, std::vector<std::wstring>& v
-	, std::wstring const& delims = L" "
-	, bool fold = true
-	, bool strict = false)
-{
-	return basic_split_from(s, v, delims, fold, strict);
-}
-
-// ============================================
-// The last word in splitting
-
-template<typename RefsType, typename CRefsType>
-void split_refs(RefsType s, CRefsType t, std::vector<RefsType>& v, bool prealloc = false)
-{
-	auto beg = s.data();
-	auto const end = s.data() + s.size();
-	decltype(beg) pos;
-
-	if(prealloc)
-	{
-		auto n = 0U;
-		while((pos = std::search(beg, end, t.data(), t.data() + t.size())) != end)
-		{
-			++n;
-			beg = pos + t.size();
-		}
-
-		if(n)
-			v.reserve(v.size() + n + 1);
-
-		beg = s.data();
-	}
-
-	while((pos = std::search(beg, end, t.data(), t.data() + t.size())) != end)
-	{
-		v.emplace_back(beg, pos);
-		beg = pos + t.size();
-	}
-
-	if(!v.empty())
-		v.emplace_back(beg, pos);
-}
-
-template<typename RefsType, typename CRefsType>
-std::vector<RefsType> split_refs(RefsType s, CRefsType t, bool prealloc = false)
-{
-	std::vector<RefsType> v;
-	split_refs(s, t, v, prealloc);
+	std::vector<std::basic_string<CharT, Traits, Alloc>> v;
+	algorithm::split_fold(std::begin(s), std::end(s), std::begin(t), std::end(t), algorithm::inserter(v));
 	return v;
 }
 
-// JOIN
+template<typename CharT, typename Traits, typename Alloc, std::size_t N>
+std::vector<std::basic_string<CharT, Traits, Alloc>> split_fold(
+	std::basic_string<CharT, Traits, Alloc> const& s,
+		CharT const(&t)[N])
+			{ return split_fold(s, std::basic_string<CharT, Traits, Alloc>(t)); }
+
+// JOIN ===========================================================================================
 
 template<typename Iter,
 	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>

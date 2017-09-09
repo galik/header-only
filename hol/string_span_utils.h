@@ -29,6 +29,8 @@
 
 #include <gsl/string_span>
 
+#include "split_algos.h"
+
 namespace header_only_library {
 namespace string_span_utils {
 
@@ -297,26 +299,66 @@ SpanType trim_span(SpanType s, CSpanType t = detail::ws(typename CSpanType::elem
 
 // Splitting
 
-template<typename SpanType, typename CSpanType>
-std::vector<SpanType> split_span(SpanType s, CSpanType t)
+namespace detail {
+
+template<typename Container>
+class emplace_back_span_inserter
 {
-	std::vector<SpanType> v;
+public:
+	emplace_back_span_inserter(Container& c): c(c) {}
 
-	auto beg = s.data();
-	auto const end = s.data() + s.size();
-	decltype(beg) pos;
-
-	while((pos = std::search(beg, end, t.data(), t.data() + t.size())) != end)
+	template<typename Iter>
+	void insert(Iter b, Iter e)
 	{
-		v.emplace_back(beg, pos);
-		beg = pos + t.size();
+		if(b != e)
+			c.emplace_back(&*b, std::distance(b, e));
+		else
+			c.emplace_back();
 	}
 
-	if(!v.empty())
-		v.emplace_back(beg, pos);
+private:
+	Container& c;
+};
 
+template<typename Container>
+auto span_inserter(Container& c)
+{
+	return emplace_back_span_inserter<Container>(c);
+}
+
+} // namespace detail
+
+template<typename CharT>
+std::vector<gsl::basic_string_span<CharT>> split(
+	gsl::basic_string_span<CharT> s,
+		gsl::basic_string_span<CharT const> t = gsl::ensure_z(algorithm::chr::space(CharT())))
+{
+	std::vector<gsl::basic_string_span<CharT>> v;
+	algorithm::split(std::begin(s), std::end(s), std::begin(t), std::end(t), detail::span_inserter(v));
 	return v;
 }
+
+template<typename CharT, std::size_t N>
+std::vector<gsl::basic_string_span<CharT>> split(
+	gsl::basic_string_span<CharT> s,
+		CharT const(&t)[N])
+			{ return split(s, gsl::basic_string_span<CharT const>(t)); }
+
+template<typename CharT>
+std::vector<gsl::basic_string_span<CharT>> split_fold(
+	gsl::basic_string_span<CharT> s,
+		gsl::basic_string_span<CharT const> t = gsl::ensure_z(algorithm::chr::space(CharT())))
+{
+	std::vector<gsl::basic_string_span<CharT>> v;
+	algorithm::split_fold(std::begin(s), std::end(s), std::begin(t), std::end(t), detail::span_inserter(v));
+	return v;
+}
+
+template<typename CharT, std::size_t N>
+std::vector<gsl::basic_string_span<CharT>> split_fold(
+	gsl::basic_string_span<CharT> s,
+		CharT const(&t)[N])
+			{ return split_fold(s, gsl::basic_string_span<CharT const>(t)); }
 
 } // string_span_utils
 } // header_only_library

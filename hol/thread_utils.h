@@ -530,11 +530,12 @@ private:
 //	std::queue<std::function<void()>> jobs;
 //};
 
-// TODO: Add copy/move semantics
 class thread_pool
 {
 public:
 	thread_pool() = default;
+	thread_pool(thread_pool const&) = delete;
+	thread_pool& operator=(thread_pool const&) = delete;
 
 	~thread_pool() { stop(); }
 
@@ -575,6 +576,7 @@ public:
 	//! Prevent new jobs
 	//! Wait for jobs to complete
 	//! remove threads
+	//! TODO: add timeout?
 	void stop()
 	{
 		bool expected = false;
@@ -599,6 +601,12 @@ public:
 
 		closing_down = false;
 		cv.notify_all();
+	}
+
+	void wait() // wait for current cueue to empty
+	{
+		std::unique_lock<std::mutex> lock(mtx);
+		cv.wait(lock, [this]{ return jobs.empty(); });
 	}
 
 private:

@@ -41,6 +41,14 @@ namespace hol {
 using namespace std::literals;
 using namespace hol::literals;
 
+std::string random_text(std::size_t n)
+{
+	std::string s;
+	s.reserve(n);
+	std::generate_n(std::back_inserter(s), n, []{ return hol::random_number(unsigned('A'), unsigned('Z')); });
+	return s;
+}
+
 TEST_CASE("String operations", "[]")
 {
 	SECTION("r1.size() == r2.size()")
@@ -51,4 +59,54 @@ TEST_CASE("String operations", "[]")
 		REQUIRE(s1 == s2);
 		REQUIRE_FALSE(s1 != s2);
 	}
+
+	SECTION("chopstix")
+	{
+		auto text = random_text(1000);
+
+//		hol::random_reseed(1);
+
+		hol::rope r = text;
+		std::string s = text;
+
+		for(auto i = 0; i < 1000; ++i)
+		{
+			switch(hol::random_number(3))
+			{
+				case 0:
+				{
+					auto b = hol::random_number(s.size() - 1);
+					auto e = hol::random_number(b, hol::random_number(100UL));
+					if(e > s.size() - 1)
+						e = s.size() - 1;
+
+					r = r.substr(b, e - b);
+					s = s.substr(b, e - b);
+					break;
+				}
+				case 1:
+				{
+					auto text = random_text(hol::random_number(100));
+					r.append(std::begin(text), std::end(text));
+					s.append(std::begin(text), std::end(text));
+					break;
+				}
+				case 2:
+				{
+					auto text = random_text(hol::random_number(100));
+					auto pos = hol::random_number(s.size() - 1);
+
+//					r.insert(std::next(std::begin(s), pos), std::begin(text), std::end(text));
+					s.insert(std::next(std::begin(s), pos), std::begin(text), std::end(text));
+					break;
+				}
+				case 3:
+					break;
+			}
+		}
+
+//		REQUIRE(s1 == s2);
+//		REQUIRE_FALSE(s1 != s2);
+	}
+
 }

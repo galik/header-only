@@ -22,6 +22,7 @@
 // SOFTWARE.
 //
 
+#include <cstddef>
 #include <cstring>
 
 namespace header_only_library {
@@ -106,9 +107,9 @@ std::size_t length_of_n(CharT const* s, std::size_t n)
     return std::find(s, s + n, CharT(0)) - s;
 }
 
-} // namespace zstring_utils
-
 namespace generic {
+
+//  String manipulation
 
 template<typename CharT>
 CharT* strcpy(CharT* dst, char const* src)
@@ -119,6 +120,39 @@ CharT* strcpy(CharT* dst, char const* src)
 }
 
 template<typename CharT>
+CharT* strncpy(CharT* dst, CharT const* src, std::size_t n)
+{
+	auto ptr = dst;
+	while(n && (*ptr++ = *src++)) --n;
+	while(n) { *ptr++ = CharT(0); --n; }
+	return dst;
+}
+
+template<typename CharT>
+CharT* strcat(CharT* dst, CharT const* src)
+{
+	auto ptr = dst;
+	while(*ptr) ++ptr;
+	while((*ptr++ = *src++)) {}
+	return dst;
+}
+
+template<typename CharT>
+CharT* strncat(CharT* dst, CharT const* src, std::size_t n)
+{
+	if(n)
+	{
+		auto ptr = dst;
+		while(*ptr) ++ptr;
+		while(n && (*ptr++ = *src++)) --n;
+		*ptr = CharT(0);
+	}
+	return dst;
+}
+
+//  String examination
+
+template<typename CharT>
 std::size_t strlen(const CharT* s)
 {
 	auto p = s;
@@ -127,15 +161,144 @@ std::size_t strlen(const CharT* s)
 }
 
 template<typename CharT>
-auto strnlen(const CharT* s, std::size_t n)
+std::size_t strnlen(const CharT* s, std::size_t n)
 {
 	return std::find(s, s + n, CharT(0)) - s;
 }
 
+template<typename CharT>
+int strcmp(CharT const* lhs, CharT const* rhs)
+{
+	using unsigned_char = typename make_unsigned<CharT>::type;
+
+	while(*lhs && *lhs == *rhs) ++lhs, ++rhs;
+	return *((unsigned_char const*)lhs) - *((unsigned_char const*)rhs);
+}
+
+template<typename CharT>
+int strncmp(CharT const* lhs, CharT const* rhs, std::size_t n)
+{
+	using unsigned_char = typename make_unsigned<CharT>::type;
+
+	if(!n)
+		return 0;
+
+	while(--n && *lhs && *lhs == *rhs) ++lhs, ++rhs;
+	return *((unsigned_char const*)lhs) - *((unsigned_char const*)rhs);
+}
+
+template<typename CharT>
+CharT const* strchr(CharT const* s, int c)
+{
+	while(*s && *s != CharT(c)) ++s;
+	return *s == CharT(c) ? s : nullptr;
+}
+
+template<typename CharT>
+CharT* strchr(CharT* s, int c)
+{
+	return const_cast<CharT*>(strchr(const_cast<CharT const*>(s), c));
+}
+
+template<typename CharT>
+CharT const* strrchr(CharT const* s, int c)
+{
+	auto p = s + strlen(s);
+	while(p >= s && *p != CharT(c)) --p;
+	return p >= s ? p : nullptr;
+}
+
+template<typename CharT>
+CharT* strrchr(CharT* s, int c)
+{
+	return const_cast<CharT*>(strrchr(const_cast<CharT const*>(s), c));
+}
+
+template<typename CharT>
+std::size_t strspn(CharT const* s1, CharT const* s2)
+{
+	std::size_t n = 0;
+	while(*s1 && strchr(s2, *s1)) ++s1, ++n;
+	return n;
+}
+
+template<typename CharT>
+std::size_t strcspn(CharT const* s1, CharT const* s2)
+{
+	std::size_t n = 0;
+	while(*s1 && !strchr(s2, *s1)) ++s1, ++n;
+	return n;
+}
+
+// TODO: Optimize (don't use strlen)
+template<typename CharT>
+CharT const* strpbrk(CharT const* s, CharT const* brk)
+{
+	auto f = std::find_first_of(s, s + strlen(s), brk, brk + strlen(brk));
+
+	if(f != s + strlen(s))
+		return f;
+
+	return {};
+}
+
+template<typename CharT>
+CharT* strpbrk(CharT* s, CharT const* brk)
+{
+	return const_cast<CharT*>(strpbrk(const_cast<CharT const*>(s), brk));
+}
+
+// TODO: Optimize (don't use strlen)
+template<typename CharT>
+CharT const* strstr(CharT const* s1, CharT const* s2)
+{
+	auto f = std::search(s1, s1 + strlen(s1), s2, s2 + strlen(s2));
+
+	if(f != s1 + strlen(s1))
+		return f;
+
+	return {};
+}
+
+template<typename CharT>
+CharT* strstr(CharT* s1, CharT const* s2)
+{
+	return const_cast<CharT*>(strstr(const_cast<CharT const*>(s1), s2));
+}
+
+template<typename CharT>
+CharT* strtok(CharT* s, CharT const* delim)
+{
+	thread_local static CharT* p = {};
+
+	if(!s)
+		s = p;
+
+	if(s)
+	{
+		p = nullptr;
+
+		auto tok = s + strcspn(s, delim);
+
+		if(!*(tok))
+			return nullptr;
+
+		s = tok + strspn(tok, delim);
+
+		if(*(s))
+		{
+			*s = {};
+			p = s + 1;
+		}
+
+		return tok;
+	}
+
+	return p;
+}
 
 } // namespace generic
-
-
+} // namespace zstring_utils
 } // namespace header_only_library
 
 #endif // HEADER_ONLY_LIBRARY_ZSTRING_UTILS_H

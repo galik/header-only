@@ -5,6 +5,9 @@
 #include <ostream>
 #include <string>
 
+#include "macro_utils.h"
+#include "zstring_utils.h"
+
 namespace header_only_library {
 namespace rope_utils {
 
@@ -20,6 +23,9 @@ public:
 	using const_pointer = CharT const*;
 	using reference = CharT&;
 	using const_reference = CharT const&;
+
+	using iterator = typename impl_type::iterator;
+	using const_iterator = typename impl_type::const_iterator;
 
 	static constexpr size_type npos = size_type(-1);
 
@@ -193,6 +199,103 @@ public:
 	{
 		return basic_rope<CharT>(*this, pos, n).compare(r);
 	}
+
+	basic_rope<CharT> substr(size_type pos = 0, size_type count = npos) const
+	{
+		return {std::next(begin(), pos), std::next(begin(), pos + count)};
+	}
+
+	basic_rope<CharT>& insert(size_type pos, size_type n, CharT ch)
+	{
+		impl.insert(std::next(begin(), pos), n, ch);
+		return *this;
+	}
+
+	basic_rope<CharT>& insert(size_type pos, CharT const* s)
+	{
+		using zstring_utils::generic::strlen;
+		impl.insert(std::next(begin(), pos), s, s + strlen(s));
+		return *this;
+	}
+
+	basic_rope<CharT>& insert(size_type pos, CharT const* s, size_type n)
+	{
+		using zstring_utils::generic::strnlen;
+		impl.insert(std::next(begin(), pos), s, s + strnlen(s, n));
+		return *this;
+	}
+
+	basic_rope<CharT>& insert(size_type pos, basic_rope<CharT> const& r)
+	{
+		impl.insert(std::next(begin(), pos), std::begin(r), std::end(r));
+		return *this;
+	}
+
+	basic_rope<CharT>& insert(size_type pos, basic_rope<CharT> const& r,
+		size_type r_pos, size_type n = npos)
+	{
+		HOL_ASSERT_MSG(r_pos < r.size(), "out of rope bounds: " << r_pos << " > " << r.size());
+
+		auto r_size = r.size();
+
+		if(n == npos)
+			n = r_size - r_pos;
+
+		if(r_pos + n > r.size() - 1)
+			n = r_size - r_pos;
+
+		auto r_beg = std::next(std::begin(r), r_pos);
+		auto r_end = std::next(std::begin(r), r_pos + n);
+
+		impl.insert(std::next(begin(), pos), r_beg, r_end);
+		return *this;
+	}
+
+	iterator insert(iterator pos, CharT ch)
+	{
+		return *this;
+	}
+
+	iterator insert(const_iterator pos, CharT ch)
+	{
+		return *this;
+	}
+
+	void insert(iterator pos, size_type count, CharT ch)
+	{
+		return *this;
+	}
+
+	iterator insert(const_iterator pos, size_type count, CharT ch)
+	{
+		return *this;
+	}
+
+	template< class InputIt >
+	void insert(iterator pos, InputIt first, InputIt last)
+	{
+		return *this;
+	}
+
+	template< class InputIt >
+	iterator insert(const_iterator pos, InputIt first, InputIt last)
+	{
+		return *this;
+	}
+
+	iterator insert(const_iterator pos, std::initializer_list<CharT> ilist)
+	{
+		return *this;
+	}
+
+	template < class T >
+	basic_rope<CharT>& insert(size_type pos, const T& t, size_type index_str, size_type count = npos)
+	{
+		return *this;
+	}
+
+
+	size_type size() const { return impl.size(); }
 
 	auto begin() { return impl.begin(); }
 	auto begin() const { return impl.begin(); }
