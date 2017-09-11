@@ -42,7 +42,6 @@ class basic_srange
 public:
 	basic_srange() noexcept: basic_range<CharT>() {}
 
-//	basic_srange(basic_srange const& r) noexcept: basic_range<CharT>(r.data(), r.size()) {}
 	basic_srange(basic_srange const& r) noexcept = default;
 	basic_srange(basic_srange&& r) noexcept = default;
 
@@ -101,6 +100,8 @@ std::size_t strlen(const CharT* s)
 
 } // namespace detail
 
+// TYPE ALIASES ------------------------------------------------------
+
 using srange = basic_srange<char>;
 using const_srange = basic_srange<char const>;
 
@@ -112,6 +113,8 @@ using const_u16srange = basic_srange<char16_t const>;
 
 using u32srange = basic_srange<char32_t>;
 using const_u32srange = basic_srange<char32_t const>;
+
+// MAKERS --------------------------------------------------------------
 
 template<typename CharT, typename Traits, typename Alloc>
 auto make_srange(std::basic_string<CharT, Traits, Alloc>& s)
@@ -153,96 +156,7 @@ template<typename CharT>
 auto make_srange(CharT const* beg, CharT const* end)
 	{ return basic_srange<CharT>(beg, end); }
 
-// TODO move this to srange_regex ?
-
-using rmatch = std::match_results<srange::iterator>;
-using wrmatch = std::match_results<wsrange::iterator>;
-using u16rmatch = std::match_results<u16srange::iterator>;
-using u32rmatch = std::match_results<u32srange::iterator>;
-
-template<typename BiIter, typename Char = typename std::iterator_traits<BiIter>::value_type>
-using basic_rregex_iterator = std::regex_iterator<BiIter, Char>;
-
-template<typename BiIter, typename Char = typename std::iterator_traits<BiIter>::value_type>
-using basic_rregex_token_iterator = std::regex_token_iterator<BiIter, Char>;
-
-using rregex_iterator = basic_rregex_iterator<srange::iterator>;
-using rregex_token_iterator = basic_rregex_token_iterator<srange::iterator>;
-
-namespace detail {
-
-template<typename MatchType>
-std::vector<basic_range<typename MatchType::char_type>> convert_matches(MatchType const& m)
-{
-	std::vector<basic_range<typename MatchType::char_type>> matches;
-	matches.reserve(m.size());
-
-	for(auto& sm: m)
-		matches.emplace_back(sm.first, sm.second);
-
-	return matches;
-}
-
-} // namespace detail
-
-template<typename Char>
-std::vector<basic_range<Char>> regex_match(basic_range<Char> s, std::regex const& e,
-	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
-{
-	std::match_results<typename basic_range<Char>::iterator> m;
-	if(!std::regex_match(std::begin(s), std::end(s), m, e, flags))
-		return {};
-
-	return detail::convert_matches(m);
-
-//	std::vector<range<Char>> matches;
-//	matches.reserve(m.size());
-//
-//	for(auto& sm: m)
-//		matches.emplace_back(sm.first, sm.second);
-//
-//	return matches;
-}
-
-template<typename Char>
-std::vector<basic_range<Char>> regex_search(basic_range<Char> s, std::regex const& e,
-	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
-{
-
-	std::match_results<typename basic_range<Char>::iterator> m;
-	if(!std::regex_search(std::begin(s), std::end(s), m, e, flags))
-		return {};
-
-	return detail::convert_matches(m);
-
-//	std::vector<range<Char>> matches;
-//	matches.reserve(m.size());
-//
-//	for(auto& sm: m)
-//		matches.emplace_back(sm.first, sm.second);
-//
-//	return matches;
-}
-
-template<typename Char>
-std::vector<std::vector<basic_range<Char>>> regex_search_all(basic_range<Char> s, std::regex const& e,
-	std::regex_constants::match_flag_type flags = std::regex_constants::match_default)
-{
-
-	std::match_results<typename basic_range<Char>::iterator> m;
-	if(!std::regex_search(std::begin(s), std::end(s), m, e, flags))
-		return {};
-
-	std::vector<std::vector<basic_range<Char>>> matches;
-
-	basic_rregex_iterator<typename basic_range<Char>::iterator> end;
-	basic_rregex_iterator<typename basic_range<Char>::iterator> itr(std::begin(s), std::end(s), e, flags);
-
-	for(; itr != end; ++itr)
-		matches.emplace_back(detail::convert_matches(*itr));
-
-	return matches;
-}
+// FREE FUNCTIONS -------------------------------------------------------------------------
 
 // string functions (std::string members as free functions)
 
@@ -258,17 +172,10 @@ int compare(basic_range<Char> r1, basic_range<Char> r2)
 
 namespace literals {
 
-auto operator""_sr(char const* s, std::size_t n) noexcept
-	{ return const_srange{s, n}; }
-
-auto operator""_wsr(wchar_t const* s, std::size_t n) noexcept
-	{ return const_wsrange{s, n}; }
-
-auto operator""_u16sr(char16_t const* s, std::size_t n) noexcept
-	{ return const_u16srange{s, n}; }
-
-auto operator""_u32sr(char32_t const* s, std::size_t n) noexcept
-	{ return const_u32srange{s, n}; }
+auto operator""_sr(char const* s, std::size_t n) noexcept { return const_srange{s, n}; }
+auto operator""_wsr(wchar_t const* s, std::size_t n) noexcept { return const_wsrange{s, n}; }
+auto operator""_u16sr(char16_t const* s, std::size_t n) noexcept { return const_u16srange{s, n}; }
+auto operator""_u32sr(char32_t const* s, std::size_t n) noexcept { return const_u32srange{s, n}; }
 
 } // literals
 } // namespace range

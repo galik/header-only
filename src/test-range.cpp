@@ -23,10 +23,13 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-//#include <algorithm>
+#include <algorithm>
+#include <memory>
+#include <numeric>
 #include <string>
-//#include <vector>
+#include <vector>
 
+#define HOL_RANGE_THROW_ON_EXCEPTION
 #include "hol/bug.h"
 #include "hol/range.h"
 
@@ -42,12 +45,17 @@ TEST_CASE("Making ranges", "[]")
 		std::vector<int> v{0, 1, 2};
 		auto r = hol::make_range(v);
 
+		REQUIRE(r.size() == v.size());
 		REQUIRE(r[0] == v[0]);
 		REQUIRE(r[1] == v[1]);
 		REQUIRE(r[2] == v[2]);
 
+		REQUIRE(std::accumulate(std::begin(r), std::end(r), 0) == 3);
+
 		r[1] = 9;
 		REQUIRE(v[1] == 9);
+
+		REQUIRE_THROWS(r[3]);
 	}
 
 	SECTION("Container const")
@@ -55,8 +63,177 @@ TEST_CASE("Making ranges", "[]")
 		std::vector<int> const v{0, 1, 2};
 		auto r = hol::make_range(v);
 
+		REQUIRE(r.size() == v.size());
 		REQUIRE(r[0] == v[0]);
 		REQUIRE(r[1] == v[1]);
 		REQUIRE(r[2] == v[2]);
+
+		REQUIRE(std::accumulate(std::begin(r), std::end(r), 0) == 3);
+
+		REQUIRE_THROWS(r[3]);
+	}
+
+	SECTION("Array")
+	{
+		int v[] = {0, 1, 2};
+		auto r = hol::make_range(v);
+
+		REQUIRE(r.size() == 3);
+		REQUIRE(r[0] == v[0]);
+		REQUIRE(r[1] == v[1]);
+		REQUIRE(r[2] == v[2]);
+
+		REQUIRE(std::accumulate(std::begin(r), std::end(r), 0) == 3);
+
+		r[1] = 9;
+		REQUIRE(v[1] == 9);
+
+		REQUIRE_THROWS(r[3]);
+	}
+
+	SECTION("Array const")
+	{
+		int const v[] = {0, 1, 2};
+		auto r = hol::make_range(v);
+
+		REQUIRE(r.size() == 3);
+		REQUIRE(r[0] == v[0]);
+		REQUIRE(r[1] == v[1]);
+		REQUIRE(r[2] == v[2]);
+
+		REQUIRE(std::accumulate(std::begin(r), std::end(r), 0) == 3);
+
+		REQUIRE_THROWS(r[3]);
+	}
+
+	SECTION("Buffer (size)")
+	{
+		std::vector<int> v{0, 1, 2};
+		auto r = hol::make_range(v.data(), v.size());
+
+		REQUIRE(r.size() == 3);
+		REQUIRE(r[0] == v[0]);
+		REQUIRE(r[1] == v[1]);
+		REQUIRE(r[2] == v[2]);
+
+		REQUIRE(std::accumulate(std::begin(r), std::end(r), 0) == 3);
+
+		r[1] = 9;
+		REQUIRE(v[1] == 9);
+
+		REQUIRE_THROWS(r[3]);
+	}
+
+	SECTION("Buffer const (size)")
+	{
+		std::vector<int> const v{0, 1, 2};
+		auto r = hol::make_range(v.data(), v.size());
+
+		REQUIRE(r.size() == 3);
+		REQUIRE(r[0] == v[0]);
+		REQUIRE(r[1] == v[1]);
+		REQUIRE(r[2] == v[2]);
+
+		REQUIRE(std::accumulate(std::begin(r), std::end(r), 0) == 3);
+
+		REQUIRE_THROWS(r[3]);
+	}
+
+	SECTION("Buffer (pointer)")
+	{
+		std::vector<int> v{0, 1, 2};
+		auto r = hol::make_range(v.data(), v.data() + v.size());
+
+		REQUIRE(r.size() == 3);
+		REQUIRE(r[0] == v[0]);
+		REQUIRE(r[1] == v[1]);
+		REQUIRE(r[2] == v[2]);
+
+		REQUIRE(std::accumulate(std::begin(r), std::end(r), 0) == 3);
+
+		r[1] = 9;
+		REQUIRE(v[1] == 9);
+
+		REQUIRE_THROWS(r[3]);
+	}
+
+	SECTION("Buffer const (pointer)")
+	{
+		std::vector<int> const v{0, 1, 2};
+		auto r = hol::make_range(v.data(), v.data() + v.size());
+
+		REQUIRE(r.size() == 3);
+		REQUIRE(r[0] == v[0]);
+		REQUIRE(r[1] == v[1]);
+		REQUIRE(r[2] == v[2]);
+
+		REQUIRE(std::accumulate(std::begin(r), std::end(r), 0) == 3);
+
+		REQUIRE_THROWS(r[3]);
 	}
 }
+
+TEST_CASE("Free functions", "")
+{
+	SECTION("non const")
+	{
+		std::vector<int> v = {0, 1, 2};
+		hol::range<int> r = hol::make_range(v);
+
+		REQUIRE(hol::front(r) == 0);
+		REQUIRE(hol::at(r, 1) == 1);
+		REQUIRE(hol::back(r)  == 2);
+
+		REQUIRE(hol::data(r) == v.data());
+		REQUIRE(hol::size(r) == 3);
+		REQUIRE(hol::length(r) == 3);
+
+		hol::range<int> r2 = r;
+		hol::clear(r2);
+		REQUIRE(hol::empty(r2));
+
+		std::vector<int> v2 = {5, 6};
+		r2 = hol::make_range(v2);
+
+		bug_var(r.size());
+		bug_var(r2.size());
+
+		REQUIRE_THROWS(hol::copy(r, r2, 4));
+
+		hol::copy(r, r2, 1);
+
+		REQUIRE(r2[0] == 1);
+		REQUIRE(r2[1] == 2);
+		REQUIRE_THROWS(r2[2]);
+	}
+
+	SECTION("const")
+	{
+//		std::vector<int> const v = {0, 1, 2};
+//		hol::range<int const> r = hol::make_range(v);
+//
+//		REQUIRE(hol::front(r) == 0);
+//		REQUIRE(hol::at(r, 1) == 1);
+//		REQUIRE(hol::back(r)  == 2);
+//
+//		REQUIRE(hol::data(r) == v.data());
+//		REQUIRE(hol::size(r) == 3);
+//		REQUIRE(hol::length(r) == 3);
+//
+//		auto r0 = hol::clear(r);
+//		REQUIRE(hol::empty(r0));
+//
+//		std::vector<int> v2 = {5, 6, 7};
+//		v2.pop_back();
+//		hol::range<int> r2 = hol::make_range(v2);
+//
+//		REQUIRE_THROWS(hol::copy(r, r2, 2));
+	}
+}
+
+
+
+
+
+
+

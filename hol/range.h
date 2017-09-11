@@ -23,20 +23,42 @@
 //
 
 #include <algorithm>
+#include <cassert>
+#include <iostream>
 #include <iterator>
 #include <regex>
+#include <sstream>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
-#include <cassert>
+#define HOL_THROW_RANGE_EXCEPTION(msg) do{std::ostringstream o;o<<msg;throw std::runtime_error(o.str());}while(0)
 
-#ifndef HOL_CONCEPT
-#ifdef __cpp_concepts
-#define HOL_CONCEPT(c) c
-#else
-#define HOL_CONCEPT(c)
+#ifndef HOL_RANGE_EXCEPTION_POLICY
+# ifdef HOL_RANGE_THROW_ON_EXCEPTION
+#  define HOL_RANGE_EXCEPTION_POLICY(msg) HOL_THROW_RANGE_EXCEPTION(msg)
+#  define HOL_RANGE_NOEXCEPT
+# else
+#  ifdef NDEBUG
+#   define HOL_RANGE_EXCEPTION_POLICY(msg) \
+	 do{std::cerr<<msg<<'\n';std::abort();}while(0)
+#  else
+#   define HOL_RANGE_EXCEPTION_POLICY(msg) \
+	 do{std::cerr<<msg<<"\nfile: "<<__FILE__<<"\nline: "<<__LINE__<<'\n';std::abort();}while(0)
+#  endif
+#  define HOL_RANGE_NOEXCEPT noexcept
+# endif
 #endif
-#endif // HOL_CONCEPT
+
+#ifdef NDEBUG
+# ifdef HOL_RANGE_THROW_ON_EXCEPTION
+#  define HOL_RANGE_ASSERT(expr) do{ if(!(expr)) HOL_RANGE_EXCEPTION_POLICY(#expr " failed."); }while(0)
+# else
+#  define HOL_RANGE_ASSERT(expr) do{}while(0)
+# endif
+#else
+# define HOL_RANGE_ASSERT(expr) do{ if(!(expr)) HOL_RANGE_EXCEPTION_POLICY(#expr " failed."); }while(0)
+#endif
 
 #ifndef HOL_DEBUG_ONLY_SECTION
 #ifndef NDEBUG
@@ -101,16 +123,16 @@ public:
 	using reverse_iterator = detail::basic_reverse_iterator<T>;
 	using const_reverse_iterator = detail::basic_reverse_iterator<T const>;
 
-	basic_range() noexcept = default;
-	basic_range(basic_range&& r) noexcept = default;
-	basic_range(basic_range const& r) noexcept = default;
+	basic_range() HOL_RANGE_NOEXCEPT = default;
+	basic_range(basic_range&& r) HOL_RANGE_NOEXCEPT = default;
+	basic_range(basic_range const& r) HOL_RANGE_NOEXCEPT = default;
 
-	basic_range& operator=(basic_range&& r) noexcept = default;
-	basic_range& operator=(basic_range const& r) noexcept = default;
+	basic_range& operator=(basic_range&& r) HOL_RANGE_NOEXCEPT = default;
+	basic_range& operator=(basic_range const& r) HOL_RANGE_NOEXCEPT = default;
 
-	explicit basic_range(T* beg, T* end) noexcept: m_beg(beg), m_end(end)
+	explicit basic_range(T* beg, T* end) HOL_RANGE_NOEXCEPT: m_beg(beg), m_end(end)
 	{
-		assert(m_beg <= m_end);
+		HOL_RANGE_ASSERT(m_beg <= m_end);
 		HOL_DEBUG_ONLY_SECTION
 		(
 			m_orig_beg = m_beg;
@@ -118,66 +140,68 @@ public:
 		)
 	}
 
-	explicit basic_range(T* beg, std::size_t len) noexcept: basic_range(beg, beg + len) {}
+	explicit basic_range(T* beg, std::size_t len) HOL_RANGE_NOEXCEPT: basic_range(beg, beg + len) {}
 
 	template<std::size_t Size>
-	explicit basic_range(T(&a)[Size]) noexcept: basic_range(a, a + Size) {}
+	explicit basic_range(T(&a)[Size]) HOL_RANGE_NOEXCEPT: basic_range(a, a + Size) {}
 
 	template<typename Container>
-	explicit basic_range(Container&& c) noexcept
+	explicit basic_range(Container&& c) HOL_RANGE_NOEXCEPT
 	: basic_range(&std::forward<Container>(c)[0], std::forward<Container>(c).size()) {}
 
 //  &*beg => UB when beg == end
 //	template<typename ForwardIter>
-//	explicit basic_range(ForwardIter beg, ForwardIter end) noexcept: basic_range(&*beg, std::distance(beg, end)) {}
+//	explicit basic_range(ForwardIter beg, ForwardIter end) HOL_RANGE_NOEXCEPT: basic_range(&*beg, std::distance(beg, end)) {}
 
-	constexpr iterator begin() noexcept { return m_beg; }
-	constexpr const_iterator begin() const noexcept { return m_beg; }
+	operator basic_range<T const>() const { return basic_range<T const>(*this); }
 
-	constexpr iterator end() noexcept { return m_end; }
-	constexpr const_iterator end() const noexcept { return m_end; }
+	constexpr iterator begin() HOL_RANGE_NOEXCEPT { return m_beg; }
+	constexpr const_iterator begin() const HOL_RANGE_NOEXCEPT { return m_beg; }
 
-	constexpr const_iterator cbegin() const noexcept { return m_beg; }
-	constexpr const_iterator cend() const noexcept { return m_end; }
+	constexpr iterator end() HOL_RANGE_NOEXCEPT { return m_end; }
+	constexpr const_iterator end() const HOL_RANGE_NOEXCEPT { return m_end; }
 
-	constexpr reverse_iterator rbegin() noexcept { return reverse_iterator{m_end}; }
-	constexpr const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator{m_end}; }
+	constexpr const_iterator cbegin() const HOL_RANGE_NOEXCEPT { return m_beg; }
+	constexpr const_iterator cend() const HOL_RANGE_NOEXCEPT { return m_end; }
 
-	constexpr reverse_iterator rend() noexcept { return reverse_iterator{m_beg}; }
-	constexpr const_reverse_iterator rend() const noexcept { return const_reverse_iterator{m_beg}; }
+	constexpr reverse_iterator rbegin() HOL_RANGE_NOEXCEPT { return reverse_iterator{m_end}; }
+	constexpr const_reverse_iterator rbegin() const HOL_RANGE_NOEXCEPT { return const_reverse_iterator{m_end}; }
 
-	constexpr const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator{m_end}; }
-	constexpr const_reverse_iterator crend() const noexcept { return const_reverse_iterator{m_beg}; }
+	constexpr reverse_iterator rend() HOL_RANGE_NOEXCEPT { return reverse_iterator{m_beg}; }
+	constexpr const_reverse_iterator rend() const HOL_RANGE_NOEXCEPT { return const_reverse_iterator{m_beg}; }
+
+	constexpr const_reverse_iterator crbegin() const HOL_RANGE_NOEXCEPT { return const_reverse_iterator{m_end}; }
+	constexpr const_reverse_iterator crend() const HOL_RANGE_NOEXCEPT { return const_reverse_iterator{m_beg}; }
 
 	pointer data() { return m_beg; }
 	const_pointer data() const { return m_beg; }
 
-	reference at(std::size_t n) noexcept { assert(n < size()); return m_beg[n]; }
-	const_reference at(std::size_t n) const noexcept { assert(n < size()); return m_beg[n]; }
+	reference at(std::size_t n) HOL_RANGE_NOEXCEPT { HOL_RANGE_ASSERT(n < size()); return m_beg[n]; }
+	const_reference at(std::size_t n) const HOL_RANGE_NOEXCEPT { HOL_RANGE_ASSERT(n < size()); return m_beg[n]; }
 
-	reference operator[](std::size_t n) noexcept { assert(n < size()); return m_beg[n]; }
-	const_reference operator[](std::size_t n) const noexcept { assert(n < size()); return m_beg[n]; }
+	reference operator[](std::size_t n) HOL_RANGE_NOEXCEPT { HOL_RANGE_ASSERT(n < size()); return m_beg[n]; }
+	const_reference operator[](std::size_t n) const HOL_RANGE_NOEXCEPT { HOL_RANGE_ASSERT(n < size()); return m_beg[n]; }
 
-	reference front() { assert(!empty()); return *m_beg; }
-	const_reference front() const { assert(!empty()); return *m_beg; }
+	reference front() { HOL_RANGE_ASSERT(!empty()); return *m_beg; }
+	const_reference front() const { HOL_RANGE_ASSERT(!empty()); return *m_beg; }
 
-	reference back() { assert(!empty()); return *(m_end - 1); }
-	const_reference back() const { assert(!empty()); return *(m_end - 1); }
+	reference back() { HOL_RANGE_ASSERT(!empty()); return *(m_end - 1); }
+	const_reference back() const { HOL_RANGE_ASSERT(!empty()); return *(m_end - 1); }
 
-	std::size_t size() const noexcept { return m_end - m_beg; }
-	bool empty() const noexcept { return !size(); }
+	std::size_t size() const HOL_RANGE_NOEXCEPT { return m_end - m_beg; }
+	bool empty() const HOL_RANGE_NOEXCEPT { return !size(); }
 
-	basic_range subrange(std::size_t pos, std::size_t len) noexcept
+	basic_range subrange(std::size_t pos, std::size_t len) HOL_RANGE_NOEXCEPT
 	{
-		assert(pos < size());
+		HOL_RANGE_ASSERT(pos < size());
 		if(pos + len > size())
 			return basic_range{m_beg + pos, m_end};
 		return basic_range{m_beg + pos, m_beg + pos + len};
 	}
 
-	basic_range subrange(std::size_t pos) noexcept
+	basic_range subrange(std::size_t pos) HOL_RANGE_NOEXCEPT
 	{
-		assert(pos <= size());
+		HOL_RANGE_ASSERT(pos <= size());
 		return basic_range{m_beg + pos, m_end};
 	}
 
@@ -205,7 +229,7 @@ public:
 
 	std::vector<value_type> vector() const { return {m_beg, m_end}; }
 
-	void swap(basic_range& other) noexcept
+	void swap(basic_range& other) HOL_RANGE_NOEXCEPT
 	{
 		std::swap(m_beg, other.m_beg);
 		std::swap(m_end, other.m_end);
@@ -218,7 +242,7 @@ public:
 
 	void resize(std::size_t n)
 	{
-		assert(m_beg + n <= m_orig_end);
+		HOL_RANGE_ASSERT(m_beg + n <= m_orig_end);
 		m_end = m_beg + n;
 	}
 
@@ -276,6 +300,8 @@ template<typename T>
 auto make_range(T const* beg, T const* end)
 	{ return range<T const>(beg, end); }
 
+// Free functions -------------------------------------------
+
 template<typename T>
 T& at(basic_range<T> r, std::size_t n) { return r.at(n); }
 
@@ -298,7 +324,7 @@ template<typename T>
 std::size_t length(basic_range<T> r) { return r.size(); }
 
 template<typename T>
-void clear(basic_range<T>& r) { return r = r.subrange(0, 0); }
+void clear(basic_range<T>& r) { r = r.subrange(0, 0); }
 
 //template<typename T>
 //int compare(basic_range<T> r1, basic_range<T> r2)
@@ -308,16 +334,23 @@ void clear(basic_range<T>& r) { return r = r.subrange(0, 0); }
 //}
 
 template<typename T>
-void copy(basic_range<T> r1, basic_range<T> r2, std::size_t pos = 0)
+void copy(basic_range<T const> src, basic_range<T> dst, std::size_t pos = 0)
 {
-	assert(pos <= r1.size());
+	HOL_RANGE_ASSERT(pos <= src.size());
 
-	auto beg = std::begin(r1) + pos;
-	auto end = std::end(r1);
-	if(beg + r2.size() < end)
-		end = beg + r2.size();
+	auto beg = std::begin(src) + pos;
+	auto end = std::end(src);
+	if(beg + dst.size() < end)
+		end = beg + dst.size();
 
-	std::copy(beg, end, std::begin(r2));
+	std::copy(beg, end, std::begin(dst));
+}
+
+template<typename T>
+void copy(basic_range<T> src, basic_range<T> dst, std::size_t pos = 0)
+{
+	HOL_RANGE_ASSERT(pos <= src.size());
+	copy(basic_range<T const>(src), dst, pos);
 }
 
 // TODO: find somewhere for this

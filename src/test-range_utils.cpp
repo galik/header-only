@@ -32,11 +32,13 @@
 #include "hol/random_numbers.h"
 #include "hol/range_utils.h"
 #include "hol/srange_utils.h"
+#include "hol/srange_regex.h"
 //#include "hol/unicode_utils.h"
 
 namespace hol{
 	using namespace header_only_library::random_numbers;
 	using namespace header_only_library::range;
+	using namespace header_only_library::range_regex;
 //	using namespace header_only_library::unicode_utils;
 }
 
