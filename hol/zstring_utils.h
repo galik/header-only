@@ -111,13 +111,19 @@ namespace generic {
 
 //  String manipulation
 
+inline
+char* strcpy(char* dst, char const* src) { return std::strcpy(dst, src); }
+
 template<typename CharT>
-CharT* strcpy(CharT* dst, char const* src)
+CharT* strcpy(CharT* dst, CharT const* src)
 {
 	auto ptr = dst;
 	while((*ptr++ = *src++)) {}
 	return dst;
 }
+
+inline
+char* strncpy(char* dst, char const* src, std::size_t n) { return std::strncpy(dst, src, n); }
 
 template<typename CharT>
 CharT* strncpy(CharT* dst, CharT const* src, std::size_t n)
@@ -128,6 +134,9 @@ CharT* strncpy(CharT* dst, CharT const* src, std::size_t n)
 	return dst;
 }
 
+inline
+char* strcat(char* dst, char const* src) { return std::strcat(dst, src); }
+
 template<typename CharT>
 CharT* strcat(CharT* dst, CharT const* src)
 {
@@ -136,6 +145,9 @@ CharT* strcat(CharT* dst, CharT const* src)
 	while((*ptr++ = *src++)) {}
 	return dst;
 }
+
+inline
+char* strncat(char* dst, char const* src, std::size_t n) { return std::strncat(dst, src, n); }
 
 template<typename CharT>
 CharT* strncat(CharT* dst, CharT const* src, std::size_t n)
@@ -152,19 +164,28 @@ CharT* strncat(CharT* dst, CharT const* src, std::size_t n)
 
 //  String examination
 
+inline
+std::size_t strlen(char const* s) { return strlen(s); }
+
 template<typename CharT>
-std::size_t strlen(const CharT* s)
+std::size_t strlen(CharT const* s)
 {
 	auto p = s;
 	while(*p) ++p;
 	return std::size_t(p - s);
 }
 
+inline
+std::size_t strnlen(char const* s, std::size_t n) { return strnlen(s, n); }
+
 template<typename CharT>
-std::size_t strnlen(const CharT* s, std::size_t n)
+std::size_t strnlen(CharT const* s, std::size_t n)
 {
 	return std::find(s, s + n, CharT(0)) - s;
 }
+
+inline
+int strcmp(char const* lhs, char const* rhs) { return std::strcmp(lhs, rhs); }
 
 template<typename CharT>
 int strcmp(CharT const* lhs, CharT const* rhs)
@@ -174,6 +195,9 @@ int strcmp(CharT const* lhs, CharT const* rhs)
 	while(*lhs && *lhs == *rhs) ++lhs, ++rhs;
 	return *((unsigned_char const*)lhs) - *((unsigned_char const*)rhs);
 }
+
+inline
+int strncmp(char const* lhs, char const* rhs, std::size_t n) { return std::strncmp(lhs, rhs, n); }
 
 template<typename CharT>
 int strncmp(CharT const* lhs, CharT const* rhs, std::size_t n)
@@ -187,15 +211,20 @@ int strncmp(CharT const* lhs, CharT const* rhs, std::size_t n)
 	return *((unsigned_char const*)lhs) - *((unsigned_char const*)rhs);
 }
 
+// TODO: Test this, original signature strchr(char const*, int)
+
+inline
+char const* strchr(char const* s, char c) { return std::strchr(s, c); }
+
 template<typename CharT>
-CharT const* strchr(CharT const* s, int c)
+CharT const* strchr(CharT const* s, CharT c)
 {
 	while(*s && *s != CharT(c)) ++s;
 	return *s == CharT(c) ? s : nullptr;
 }
 
 template<typename CharT>
-CharT* strchr(CharT* s, int c)
+CharT* strchr(CharT* s, CharT c)
 {
 	return const_cast<CharT*>(strchr(const_cast<CharT const*>(s), c));
 }
