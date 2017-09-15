@@ -165,7 +165,7 @@ CharT* strncat(CharT* dst, CharT const* src, std::size_t n)
 //  String examination
 
 inline
-std::size_t strlen(char const* s) { return strlen(s); }
+std::size_t strlen(char const* s) { return std::strlen(s); }
 
 template<typename CharT>
 std::size_t strlen(CharT const* s)
@@ -176,7 +176,7 @@ std::size_t strlen(CharT const* s)
 }
 
 inline
-std::size_t strnlen(char const* s, std::size_t n) { return strnlen(s, n); }
+std::size_t strnlen(char const* s, std::size_t n) { return ::strnlen(s, n); }
 
 template<typename CharT>
 std::size_t strnlen(CharT const* s, std::size_t n)
@@ -214,34 +214,43 @@ int strncmp(CharT const* lhs, CharT const* rhs, std::size_t n)
 // TODO: Test this, original signature strchr(char const*, int)
 
 inline
+char* strchr(char* s, char c) { return std::strchr(s, c); }
+
+inline
 char const* strchr(char const* s, char c) { return std::strchr(s, c); }
 
 template<typename CharT>
-CharT const* strchr(CharT const* s, CharT c)
+CharT* strchr(CharT* s, CharT c)
 {
 	while(*s && *s != CharT(c)) ++s;
 	return *s == CharT(c) ? s : nullptr;
 }
 
-template<typename CharT>
-CharT* strchr(CharT* s, CharT c)
-{
-	return const_cast<CharT*>(strchr(const_cast<CharT const*>(s), c));
-}
+//template<typename CharT>
+//CharT* strchr(CharT* s, CharT c)
+//{
+//	return const_cast<CharT*>(strchr(const_cast<CharT const*>(s), c));
+//}
+
+char* strrchr(char* s, char c) { return std::strrchr(s, c); }
+char const* strrchr(char const* s, char c) { return std::strrchr(s, c); }
 
 template<typename CharT>
-CharT const* strrchr(CharT const* s, int c)
+CharT* strrchr(CharT* s, int c)
 {
 	auto p = s + strlen(s);
 	while(p >= s && *p != CharT(c)) --p;
 	return p >= s ? p : nullptr;
 }
 
-template<typename CharT>
-CharT* strrchr(CharT* s, int c)
-{
-	return const_cast<CharT*>(strrchr(const_cast<CharT const*>(s), c));
-}
+//template<typename CharT>
+//CharT* strrchr(CharT* s, int c)
+//{
+//	return const_cast<CharT*>(strrchr(const_cast<CharT const*>(s), c));
+//}
+
+inline
+std::size_t strspn(char const* s1, char const* s2) { return std::strspn(s1, s2); }
 
 template<typename CharT>
 std::size_t strspn(CharT const* s1, CharT const* s2)
@@ -251,6 +260,9 @@ std::size_t strspn(CharT const* s1, CharT const* s2)
 	return n;
 }
 
+inline
+std::size_t strcspn(char const* s1, char const* s2) { return std::strcspn(s1, s2); }
+
 template<typename CharT>
 std::size_t strcspn(CharT const* s1, CharT const* s2)
 {
@@ -259,9 +271,15 @@ std::size_t strcspn(CharT const* s1, CharT const* s2)
 	return n;
 }
 
+inline
+char* strpbrk(char* s, char const* brk) { return std::strpbrk(s, brk); }
+
+inline
+char const* strpbrk(char const* s, char const* brk) { return std::strpbrk(s, brk); }
+
 // TODO: Optimize (don't use strlen)
 template<typename CharT>
-CharT const* strpbrk(CharT const* s, CharT const* brk)
+CharT* strpbrk(CharT* s, CharT const* brk)
 {
 	auto f = std::find_first_of(s, s + strlen(s), brk, brk + strlen(brk));
 
@@ -271,15 +289,18 @@ CharT const* strpbrk(CharT const* s, CharT const* brk)
 	return {};
 }
 
-template<typename CharT>
-CharT* strpbrk(CharT* s, CharT const* brk)
-{
-	return const_cast<CharT*>(strpbrk(const_cast<CharT const*>(s), brk));
-}
+//template<typename CharT>
+//CharT* strpbrk(CharT* s, CharT const* brk)
+//{
+//	return const_cast<CharT*>(strpbrk(const_cast<CharT const*>(s), brk));
+//}
+
+char* strstr(char* s1, char const* s2) { return std::strstr(s1, s2); }
+char const* strstr(char const* s1, char const* s2) { return std::strstr(s1, s2); }
 
 // TODO: Optimize (don't use strlen)
 template<typename CharT>
-CharT const* strstr(CharT const* s1, CharT const* s2)
+CharT* strstr(CharT* s1, CharT const* s2)
 {
 	auto f = std::search(s1, s1 + strlen(s1), s2, s2 + strlen(s2));
 
@@ -289,11 +310,13 @@ CharT const* strstr(CharT const* s1, CharT const* s2)
 	return {};
 }
 
-template<typename CharT>
-CharT* strstr(CharT* s1, CharT const* s2)
-{
-	return const_cast<CharT*>(strstr(const_cast<CharT const*>(s1), s2));
-}
+//template<typename CharT>
+//CharT* strstr(CharT* s1, CharT const* s2)
+//{
+//	return const_cast<CharT*>(strstr(const_cast<CharT const*>(s1), s2));
+//}
+
+char* strtok(char* s, char const* delim) { return std::strtok(s, delim); }
 
 template<typename CharT>
 CharT* strtok(CharT* s, CharT const* delim)
