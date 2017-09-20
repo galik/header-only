@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <iterator>
 #include <regex>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -98,51 +99,58 @@ bool equal(Range r1, Range r2, BinaryPredicate p)
 	{ return std::equal(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
 template<typename Range>
-typename Range::iterator find(Range r, typename Range::value_type const& value)
-	{ return std::find(std::begin(r), std::end(r), value); }
+//typename std::conditional
+//<
+//	std::is_const<typename Range::value_type>::value,
+//	typename Range::const_iterator,
+//	typename Range::iterator
+//>::type
+
+auto find(Range r, typename Range::value_type const& value)
+		{ return std::find(std::begin(r), std::end(r), value); }
 
 template<typename Range, typename UnaryPredicate>
-typename Range::iterator find_if(Range r, UnaryPredicate p)
+auto find_if(Range r, UnaryPredicate p)
 	{ return std::find_if(std::begin(r), std::end(r), p); }
 
 template<typename Range, typename UnaryPredicate>
-typename Range::iterator find_if_not(Range r, UnaryPredicate p)
+auto find_if_not(Range r, UnaryPredicate p)
 	{ return std::find_if_not(std::begin(r), std::end(r), p); }
 
 template<typename Range>
-typename Range::iterator find_end(Range r1, Range r2)
+auto find_end(Range r1, Range r2)
 	{ return std::find_end(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
 
 template<typename Range, typename BinaryPredicate>
-typename Range::iterator find_end(Range r1, Range r2, BinaryPredicate p)
+auto find_end(Range r1, Range r2, BinaryPredicate p)
 	{ return std::find_end(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
 template<typename Range>
-typename Range::iterator find_first_of(Range r1, Range r2)
+auto find_first_of(Range r1, Range r2)
 	{ return std::find_first_of(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
 
 template<typename Range, typename BinaryPredicate>
-typename Range::iterator find_first_of(Range r1, Range r2, BinaryPredicate p)
+auto find_first_of(Range r1, Range r2, BinaryPredicate p)
 	{ return std::find_first_of(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
 template<typename Range, typename BinaryPredicate>
-typename Range::iterator adjacent_find(Range r, BinaryPredicate p)
+auto adjacent_find(Range r, BinaryPredicate p)
 	{ return std::adjacent_find(std::begin(r), std::end(r), p); }
 
 template<typename Range>
-typename Range::iterator search(Range r1, Range r2)
+auto search(Range r1, Range r2)
 	{ return std::search(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
 
 template<typename Range, typename BinaryPredicate>
-typename Range::iterator search(Range r1, Range r2, BinaryPredicate p)
+auto search(Range r1, Range r2, BinaryPredicate p)
 	{ return std::search(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
 template<typename Size, typename Range>
-typename Range::iterator search_n(Range r, Size count, typename Range::value_type const& value)
+auto search_n(Range r, Size count, typename Range::value_type const& value)
 	{ return std::search_n(std::begin(r), std::end(r), count, value); }
 
 template<typename Size, typename Range, typename BinaryPredicate>
-typename Range::iterator search_n(Range r, Size count, typename Range::value_type const& value, BinaryPredicate p)
+auto search_n(Range r, Size count, typename Range::value_type const& value, BinaryPredicate p)
 	{ return std::search_n(std::begin(r), std::end(r), count, value, p); }
 
 
@@ -159,43 +167,55 @@ OutIter copy_if(Range r, OutIter d, UnaryPredicate p)
 // SPLICE ? splice_to() splice_from()?
 namespace detail {
 
+//template<typename Range>
+//std::pair<Range, Range> splice_at(Range r, typename Range::iterator i)
+//	{ return std::make_pair(Range(std::begin(r), i), Range(i, std::end(r))); }
+
+//template<typename Range>
+//Range splice_to(Range r, typename Range::iterator i)
+//	{ return Range(std::begin(r), i); }
+
+//template<typename Range>
+//Range splice_from(Range r, typename Range::iterator i)
+//	{ return Range(i, std::end(r)); }
+
+} // namespace detail
+
 template<typename Range>
 std::pair<Range, Range> splice_at(Range r, typename Range::iterator i)
 	{ return std::make_pair(Range(std::begin(r), i), Range(i, std::end(r))); }
+
+template<typename Range>
+std::pair<Range, Range> splice_at(Range r, typename Range::value_type const& value)
+	{ return splice_at(r, std::find(std::begin(r), std::end(r), value)); }
+
+template<typename Range, typename UnaryPredicate>
+std::pair<Range, Range> splice_at_if(Range r, UnaryPredicate p)
+	{ return splice_at(r, std::find(std::begin(r), std::end(r), p)); }
 
 template<typename Range>
 Range splice_to(Range r, typename Range::iterator i)
 	{ return Range(std::begin(r), i); }
 
 template<typename Range>
+Range splice_to(Range r, typename Range::value_type const& value)
+	{ return splice_to(r, std::find(std::begin(r), std::end(r), value)); }
+
+template<typename Range, typename UnaryPredicate>
+Range splice_to_if(Range r, UnaryPredicate p)
+	{ return splice_to(r, std::find(std::begin(r), std::end(r), p)); }
+
+template<typename Range>
 Range splice_from(Range r, typename Range::iterator i)
 	{ return Range(i, std::end(r)); }
 
-} // namespace detail
-
-template<typename Range>
-std::pair<Range, Range> splice_at(Range r, typename Range::value_type const& value)
-	{ return detail::splice_at(r, std::find(std::begin(r), std::end(r), value)); }
-
-template<typename Range, typename UnaryPredicate>
-std::pair<Range, Range> splice_at(Range r, UnaryPredicate p)
-	{ return detail::splice_at(r, std::find(std::begin(r), std::end(r), p)); }
-
-template<typename Range>
-Range splice_to(Range r, typename Range::value_type const& value)
-	{ return detail::splice_to(r, std::find(std::begin(r), std::end(r), value)); }
-
-template<typename Range, typename UnaryPredicate>
-Range splice_to(Range r, UnaryPredicate p)
-	{ return detail::splice_to(r, std::find(std::begin(r), std::end(r), p)); }
-
 template<typename Range>
 Range splice_from(Range r, typename Range::value_type const& value)
-	{ return detail::splice_from(r, std::find(std::begin(r), std::end(r), value)); }
+	{ return splice_from(r, std::find(std::begin(r), std::end(r), value)); }
 
 template<typename Range, typename UnaryPredicate>
-Range splice_from(Range r, UnaryPredicate p)
-	{ return detail::splice_from(r, std::find(std::begin(r), std::end(r), p)); }
+Range splice_from_if(Range r, UnaryPredicate p)
+	{ return splice_from(r, std::find(std::begin(r), std::end(r), p)); }
 
 
 

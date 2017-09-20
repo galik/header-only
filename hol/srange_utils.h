@@ -124,6 +124,75 @@ long long stoll(basic_range<char> r, std::size_t* pos = 0, int base = 10)
 	return int(i);
 }
 
+// finding
+
+namespace detail {
+
+inline
+std::size_t strlen(char const* s) { return std::strlen(s); }
+
+//template<typename CharT>
+//std::size_t strlen(CharT const* s)
+//{
+//	auto p = s;
+//	while(*p) ++p;
+//	return std::size_t(p - s);
+//}
+
+template<typename CharT>
+std::size_t size(CharT const* s) { return strlen(s); }
+
+template<typename CharT>
+std::size_t size(basic_srange<CharT> const& s) { return s.size(); }
+
+template<typename CharT>
+basic_srange<CharT> arg(CharT* s) { return make_srange(s); }
+
+template<typename CharT>
+basic_srange<CharT> arg(basic_srange<CharT> s) { return s; }
+
+} // namespace detail
+
+template<typename SRange1, typename SRange2>
+auto search(SRange1 r1, SRange2 r2)
+{
+	return std::search(std::begin(detail::arg(r1)), std::end(detail::arg(r1)),
+		std::begin(detail::arg(r2)), std::end(detail::arg(r2)));
+}
+
+template<typename SRange1, typename SRange2, typename BinaryPredicate>
+auto search(SRange1 r1, SRange2 r2, BinaryPredicate p)
+	{ return std::search(std::begin(detail::arg(r1)), std::end(detail::arg(r1)),
+		std::begin(detail::arg(r2)), std::end(detail::arg(r2)), p); }
+
+template<typename CharT, typename Delim1, typename Delim2>
+basic_srange<CharT> extract_delimited_text(
+	basic_srange<CharT> s,
+	Delim1 const& d1,
+	Delim2 const& d2,
+	basic_srange<CharT>& out)
+{
+	auto beg = search(s, d1);
+
+	if(beg != std::end(s))
+	{
+		beg = std::next(beg, detail::size(d1));
+		s = splice_from(s, beg);
+		auto end = search(s, d2);
+
+		if(end != std::end(s))
+		{
+			out = splice_to(s, end);
+			end = std::next(end, detail::size(d2));
+			return splice_from(s, end);
+		}
+	}
+
+	return std::end(s);
+}
+
+
+
 // Splitting
 
 template<typename CharT>

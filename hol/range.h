@@ -193,7 +193,12 @@ public:
 
 	basic_range subrange(std::size_t pos, std::size_t len) HOL_RANGE_NOEXCEPT
 	{
-		HOL_RANGE_ASSERT(pos < size());
+//		bug_fun();
+//		bug_var(pos);
+//		bug_var(len);
+//		bug_var(size());
+//		bug_var((pos && pos < size()));
+		HOL_RANGE_ASSERT(!pos || (pos && pos < size()));
 		if(pos + len > size())
 			return basic_range{m_beg + pos, m_end};
 		return basic_range{m_beg + pos, m_beg + pos + len};
@@ -333,24 +338,15 @@ void clear(basic_range<T>& r) { r = r.subrange(0, 0); }
 //	return std::char_traits<T>::compare(r1.data(), r2.data(), len);
 //}
 
-template<typename T>
-void copy(basic_range<T const> src, basic_range<T> dst, std::size_t pos = 0)
+template<typename From, typename To>
+void copy(basic_range<From> src, basic_range<To> dst, std::size_t pos = 0)
 {
-	HOL_RANGE_ASSERT(pos <= src.size());
-
 	auto beg = std::begin(src) + pos;
 	auto end = std::end(src);
 	if(beg + dst.size() < end)
 		end = beg + dst.size();
 
 	std::copy(beg, end, std::begin(dst));
-}
-
-template<typename T>
-void copy(basic_range<T> src, basic_range<T> dst, std::size_t pos = 0)
-{
-	HOL_RANGE_ASSERT(pos <= src.size());
-	copy(basic_range<T const>(src), dst, pos);
 }
 
 // TODO: find somewhere for this

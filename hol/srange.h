@@ -40,6 +40,8 @@ class basic_srange
 : public basic_range<CharT>
 {
 public:
+	using char_type = CharT;
+
 	basic_srange() noexcept: basic_range<CharT>() {}
 
 	basic_srange(basic_srange const& r) noexcept = default;
@@ -154,7 +156,7 @@ auto make_srange(CharT* beg, CharT* end)
 
 template<typename CharT>
 auto make_srange(CharT const* beg, CharT const* end)
-	{ return basic_srange<CharT>(beg, end); }
+	{ return basic_srange<CharT const>(beg, end); }
 
 // FREE FUNCTIONS -------------------------------------------------------------------------
 

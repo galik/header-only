@@ -209,25 +209,35 @@ TEST_CASE("Free functions", "")
 
 	SECTION("const")
 	{
-//		std::vector<int> const v = {0, 1, 2};
-//		hol::range<int const> r = hol::make_range(v);
-//
-//		REQUIRE(hol::front(r) == 0);
-//		REQUIRE(hol::at(r, 1) == 1);
-//		REQUIRE(hol::back(r)  == 2);
-//
-//		REQUIRE(hol::data(r) == v.data());
-//		REQUIRE(hol::size(r) == 3);
-//		REQUIRE(hol::length(r) == 3);
-//
-//		auto r0 = hol::clear(r);
-//		REQUIRE(hol::empty(r0));
-//
-//		std::vector<int> v2 = {5, 6, 7};
-//		v2.pop_back();
-//		hol::range<int> r2 = hol::make_range(v2);
-//
-//		REQUIRE_THROWS(hol::copy(r, r2, 2));
+		bug_scope("const");
+		std::vector<int> const v = {0, 1, 2};
+		hol::range<int const> r = hol::make_range(v);
+
+		REQUIRE(hol::front(r) == 0);
+		REQUIRE(hol::at(r, 1) == 1);
+		REQUIRE(hol::back(r)  == 2);
+
+		REQUIRE(hol::data(r) == v.data());
+		REQUIRE(hol::size(r) == 3);
+		REQUIRE(hol::length(r) == 3);
+
+		hol::range<int const> re = r;
+		hol::clear(re);
+		REQUIRE(hol::empty(re));
+
+		std::vector<int> v2 = {5, 6};
+		hol::range<int> r2 = hol::make_range(v2);
+
+		bug_var(r.size());
+		bug_var(r2.size());
+
+		REQUIRE_THROWS(hol::copy(r, r2, 4));
+
+		hol::copy(r, r2, 1);
+
+		REQUIRE(r2[0] == 1);
+		REQUIRE(r2[1] == 2);
+		REQUIRE_THROWS(r2[2]);
 	}
 }
 

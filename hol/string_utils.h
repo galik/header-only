@@ -42,6 +42,15 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef __GNUC__
+#  if __cplusplus > 201402L
+#    ifndef HOL_HAS_STD_BYTE
+#      define HOL_HAS_STD_BYTE
+#      include <cstddef>
+#    endif
+#  endif
+#endif
+
 #include "split_algos.h"
 
 #ifdef HOL_USE_STRING_VIEW
@@ -452,20 +461,20 @@ using String = std::basic_string<C, T, A>;
  * of the String.
  * @return The same String passed in as a parameter.
  */
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_left_mute(String<C, T, A>& s, C const* ws)
 {
 	s.erase(0, s.find_first_not_of(ws));
 	return s;
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_left_mute(String<C, T, A>& s, String<C, T, A> const& ws)
 {
 	return trim_left_mute(s, ws.c_str());
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_left_mute(String<C, T, A>& s)
 {
 	return trim_left_mute(s, detail::ws(C()));
@@ -478,20 +487,20 @@ String<C, T, A>& trim_left_mute(String<C, T, A>& s)
  * of the String.
  * @return The same String passed in as a parameter.
  */
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_right_mute(String<C, T, A>& s, C const* ws)
 {
 	s.erase(s.find_last_not_of(ws) + 1);
 	return s;
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_right_mute(String<C, T, A>& s, String<C, T, A> const& ws)
 {
 	return trim_right_mute(s, ws.c_str());
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_right_mute(String<C, T, A>& s)
 {
 	return trim_right_mute(s, detail::ws(C()));
@@ -504,19 +513,19 @@ String<C, T, A>& trim_right_mute(String<C, T, A>& s)
  * of the String.
  * @return The same String passed in as a parameter.
  */
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_mute(String<C, T, A>& s, C const* ws)
 {
 	return trim_left_mute(trim_right_mute(s, ws), ws);
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_mute(String<C, T, A>& s, String<C, T, A> const& ws)
 {
 	return trim_mute(s, ws.c_str());
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_mute(String<C, T, A>& s)
 {
 	return trim_mute(s, detail::ws(C()));
@@ -533,19 +542,19 @@ String<C, T, A>& trim_mute(String<C, T, A>& s)
  * of the String.
  * @return A copy of the string passed in as a parameter.
  */
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_left_copy(String<C, T, A> s, C const* ws)
 {
 	return trim_left_mute(s, ws);
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_left_copy(String<C, T, A> s, String<C, T, A> const& ws)
 {
 	return trim_left_mute(s, ws);
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A>& trim_left_copy(String<C, T, A> s)
 {
 	return trim_left_mute(s);
@@ -558,19 +567,19 @@ String<C, T, A>& trim_left_copy(String<C, T, A> s)
  * of the String.
  * @return A copy of the string passed in as a parameter.
  */
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_right_copy(String<C, T, A> s, C const* ws)
 {
 	return trim_right_mute(s, ws);
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_right_copy(String<C, T, A> s, String<C, T, A> const& ws)
 {
 	return trim_right_mute(s, ws);
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_right_copy(String<C, T, A> s)
 {
 	return trim_right_mute(s);
@@ -583,19 +592,19 @@ String<C, T, A> trim_right_copy(String<C, T, A> s)
  * of the Sring.
  * @return A copy of the String passed in as a parameter.
  */
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_copy(String<C, T, A> s, C const* ws)
 {
 	return trim_mute(s, ws);
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_copy(String<C, T, A> s, String<C, T, A> const& ws)
 {
 	return trim_mute(s, ws);
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_copy(String<C, T, A> s)
 {
 	return trim_mute(s);
@@ -604,18 +613,18 @@ String<C, T, A> trim_copy(String<C, T, A> s)
 // const char* versions
 // TODO: specify ws? seek a more holistic solution?
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_left_copy(C const* s)
 {
 	return trim_left_copy(String<C, T, A>(s));
 }
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_right_copy(C const* s)
 {
 	return trim_right_copy(String<C, T, A>(s));
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
+template<typename C, typename T, typename A>
 String<C, T, A> trim_copy(C const* s)
 {
 	return trim_copy(String<C, T, A>(s));
@@ -632,8 +641,8 @@ String<C, T, A> trim_copy(C const* s)
  * of the String.
  * @return The String of characters that were removed.
  */
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
-String<C, T, A> trim_left_keep(String<C, T, A> s, C const* ws)
+template<typename C, typename T, typename A>
+String<C, T, A> trim_left_keep(String<C, T, A>& s, C const* ws)
 {
 	typename String<C, T, A>::size_type pos;
 	String<C, T, A> keep = s.substr(0, (pos = s.find_first_not_of(ws)));
@@ -641,14 +650,14 @@ String<C, T, A> trim_left_keep(String<C, T, A> s, C const* ws)
 	return keep;
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
-String<C, T, A> trim_left_keep(String<C, T, A> s, String<C, T, A> const& ws)
+template<typename C, typename T, typename A>
+String<C, T, A> trim_left_keep(String<C, T, A>& s, String<C, T, A> const& ws)
 {
 	return trim_left_keep(s, ws.c_str());
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
-String<C, T, A> trim_left_keep(String<C, T, A> s)
+template<typename C, typename T, typename A>
+String<C, T, A> trim_left_keep(String<C, T, A>& s)
 {
 	return trim_left_keep(s, detail::ws(C()));
 }
@@ -660,8 +669,8 @@ String<C, T, A> trim_left_keep(String<C, T, A> s)
  * of the String.
  * @return The String of characters that were removed.
  */
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
-String<C, T, A> trim_right_keep(String<C, T, A> s, C const* ws)
+template<typename C, typename T, typename A>
+String<C, T, A> trim_right_keep(String<C, T, A>& s, C const* ws)
 {
 	typename String<C, T, A>::size_type pos;
 	String<C, T, A> keep = s.substr((pos = s.find_last_not_of(ws) + 1));
@@ -669,14 +678,14 @@ String<C, T, A> trim_right_keep(String<C, T, A> s, C const* ws)
 	return keep;
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
-String<C, T, A> trim_right_keep(String<C, T, A> s, String<C, T, A> const& ws)
+template<typename C, typename T, typename A>
+String<C, T, A> trim_right_keep(String<C, T, A>& s, String<C, T, A> const& ws)
 {
 	return trim_right_keep(s, ws.c_str());
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
-String<C, T, A> trim_right_keep(String<C, T, A> s)
+template<typename C, typename T, typename A>
+String<C, T, A> trim_right_keep(String<C, T, A>& s)
 {
 	return trim_right_keep(s, detail::ws(C()));
 }
@@ -689,8 +698,8 @@ String<C, T, A> trim_right_keep(String<C, T, A> s)
  * @return A structure of the form `struct { String left; String right; };`
  * containing each String of characters that was removed.
  */
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
-auto trim_keep(String<C, T, A> s, C const* ws)
+template<typename C, typename T, typename A>
+auto trim_keep(String<C, T, A>& s, C const* ws)
 {
 	struct rv
 	{
@@ -701,14 +710,14 @@ auto trim_keep(String<C, T, A> s, C const* ws)
 	return rv{trim_left_keep(s, ws), trim_right_keep(s, ws)};
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
-auto trim_keep(String<C, T, A> s, String<C, T, A> const& ws)
+template<typename C, typename T, typename A>
+auto trim_keep(String<C, T, A>& s, String<C, T, A> const& ws)
 {
 	return trim_keep(s, ws.c_str());
 }
 
-template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
-auto trim_keep(String<C, T, A> s)
+template<typename C, typename T, typename A>
+auto trim_keep(String<C, T, A>& s)
 {
 	return trim_keep(s, detail::ws(C()));
 }
@@ -1365,7 +1374,7 @@ template<typename Iter,
 	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
 String<C, T, A> join(Iter begin, Iter end)
 {
-	return join(begin, end, String<C, T, A>(header_only_library::string_utils::detail::empty(C())));
+	return join(begin, end, String<C, T, A>(detail::empty(C())));
 }
 
 //
@@ -1388,7 +1397,7 @@ template<template<class> class Container,
 	typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>>
 String<C, T, A> join(Container<String<C, T, A>> const& c)
 {
-	return join(c, String<C, T, A>(header_only_library::string_utils::detail::empty(C())));
+	return join(c, String<C, T, A>(detail::empty(C())));
 }
 
 // --------------------------------------------------------------------
@@ -1413,6 +1422,8 @@ String<C, T, A> join(Container<String<C, T, A>> const& c)
 
 // string conversions
 
+namespace detail {
+
 inline
 bool s_to_test(char const* s, char const* e)
 {
@@ -1424,6 +1435,8 @@ bool s_to_test(char const* s, char const* e)
 
 	return !(*e);
 }
+
+} // namespace detail
 
 template<typename Signed>
 bool s_to_i(const std::string& s, Signed& i, int base = 10)
@@ -1438,7 +1451,7 @@ bool s_to_i(const std::string& s, Signed& i, int base = 10)
 	|| l < std::numeric_limits<Signed>::min())
 		return false;
 
-	if(!s_to_test(s.c_str(), end))
+	if(!detail::s_to_test(s.c_str(), end))
 		return false;
 
 	i = static_cast<Signed>(l);
@@ -1458,7 +1471,7 @@ bool s_to_u(const std::string& s, Unsigned& i, int base = 10)
 	if(l > std::numeric_limits<Unsigned>::max())
 		return false;
 
-	if(!s_to_test(s.c_str(), end))
+	if(!detail::s_to_test(s.c_str(), end))
 		return false;
 
 	i = static_cast<Unsigned>(l);
@@ -1471,7 +1484,7 @@ bool s_to_i(const std::string& s, long int& l)
 {
 	char* end;
 	l = std::strtol(s.c_str(), &end, 10);
-	return s_to_test(s.c_str(), end);
+	return detail::s_to_test(s.c_str(), end);
 }
 
 inline
@@ -1479,7 +1492,7 @@ bool s_to_i(const std::string& s, long long int& ll)
 {
 	char* end;
 	ll = std::strtoll(s.c_str(), &end, 10);
-	return s_to_test(s.c_str(), end);
+	return detail::s_to_test(s.c_str(), end);
 }
 
 inline
@@ -1487,7 +1500,7 @@ bool s_to_u(const std::string& s, unsigned long int& ul)
 {
 	char* end;
 	ul = std::strtoul(s.c_str(), &end, 10);
-	return s_to_test(s.c_str(), end);
+	return detail::s_to_test(s.c_str(), end);
 }
 
 inline
@@ -1495,7 +1508,7 @@ bool s_to_u(const std::string& s, unsigned long long int& ull)
 {
 	char* end;
 	ull = std::strtoull(s.c_str(), &end, 10);
-	return s_to_test(s.c_str(), end);
+	return detail::s_to_test(s.c_str(), end);
 }
 
 //inline
@@ -1503,7 +1516,7 @@ bool s_to_u(const std::string& s, unsigned long long int& ull)
 //{
 //	char* end;
 //	l = std::strtol(s.c_str(), &end, 10);
-//	return s_to_test(s.c_str(), end);
+//	return detail::s_to_test(s.c_str(), end);
 //}
 //
 //inline
@@ -1511,7 +1524,7 @@ bool s_to_u(const std::string& s, unsigned long long int& ull)
 //{
 //	char* end;
 //	ll = std::strtoll(s.c_str(), &end, 10);
-//	return s_to_test(s.c_str(), end);
+//	return detail::s_to_test(s.c_str(), end);
 //}
 //
 //inline
@@ -1519,7 +1532,7 @@ bool s_to_u(const std::string& s, unsigned long long int& ull)
 //{
 //	char* end;
 //	ul = std::strtoul(s.c_str(), &end, 10);
-//	return s_to_test(s.c_str(), end);
+//	return detail::s_to_test(s.c_str(), end);
 //}
 //
 //inline
@@ -1527,7 +1540,7 @@ bool s_to_u(const std::string& s, unsigned long long int& ull)
 //{
 //	char* end;
 //	ull = std::strtoull(s.c_str(), &end, 10);
-//	return s_to_test(s.c_str(), end);
+//	return detail::s_to_test(s.c_str(), end);
 //}
 //
 //inline
@@ -1535,7 +1548,7 @@ bool s_to_u(const std::string& s, unsigned long long int& ull)
 //{
 //	char* end;
 //	f = std::strtof(s.c_str(), &end);
-//	return s_to_test(s.c_str(), end);
+//	return detail::s_to_test(s.c_str(), end);
 //}
 //
 //inline
@@ -1543,7 +1556,7 @@ bool s_to_u(const std::string& s, unsigned long long int& ull)
 //{
 //	char* end;
 //	d = std::strtod(s.c_str(), &end);
-//	return s_to_test(s.c_str(), end);
+//	return detail::s_to_test(s.c_str(), end);
 //}
 //
 //inline
@@ -1551,7 +1564,7 @@ bool s_to_u(const std::string& s, unsigned long long int& ull)
 //{
 //	char* end;
 //	ld = std::strtold(s.c_str(), &end);
-//	return s_to_test(s.c_str(), end);
+//	return detail::s_to_test(s.c_str(), end);
 //}
 //
 //inline
@@ -1562,26 +1575,10 @@ bool s_to_u(const std::string& s, unsigned long long int& ull)
 
 // --------------------------------------------------------------------
 
-//inline
-//std::string load_file(const std::string& filepath)
-//{
-//	std::ifstream ifs(filepath, std::ios::binary);
-//
-//	if(!ifs)
-//		throw std::runtime_error(std::strerror(errno));
-//
-//	char buf[1024];
-//	std::string s;
-//	while(ifs.read(buf, sizeof(buf)))
-//		s.append(buf,  ifs.gcount());
-//
-//	return s;
-//}
-
-template<std::size_t N, typename CharT = char>
-std::basic_string<CharT> load_file(std::string const& filepath)
+template<typename Container>
+void load_file_into(std::string const& filepath, Container& c)
 {
-	std::basic_ifstream<CharT> ifs(filepath, std::ios::binary|std::ios::ate);
+	std::ifstream ifs(filepath, std::ios::binary|std::ios::ate);
 
 	if(!ifs)
 		throw std::runtime_error(filepath + ": " + std::strerror(errno));
@@ -1589,20 +1586,35 @@ std::basic_string<CharT> load_file(std::string const& filepath)
 	auto end = ifs.tellg();
 	ifs.seekg(0, std::ios::beg);
 
-	std::basic_string<CharT> s;
-	s.resize(std::size_t(end - ifs.tellg()));
+	c.resize(std::size_t(end - ifs.tellg()));
 
-	if(!ifs.read(&s[0], s.size()))
+	if(!ifs.read((char*)&c[0], c.size()))
 		throw std::runtime_error(filepath + ": " + std::strerror(errno));
-
-	return s;
 }
 
-template<typename CharT = char>
-std::basic_string<CharT> load_file(std::string const& filepath)
+template<typename Container>
+Container load_file_as(std::string const& filepath)
 {
-	return load_file<2048, CharT>(filepath);
+	Container c;
+	load_file_into(filepath, c);
+	return c;
 }
+
+inline
+std::string load_file(std::string const& filepath)
+{
+	return load_file_as<std::string>(filepath);
+}
+
+#ifdef HOL_HAS_STD_BYTE
+
+inline
+std::vector<std::byte> load_file_as_bytes(std::string const& filepath)
+{
+	return load_file_as<std::vector<std::byte>>(filepath);
+}
+
+#endif
 
 /**
  * Self-erasing buffer
@@ -1798,6 +1810,63 @@ public:
 		return out;
 	}
 };
+
+// General text processing
+
+namespace detail {
+
+inline
+std::size_t strlen(char const* s) { return std::strlen(s); }
+
+template<typename CharT>
+std::size_t strlen(CharT const* s)
+{
+	auto p = s;
+	while(*p) ++p;
+	return std::size_t(p - s);
+}
+
+template<typename CharT>
+std::size_t size(CharT const* s) { return strlen(s); }
+
+template<typename C, typename T, typename A>
+std::size_t size(std::basic_string<C, T, A> const& s) { return s.size(); }
+
+} // namespace detail
+
+template<typename C, typename T, typename A, typename Delim1, typename Delim2>
+auto extract_delimited_text(
+	std::basic_string<C, T, A> const& s,
+	Delim1 const& d1,
+	Delim2 const& d2,
+	std::basic_string<C, T, A>& out,
+	std::size_t pos = 0)
+{
+	out.clear();
+
+	if(auto beg = s.find(d1, pos) + 1)
+	{
+		beg += detail::size(d1) - 1;
+		if(auto end = s.find(d2, beg) + 1)
+		{
+			--end;
+			out = s.substr(beg, end - beg);
+			return end + detail::size(d2);
+		}
+	}
+	return std::string::npos;
+}
+
+template<typename C, typename T, typename A, typename Delim1, typename Delim2>
+auto extract_delimited_text(
+	C const* s,
+	Delim1 const& d1,
+	Delim2 const& d2,
+	std::basic_string<C, T, A>& out,
+	std::size_t pos = 0)
+{
+	return extract_delimited_text(std::string(s), d1, d2, out, pos);
+}
 
 //namespace utf8 {
 //
