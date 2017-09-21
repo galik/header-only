@@ -38,129 +38,118 @@ namespace range {
 
 // algorithms
 
-template<typename Range, typename UnaryPredicate>
-bool all_of(Range r, UnaryPredicate p)
+template<typename T, typename UnaryPredicate>
+bool all_of(basic_range<T> r, UnaryPredicate p)
 	{ return std::all_of(std::begin(r), std::end(r), p); }
 
-template<typename Range, typename UnaryPredicate>
-bool any_of(Range r, UnaryPredicate p)
+template<typename T, typename UnaryPredicate>
+bool any_of(basic_range<T> r, UnaryPredicate p)
 	{ return std::any_of(std::begin(r), std::end(r), p); }
 
-template<typename Range, typename UnaryPredicate>
-bool none_of(Range r, UnaryPredicate p)
+template<typename T, typename UnaryPredicate>
+bool none_of(basic_range<T> r, UnaryPredicate p)
 	{ return std::none_of(std::begin(r), std::end(r), p); }
 
-template<typename Range, typename UnaryFunction>
-UnaryFunction for_each(Range r, UnaryFunction f)
+template<typename T, typename UnaryFunction>
+UnaryFunction for_each(basic_range<T> r, UnaryFunction f)
 	{ return std::for_each(std::begin(r), std::end(r), f); }
 
-template<typename Range>
-auto count(Range r, typename Range::value_type const& value)
+template<typename T>
+auto count(basic_range<T> r, T const& value)
 	{ return std::count(std::begin(r), std::end(r), value); }
 
-template<typename Range,typename UnaryPredicate>
-auto count_if(Range r, UnaryPredicate p)
+template<typename T, typename UnaryPredicate>
+auto count_if(basic_range<T> r, UnaryPredicate p)
 	{ return std::count_if(std::begin(r), std::end(r), p); }
 
-template<typename Range>
-std::pair<typename Range::iterator, typename Range::iterator>
-mismatch(Range r, typename Range::iterator i)
+template<typename T>
+auto mismatch(basic_range<T> r, typename basic_range<T>::iterator i)
 	{ return std::mismatch(std::begin(r), std::end(r), i); }
 
-template<typename Range, typename BinaryPredicate>
-std::pair<typename Range::iterator, typename Range::iterator>
-mismatch(Range r, typename Range::iterator i, BinaryPredicate p)
+template<typename T, typename BinaryPredicate>
+auto mismatch(basic_range<T> r, typename basic_range<T>::iterator i, BinaryPredicate p)
 	{ return std::mismatch(std::begin(r), std::end(r), i, p); }
 
-template<typename Range>
-std::pair<typename Range::iterator, typename Range::iterator>
-mismatch(Range r1, Range r2)
+template<typename T>
+auto mismatch(basic_range<T> r1, basic_range<T> r2)
 	{ return std::mismatch(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
 
-template<typename Range, typename BinaryPredicate>
-std::pair<typename Range::iterator, typename Range::iterator>
-mismatch(Range r1, Range r2, BinaryPredicate p)
+template<typename T, typename BinaryPredicate>
+auto mismatch(basic_range<T> r1, basic_range<T> r2, BinaryPredicate p)
 	{ return std::mismatch(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
-template<typename Range>
-bool equal(Range r, typename Range::iterator i)
+template<typename T>
+bool equal(basic_range<T> r, typename basic_range<T>::iterator i)
 	{ return std::equal(std::begin(r), std::end(r), i); }
 
-template<typename Range, typename BinaryPredicate>
-bool equal(Range r, typename Range::iterator i, BinaryPredicate p)
+template<typename T, typename BinaryPredicate>
+bool equal(basic_range<T> r, typename basic_range<T>::iterator i, BinaryPredicate p)
 	{ return std::equal(std::begin(r), std::end(r), i, p); }
 
-template<typename Range>
-bool equal(Range r1, Range r2)
+template<typename T>
+bool equal(basic_range<T> r1, basic_range<T> r2)
 	{ return std::equal(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
 
-template<typename Range, typename BinaryPredicate>
-bool equal(Range r1, Range r2, BinaryPredicate p)
+template<typename T, typename BinaryPredicate>
+bool equal(basic_range<T> r1, basic_range<T> r2, BinaryPredicate p)
 	{ return std::equal(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
-template<typename Range>
-//typename std::conditional
-//<
-//	std::is_const<typename Range::value_type>::value,
-//	typename Range::const_iterator,
-//	typename Range::iterator
-//>::type
-
-auto find(Range r, typename Range::value_type const& value)
+template<typename T>
+auto find(basic_range<T> r, T const& value)
 		{ return std::find(std::begin(r), std::end(r), value); }
 
-template<typename Range, typename UnaryPredicate>
-auto find_if(Range r, UnaryPredicate p)
+template<typename T, typename UnaryPredicate>
+auto find_if(basic_range<T> r, UnaryPredicate p)
 	{ return std::find_if(std::begin(r), std::end(r), p); }
 
-template<typename Range, typename UnaryPredicate>
-auto find_if_not(Range r, UnaryPredicate p)
+template<typename T, typename UnaryPredicate>
+auto find_if_not(basic_range<T> r, UnaryPredicate p)
 	{ return std::find_if_not(std::begin(r), std::end(r), p); }
 
-template<typename Range>
-auto find_end(Range r1, Range r2)
+template<typename T>
+auto find_end(basic_range<T> r1, basic_range<T> r2)
 	{ return std::find_end(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
 
-template<typename Range, typename BinaryPredicate>
-auto find_end(Range r1, Range r2, BinaryPredicate p)
+template<typename T, typename BinaryPredicate>
+auto find_end(basic_range<T> r1, basic_range<T> r2, BinaryPredicate p)
 	{ return std::find_end(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
-template<typename Range>
-auto find_first_of(Range r1, Range r2)
+template<typename T>
+auto find_first_of(basic_range<T> r1, basic_range<T> r2)
 	{ return std::find_first_of(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
 
-template<typename Range, typename BinaryPredicate>
-auto find_first_of(Range r1, Range r2, BinaryPredicate p)
+template<typename T, typename BinaryPredicate>
+auto find_first_of(basic_range<T> r1, basic_range<T> r2, BinaryPredicate p)
 	{ return std::find_first_of(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
-template<typename Range, typename BinaryPredicate>
-auto adjacent_find(Range r, BinaryPredicate p)
+template<typename T, typename BinaryPredicate>
+auto adjacent_find(basic_range<T> r, BinaryPredicate p)
 	{ return std::adjacent_find(std::begin(r), std::end(r), p); }
 
-template<typename Range>
-decltype(auto) search(Range r1, Range r2)
+template<typename T>
+decltype(auto) search(basic_range<T> r1, basic_range<T> r2)
 	{ return std::search(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2)); }
 
-template<typename Range, typename BinaryPredicate>
-decltype(auto) search(Range r1, Range r2, BinaryPredicate p)
+template<typename T, typename BinaryPredicate>
+decltype(auto) search(basic_range<T> r1, basic_range<T> r2, BinaryPredicate p)
 	{ return std::search(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2), p); }
 
-template<typename Size, typename Range>
-decltype(auto) search_n(Range r, Size count, typename Range::value_type const& value)
+template<typename Size, typename T>
+decltype(auto) search_n(basic_range<T> r, Size count, T const& value)
 	{ return std::search_n(std::begin(r), std::end(r), count, value); }
 
-template<typename Size, typename Range, typename BinaryPredicate>
-decltype(auto) search_n(Range r, Size count, typename Range::value_type const& value, BinaryPredicate p)
+template<typename Size, typename T, typename BinaryPredicate>
+decltype(auto) search_n(basic_range<T> r, Size count, T const& value, BinaryPredicate p)
 	{ return std::search_n(std::begin(r), std::end(r), count, value, p); }
 
 
 
-template<typename Range, typename OutIter>
-OutIter copy(Range r, OutIter d)
+template<typename T, typename OutIter>
+OutIter copy(basic_range<T> r, OutIter d)
 	{ return std::copy(std::begin(r), std::end(r), d); }
 
-template<typename Range, typename OutIter, typename UnaryPredicate>
-OutIter copy_if(Range r, OutIter d, UnaryPredicate p)
+template<typename T, typename OutIter, typename UnaryPredicate>
+OutIter copy_if(basic_range<T> r, OutIter d, UnaryPredicate p)
 	{ return std::copy_if(std::begin(r), std::end(r), d, p); }
 
 // SPLICE ? splice_to() splice_from()?
@@ -170,35 +159,35 @@ auto splice_at(basic_range<T> r, typename basic_range<T>::iterator i)
 	{ return std::make_pair(basic_range<T>(std::begin(r), i), basic_range<T>(i, std::end(r))); }
 
 template<typename T>
-std::pair<basic_range<T>, basic_range<T>> splice_at(basic_range<T> r, T const& value)
+auto splice_at(basic_range<T> r, T const& value)
 	{ return splice_at(r, std::find(std::begin(r), std::end(r), value)); }
 
 template<typename T, typename UnaryPredicate>
-std::pair<basic_range<T>, basic_range<T>> splice_at(basic_range<T> r, UnaryPredicate p)
+auto splice_at(basic_range<T> r, UnaryPredicate p)
 	{ return splice_at(r, std::find(std::begin(r), std::end(r), p)); }
 
 template<typename T>
-basic_range<T> splice_to(basic_range<T> r, typename basic_range<T>::iterator i)
+auto splice_to(basic_range<T> r, typename basic_range<T>::iterator i)
 	{ return basic_range<T>(std::begin(r), i); }
 
 template<typename T>
-basic_range<T> splice_to(basic_range<T> r, T const& value)
+auto splice_to(basic_range<T> r, T const& value)
 	{ return splice_to(r, std::find(std::begin(r), std::end(r), value)); }
 
 template<typename T, typename UnaryPredicate>
-basic_range<T> splice_to(basic_range<T> r, UnaryPredicate p)
+auto splice_to(basic_range<T> r, UnaryPredicate p)
 	{ return splice_to(r, std::find(std::begin(r), std::end(r), p)); }
 
 template<typename T>
-basic_range<T> splice_from(basic_range<T> r, typename basic_range<T>::iterator i)
+auto splice_from(basic_range<T> r, typename basic_range<T>::iterator i)
 	{ return basic_range<T>(i, std::end(r)); }
 
 template<typename T>
-basic_range<T> splice_from(basic_range<T> r, T const& value)
+auto splice_from(basic_range<T> r, T const& value)
 	{ return splice_from(r, std::find(std::begin(r), std::end(r), value)); }
 
 template<typename T, typename UnaryPredicate>
-basic_range<T> splice_from(basic_range<T> r, UnaryPredicate p)
+auto splice_from(basic_range<T> r, UnaryPredicate p)
 	{ return splice_from(r, std::find(std::begin(r), std::end(r), p)); }
 
 
@@ -211,7 +200,7 @@ void sort(basic_range<T> r, Compare comp) { std::sort(std::begin(r), std::end(r)
 
 
 template<typename T>
-basic_range<T> equal_range(basic_range<T> r, T const& value)
+auto equal_range(basic_range<T> r, T const& value)
 {
 	assert(std::is_sorted(std::begin(r), std::end(r)));
 	auto er = std::equal_range(std::begin(r), std::end(r), value);
@@ -219,7 +208,7 @@ basic_range<T> equal_range(basic_range<T> r, T const& value)
 }
 
 template<typename T, typename Compare>
-basic_range<T> equal_range(basic_range<T> r, Compare comp)
+auto equal_range(basic_range<T> r, Compare comp)
 {
 	assert(std::is_sorted(std::begin(r), std::end(r)));
 	auto er = std::equal_range(std::begin(r), std::end(r), comp);
@@ -322,20 +311,20 @@ std::vector<range<T>> divide_up_work(range<T> r, std::size_t n)
 
 // stuff
 
-template<typename Range>
-bool is_sorted(Range r)
+template<typename T>
+bool is_sorted(basic_range<T> r)
 	{ return std::is_sorted(std::begin(r), std::end(r)); }
 
-template<typename Range,typename Compare>
-bool is_sorted(Range r, Compare comp)
+template<typename T,typename Compare>
+bool is_sorted(basic_range<T> r, Compare comp)
 	{ return std::is_sorted(std::begin(r), std::end(r), comp); }
 
-template<typename Range>
-typename Range::iterator is_sorted_until(Range r)
+template<typename T>
+auto is_sorted_until(basic_range<T> r)
 	{ return std::is_sorted_until(std::begin(r), std::end(r)); }
 
-template<typename Range,typename Compare>
-typename Range::iterator is_sorted_until(Range r, Compare comp)
+template<typename T,typename Compare>
+auto is_sorted_until(basic_range<T> r, Compare comp)
 	{ return std::is_sorted_until(std::begin(r), std::end(r), comp); }
 
 // SETS
@@ -355,12 +344,12 @@ typename Range::iterator is_sorted_until(Range r, Compare comp)
  *
  * @return The leftmost range after splicing.
  */
-template<typename Range>
-Range left_splice(Range r1, Range r2)
+template<typename T>
+auto left_splice(basic_range<T> r1, basic_range<T> r2)
 {
 	if(r1.data() < r2.data())
-		return Range{r1.data(), std::min(r1.data() + r1.size(), r2.data())};
-	return Range{r2.data(), std::min(r2.data() + r2.size(), r1.data())};
+		return basic_range<T>{r1.data(), std::min(r1.data() + r1.size(), r2.data())};
+	return basic_range<T>{r2.data(), std::min(r2.data() + r2.size(), r1.data())};
 }
 
 /**
@@ -378,12 +367,12 @@ Range left_splice(Range r1, Range r2)
  *
  * @return The rightmost range after splicing.
  */
-template<typename Range>
-Range right_splice(Range r1, Range r2)
+template<typename T>
+auto right_splice(basic_range<T> r1, basic_range<T> r2)
 {
 	if(r1.data() + r1.size() < r2.data() + r2.size())
-		return Range{std::max(r1.data() + r1.size(), r2.data()), r2.data() + r2.size()};
-	return Range{std::max(r2.data() + r2.size(), r1.data()), r1.data() + r1.size()};
+		return basic_range<T>{std::max(r1.data() + r1.size(), r2.data()), r2.data() + r2.size()};
+	return basic_range<T>{std::max(r2.data() + r2.size(), r1.data()), r1.data() + r1.size()};
 }
 
 } // namespace range
