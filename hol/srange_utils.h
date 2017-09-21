@@ -146,24 +146,43 @@ template<typename CharT>
 std::size_t size(basic_srange<CharT> const& s) { return s.size(); }
 
 template<typename CharT>
-basic_srange<CharT> arg(CharT* s) { return make_srange(s); }
+auto arg(CharT* s) { return basic_srange<CharT>(s); } //{ return make_srange(s); }
 
 template<typename CharT>
-basic_srange<CharT> arg(basic_srange<CharT> s) { return s; }
+auto arg(basic_srange<CharT> s) { return s; }
 
 } // namespace detail
 
 template<typename SRange1, typename SRange2>
-auto search(SRange1 r1, SRange2 r2)
+decltype(auto) search(SRange1 r1, SRange2 r2)
 {
-	return std::search(std::begin(detail::arg(r1)), std::end(detail::arg(r1)),
-		std::begin(detail::arg(r2)), std::end(detail::arg(r2)));
+	auto a = detail::arg(r1);
+	auto b = detail::arg(r2);
+	return std::search(std::begin(a), std::end(a), std::begin(b), std::end(b));
 }
 
 template<typename SRange1, typename SRange2, typename BinaryPredicate>
-auto search(SRange1 r1, SRange2 r2, BinaryPredicate p)
-	{ return std::search(std::begin(detail::arg(r1)), std::end(detail::arg(r1)),
-		std::begin(detail::arg(r2)), std::end(detail::arg(r2)), p); }
+decltype(auto) search(SRange1 r1, SRange2 r2, BinaryPredicate p)
+{
+	auto a = detail::arg(r1);
+	auto b = detail::arg(r2);
+	return std::search(std::begin(a), std::end(a), std::begin(b), std::end(b), p);
+}
+
+template<typename CharT>
+auto splice_at(basic_srange<CharT> r, typename basic_srange<CharT>::iterator i)
+{
+	return std::make_pair(basic_srange<CharT>(std::begin(r), i), basic_srange<CharT>(i, std::end(r)));
+}
+
+template<typename CharT>
+auto splice_to(basic_srange<CharT> s, typename basic_srange<CharT>::iterator i)
+	{ return basic_srange<CharT>(std::begin(s), i); }
+
+template<typename CharT>
+basic_srange<CharT> splice_from(basic_srange<CharT> s, typename basic_srange<CharT>::iterator i)
+	{ return basic_srange<CharT>(i, std::end(s)); }
+
 
 template<typename CharT, typename Delim1, typename Delim2>
 basic_srange<CharT> extract_delimited_text(
@@ -172,7 +191,7 @@ basic_srange<CharT> extract_delimited_text(
 	Delim2 const& d2,
 	basic_srange<CharT>& out)
 {
-	auto beg = search(s, d1);
+	typename basic_srange<CharT>::iterator beg = search(s, d1);
 
 	if(beg != std::end(s))
 	{
@@ -190,8 +209,6 @@ basic_srange<CharT> extract_delimited_text(
 
 	return std::end(s);
 }
-
-
 
 // Splitting
 

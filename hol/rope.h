@@ -29,10 +29,6 @@ public:
 
 	static constexpr size_type npos = size_type(-1);
 
-private:
-	impl_type impl;
-
-public:
 	basic_rope() = default;
 	basic_rope(basic_rope&&) = default;
 	basic_rope(basic_rope const&) = default;
@@ -332,6 +328,8 @@ public:
 //			os.put(c);
 //		return os;
 //	}
+private:
+	impl_type impl;
 };
 
 using rope = basic_rope<char>;
