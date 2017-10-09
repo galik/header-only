@@ -14,27 +14,35 @@ CXX_11_FLAGS := -std=c++11 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
 CXX_14_FLAGS := -std=c++14 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
 CXX_17_FLAGS := -std=c++17 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
 
+CXX_14_TIME_FLAGS := -std=c++14 -pthread -MMD -MP -pedantic-errors -O3 -g0
+CXX_17_TIME_FLAGS := -std=c++17 -pthread -MMD -MP -pedantic-errors -O3 -g0
+
 HEADERS := $(wildcard hol/*.h)
 PKGCFGS := $(wildcard pkg-config/*.pc)
 
 DOCS := doxy-docs/*
 SRCS := $(wildcard src/*.cpp)
 #DEPS := $(patsubst %.cpp,%.d,$(SRCS))
-#PRGS := $(patsubst %.cpp,%,$(SRCS))
-PRGS_11 := $(patsubst %.cpp,%-11,$(SRCS))
-PRGS_14 := $(patsubst %.cpp,%-14,$(SRCS))
-PRGS_17 := $(patsubst %.cpp,%-17,$(SRCS))
-PRGS := $(PRGS_11) $(PRGS_14) $(PRGS_17)
+#TESTS := $(patsubst %.cpp,%,$(SRCS))
+TESTS_11 := $(patsubst test%.cpp,%-11,$(SRCS))
+TESTS_14 := $(patsubst test%.cpp,%-14,$(SRCS))
+TESTS_17 := $(patsubst test%.cpp,%-17,$(SRCS))
+TESTS := $(TESTS_11) $(TESTS_14) $(TESTS_17)
+
+TIMES_14 := $(patsubst time%.cpp,%-14,$(SRCS))
+TIMES := $(TIMES_11) $(TIMES_14) $(TIMES_17)
+
 DEPS := $(patsubst %.cpp,%-14.d,$(SRCS))
 
-#all: $(PRGS_11) $(PRGS_14) $(PRGS_17)
-#all: $(PRGS_14) $(PRGS_17)
-all: $(PRGS_14)
+#all: $(TESTS_11) $(TESTS_14) $(TESTS_17)
+#all: $(TESTS_14) $(TESTS_17)
+all: $(TESTS_14) $(TIMES_14)
 
 show:
 	@echo SRCS $(SRCS)
 	@echo DEPS $(DEPS)
-	@echo PRGS $(PRGS)
+	@echo TESTS $(TESTS)
+	@echo TIMES $(TIMES)
 
 #%: %.cpp
 #	@echo "C: $@"
@@ -46,15 +54,20 @@ show:
 #	@echo [triggered by changes in $?]
 #	$(CXX) $(CXX_11_FLAGS) $(CPPFLAGS) -o $@ $<
 	
-%-14: %.cpp
+test%-14: test%.cpp
 	@echo "C: $@"
 	@echo [triggered by changes in $?]
 	$(CXX) $(CXX_14_FLAGS) $(CPPFLAGS) -o $@ $<
 	
-%-17: %.cpp
+test%-17: test%.cpp
 	@echo "C: $@"
 	@echo [triggered by changes in $?]
 	$(CXX) $(CXX_17_FLAGS) $(CPPFLAGS) -o $@ $<
+	
+time%-14: time%.cpp
+	@echo "C: $@"
+	@echo [triggered by changes in $?]
+	$(CXX) $(CXX_14_TIME_FLAGS) $(CPPFLAGS) -o $@ $<
 	
 docs: doxy-docs/index.html
 
@@ -95,4 +108,4 @@ uninstall:
 
 clean:
 	@echo "Cleaning build files."
-	@$(RM) $(DEPS) $(PRGS) $(DOCS)
+	@$(RM) $(DEPS) $(TESTS) $(TIMES) $(DOCS)

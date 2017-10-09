@@ -419,6 +419,140 @@ decltype(auto) random_element(Iter begin, Iter end)
 	return *random_iterator(begin, end);
 }
 
+// Alternative experimentation
+namespace alt {
+
+template<typename Generator = std::mt19937, typename RandomDevice = std::random_device>
+class random_tools
+{
+public:
+	random_tools() = delete;
+
+	static auto& generator()
+	{
+		thread_local static Generator generator{RandomDevice{}()};
+		return generator;
+	}
+
+	template<typename Unsigned = std::size_t>
+	static void seed(Unsigned n)
+	{
+		generator().seed(n);
+	}
+
+	template<typename Int = int>
+	static auto uniform_int(Int lo, Int hi)
+	{
+		thread_local static std::uniform_int_distribution<Int> d;
+		return d(generator(), std::uniform_int_distribution<Int>::param_type(lo, hi));
+	}
+
+	template<typename Int = int>
+	static auto uniform_int(Int hi)
+	{
+		return uniform_int(Int(), hi);
+	}
+
+	template<typename Int = int>
+	static auto uniform_int()
+	{
+		return uniform_int(std::numeric_limits<Int>::lowest(), std::numeric_limits<Int>::max());
+	}
+
+	template<typename Real = double>
+	static auto uniform_real(Real lo, Real hi)
+	{
+		thread_local static std::uniform_real_distribution<Real> d;
+		return d(generator(), std::uniform_real_distribution<Real>::param_type(lo, hi));
+	}
+
+	template<typename Real = double>
+	static auto uniform_real(Real hi)
+	{
+		return uniform_real(Real(), hi);
+	}
+
+	template<typename Real = double>
+	static auto uniform_real()
+	{
+		return uniform_real(std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::max());
+	}
+
+	static bool bernoulli(double p = 0.5)
+	{
+		thread_local static std::bernoulli_distribution d;
+		return d(generator(), std::bernoulli_distribution::param_type{p});
+	}
+};
+
+using mt = std::conditional<sizeof(void*)==8,random_tools<std::mt19937_64>,random_tools<std::mt19937>>::type;
+using mt32 = random_tools<std::mt19937>;
+using mt64 = random_tools<std::mt19937_64>;
+
+template<typename Unsigned = unsigned>
+class fifty_fifty_distribution
+{
+public:
+	using result_type = bool;
+	struct param_type { using distribution_type = fifty_fifty_distribution<Unsigned>; };
+
+	fifty_fifty_distribution() = default;
+	fifty_fifty_distribution(param_type p): fifty_fifty_distribution() {}
+
+	template<typename RNG>
+	result_type operator()(RNG& rng, param_type p = {})
+	{
+		if(idx == (bytes.size() * 8))
+		{
+			idx = 0;
+			auto r = rng();
+			bytes.resize(sizeof(r));
+			std::copy((char const*) &r, (char const*) (&r + 1), bytes.data());
+		}
+
+		bool b = bytes[idx / 8] & (1 << (idx % 8));
+		++idx;
+		return b;
+	}
+
+	constexpr bool min() const { return false; }
+	constexpr bool max() const { return true; }
+
+	void reset() { bytes.clear(); idx = 0; }
+
+	constexpr param_type param() const { return {}; }
+
+	template<typename U = unsigned>
+	friend std::ostream& operator<<(std::ostream& os, fifty_fifty_distribution<U> const& d)
+	{
+		os << d.bytes.size() << '\n';
+		for(auto const c: d.bytes)
+			os.put(c);
+		os << d.idx << '\n';
+		return os;
+	}
+
+	template<typename U = unsigned>
+	friend std::istream& operator>>(std::istream& is, fifty_fifty_distribution<U>& d)
+	{
+		d.bytes.clear();
+		std::size_t n;
+		is >> n;
+		is.ignore();
+		for(char c; n--;)
+			d.bytes.push_back(c);
+		is >> d.idx;
+		is.ignore();
+		return is;
+	}
+
+private:
+	std::vector<char> bytes;
+	unsigned idx = 0;
+};
+
+} // namespace alt
+
 } // namespace random_numbers
 } // namespace header_only_library
 

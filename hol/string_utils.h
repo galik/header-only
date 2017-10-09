@@ -53,16 +53,16 @@
 
 #include "split_algos.h"
 
-#ifdef HOL_USE_STRING_VIEW
-#	include <experimental/string_view>
-#endif
+//#ifdef HOL_USE_STRING_VIEW
+//#	include <string_view>
+//#endif
 
 namespace header_only_library {
 namespace string_utils {
 
-#ifdef HOL_USE_STRING_VIEW
-using string_view = std::experimental::string_view;
-#endif
+//#ifdef HOL_USE_STRING_VIEW
+//using string_view = std::string_view;
+//#endif
 
 // replace_all
 
@@ -589,7 +589,7 @@ String<C, T, A> trim_right_copy(String<C, T, A> s)
  * Obtain a copy of a String with surrounding characters removed.
  * @param s The String to be trimmed.
  * @param t The set of characters to remove from each end
- * of the Sring.
+ * of the String.
  * @return A copy of the String passed in as a parameter.
  */
 template<typename C, typename T, typename A>
@@ -613,22 +613,42 @@ String<C, T, A> trim_copy(String<C, T, A> s)
 // const char* versions
 // TODO: specify ws? seek a more holistic solution?
 
-template<typename C, typename T, typename A>
-String<C, T, A> trim_left_copy(C const* s)
+template<typename C>
+String<C, std::char_traits<C>, std::allocator<C>> trim_left_copy(C const* s)
 {
-	return trim_left_copy(String<C, T, A>(s));
-}
-template<typename C, typename T, typename A>
-String<C, T, A> trim_right_copy(C const* s)
-{
-	return trim_right_copy(String<C, T, A>(s));
+	return trim_left_copy(String<C, std::char_traits<C>, std::allocator<C>>(s));
 }
 
-template<typename C, typename T, typename A>
-String<C, T, A> trim_copy(C const* s)
+template<typename C>
+String<C, std::char_traits<C>, std::allocator<C>> trim_right_copy(C const* s)
 {
-	return trim_copy(String<C, T, A>(s));
+	return trim_right_copy(String<C, std::char_traits<C>, std::allocator<C>>(s));
 }
+
+template<typename C>
+String<C, std::char_traits<C>, std::allocator<C>> trim_copy(C const* s)
+{
+	return trim_copy(String<C, std::char_traits<C>, std::allocator<C>>(s));
+}
+
+//
+//template<typename C, std::size_t N>
+//String<C, std::char_traits<C>, std::allocator<C>> trim_left_copy(C(&s)[N])
+//{
+//	return trim_left_copy(String<C, std::char_traits<C>, std::allocator<C>>(s, N));
+//}
+//
+//template<typename C, std::size_t N>
+//String<C, std::char_traits<C>, std::allocator<C>> trim_right_copy(C(&s)[N])
+//{
+//	return trim_right_copy(String<C, std::char_traits<C>, std::allocator<C>>(s, N));
+//}
+//
+//template<typename C, std::size_t N>
+//String<C, std::char_traits<C>, std::allocator<C>> trim_copy(C(&s)[N])
+//{
+//	return trim_copy(String<C, std::char_traits<C>, std::allocator<C>>(s, N));
+//}
 
 //---------------------------------------------------------
 // trim_keep

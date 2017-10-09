@@ -42,52 +42,51 @@ class basic_srange
 public:
 	using char_type = CharT;
 
-	basic_srange() noexcept: basic_range<CharT>() {}
+	basic_srange() HOL_RANGE_NOEXCEPT: basic_range<CharT>() {}
 
-	basic_srange(basic_srange const& r) noexcept = default;
-	basic_srange(basic_srange&& r) noexcept = default;
+	basic_srange(basic_srange const& r) HOL_RANGE_NOEXCEPT = default;
+	basic_srange(basic_srange&& r) HOL_RANGE_NOEXCEPT = default;
 
-	basic_srange& operator=(basic_srange const& r) noexcept = default;
-	basic_srange& operator=(basic_srange&& r) noexcept = default;
+	basic_srange& operator=(basic_srange const& r) HOL_RANGE_NOEXCEPT = default;
+	basic_srange& operator=(basic_srange&& r) HOL_RANGE_NOEXCEPT = default;
 
-	explicit basic_srange(CharT* beg, CharT* end) noexcept: basic_range<CharT>(beg, end) {}
+	explicit basic_srange(CharT* beg, CharT* end) HOL_RANGE_NOEXCEPT: basic_range<CharT>(beg, end) {}
 
-	explicit basic_srange(CharT* beg, std::size_t len) noexcept: basic_srange(beg, beg + len) {}
+	explicit basic_srange(CharT* beg, std::size_t len) HOL_RANGE_NOEXCEPT: basic_srange(beg, beg + len) {}
 
 	explicit basic_srange(basic_range<CharT> r): basic_srange(r.data(), r.size()) {}
 
 
 	// This constructor removes the end character (null terminator)
 	template<std::size_t N>
-	explicit basic_srange(CharT(&a)[N]) noexcept: basic_srange(a, a + N - 1) {}
+	explicit basic_srange(CharT(&a)[N]) HOL_RANGE_NOEXCEPT: basic_srange(a, a + N - 1) {}
 
 	template<typename Container>
-	explicit basic_srange(Container&& c) noexcept
+	explicit basic_srange(Container&& c) HOL_RANGE_NOEXCEPT
 	: basic_srange(&std::forward<Container>(c)[0], std::forward<Container>(c).size()) {}
 
-// &*beg => UB when beg == end
-//	template<typename ForwardIter>
-//	explicit basic_srange(ForwardIter beg, ForwardIter end) noexcept: basic_srange(&*beg, std::distance(beg, end)) {}
+	template<typename ForwardIter>
+	explicit basic_srange(ForwardIter beg, ForwardIter end) HOL_RANGE_NOEXCEPT
+	: basic_range<CharT>(beg, end) {}
 
-	basic_srange(CharT* s) noexcept
+	basic_srange(CharT* s) HOL_RANGE_NOEXCEPT
 	: basic_srange(s, detail::length_of(s)) {}
 
-	basic_srange substr(std::size_t pos, std::size_t len) noexcept
+	basic_srange substr(std::size_t pos, std::size_t len) const HOL_RANGE_NOEXCEPT
 	{
 		return basic_srange<CharT>(basic_range<CharT>::subrange(pos, len));
 	}
 
-	basic_srange substr(std::size_t pos) noexcept
+	basic_srange substr(std::size_t pos) const HOL_RANGE_NOEXCEPT
 	{
 		return basic_srange<CharT>(basic_range<CharT>::subrange(pos));
 	}
 
 	std::basic_string<typename std::remove_const<CharT>::type>
-	string()
+	string() const
 	{
 		return {basic_range<CharT>::m_beg, basic_range<CharT>::m_end};
 	}
-
 };
 
 namespace detail {

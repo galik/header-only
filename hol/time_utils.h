@@ -76,6 +76,11 @@ inline std::tm gmtime_xp(std::time_t timer)
 	return bt;
 }
 
+inline std::time_t mktime_xp(std::tm& bt)
+{
+	return std::mktime(&bt);
+}
+
 /**
  * Thread-safe cross platform (xp) ctime function
  * @param timer

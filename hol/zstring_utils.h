@@ -51,10 +51,11 @@ struct make_unsigned<char32_t> { using type = char32_t; };
 template<typename CharT>
 bool equal_to(CharT const* s1, CharT const* s2)
 {
-	while(*s1 && *s1 == *s2)
-		s1++, s2++;
-
-	return *s1 == *s2;
+//	while(*s1 && *s1 == *s2)
+//		s1++, s2++;
+//
+//	return *s1 == *s2;
+	return !std::strcmp((char const*) s1, (char const*) s1);
 }
 
 template<typename CharT>

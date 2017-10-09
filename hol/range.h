@@ -133,11 +133,6 @@ public:
 	explicit basic_range(T* beg, T* end) HOL_RANGE_NOEXCEPT: m_beg(beg), m_end(end)
 	{
 		HOL_RANGE_ASSERT(m_beg <= m_end);
-		HOL_DEBUG_ONLY_SECTION
-		(
-			m_orig_beg = m_beg;
-			m_orig_end = m_end;
-		)
 	}
 
 	explicit basic_range(T* beg, std::size_t len) HOL_RANGE_NOEXCEPT: basic_range(beg, beg + len) {}
@@ -149,9 +144,17 @@ public:
 	explicit basic_range(Container&& c) HOL_RANGE_NOEXCEPT
 	: basic_range(&std::forward<Container>(c)[0], std::forward<Container>(c).size()) {}
 
-//  &*beg => UB when beg == end
-//	template<typename ForwardIter>
-//	explicit basic_range(ForwardIter beg, ForwardIter end) HOL_RANGE_NOEXCEPT: basic_range(&*beg, std::distance(beg, end)) {}
+	template<typename ForwardIter>
+	explicit basic_range(ForwardIter beg, ForwardIter end) HOL_RANGE_NOEXCEPT
+	: basic_range()
+	{
+		if(beg != end)
+		{
+			// &*beg => UB when beg == end
+			this->m_beg = &*beg;
+			this->m_end = m_beg = std::distance(beg, end);
+		}
+	}
 
 	operator basic_range<T const>() const { return basic_range<T const>(*this); }
 
@@ -191,20 +194,15 @@ public:
 	std::size_t size() const HOL_RANGE_NOEXCEPT { return m_end - m_beg; }
 	bool empty() const HOL_RANGE_NOEXCEPT { return !size(); }
 
-	basic_range subrange(std::size_t pos, std::size_t len) HOL_RANGE_NOEXCEPT
+	basic_range subrange(std::size_t pos, std::size_t len) const HOL_RANGE_NOEXCEPT
 	{
-//		bug_fun();
-//		bug_var(pos);
-//		bug_var(len);
-//		bug_var(size());
-//		bug_var((pos && pos < size()));
 		HOL_RANGE_ASSERT(!pos || (pos && pos < size()));
 		if(pos + len > size())
 			return basic_range{m_beg + pos, m_end};
 		return basic_range{m_beg + pos, m_beg + pos + len};
 	}
 
-	basic_range subrange(std::size_t pos) HOL_RANGE_NOEXCEPT
+	basic_range subrange(std::size_t pos) const HOL_RANGE_NOEXCEPT
 	{
 		HOL_RANGE_ASSERT(pos <= size());
 		return basic_range{m_beg + pos, m_end};
@@ -238,27 +236,17 @@ public:
 	{
 		std::swap(m_beg, other.m_beg);
 		std::swap(m_end, other.m_end);
-		HOL_DEBUG_ONLY_SECTION
-		(
-			std::swap(m_orig_beg, other.m_orig_beg);
-			std::swap(m_orig_end, other.m_orig_end);
-		)
 	}
 
 	void resize(std::size_t n)
 	{
-		HOL_RANGE_ASSERT(m_beg + n <= m_orig_end);
+		HOL_RANGE_ASSERT(m_beg + n <= m_end);
 		m_end = m_beg + n;
 	}
 
 protected:
 	pointer m_beg = nullptr;
 	pointer m_end = nullptr;
-	HOL_DEBUG_ONLY_SECTION
-	(
-		pointer m_orig_beg = nullptr;
-		pointer m_orig_end = nullptr;
-	)
 };
 
 template<typename T>

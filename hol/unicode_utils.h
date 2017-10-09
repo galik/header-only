@@ -22,6 +22,9 @@
 // SOFTWARE.
 //
 
+
+// TODO: Look at this: http://bjoern.hoehrmann.de/utf-8/decoder/dfa/
+
 #include <string>
 #include <locale>
 #include <codecvt>
