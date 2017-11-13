@@ -38,12 +38,71 @@ namespace hol{
 
 TEST_CASE("endianness", "[]")
 {
-	SECTION("Container")
+	SECTION("enquire")
 	{
 		int i = 1;
 		hol::endian e = ((char*)&i) ? hol::endian::little : hol::endian::big;
 
 		REQUIRE(e == hol::get_endianness());
+
+		std::uint32_t n = 0x01020304;
+
+		if(hol::is_big_endian())
+		{
+			REQUIRE(e == hol::endian::big);
+			REQUIRE(hol::discover_endianness(n, 0x01020304U) == hol::endian::big);
+		}
+		else if(hol::is_little_endian())
+		{
+			REQUIRE(e == hol::endian::little);
+			REQUIRE(hol::discover_endianness(n, 0x01020304U) == hol::endian::little);
+		}
+	}
+
+	SECTION("manipulate")
+	{
+		std::uint32_t n = 0x01020304;
+		REQUIRE(hol::swap_endianness(n) == 0x04030201);
+
+		if(hol::is_big_endian())
+		{
+			REQUIRE(hol::from_big_endian(n) == 0x01020304);
+			REQUIRE(hol::from_little_endian(n) == 0x04030201);
+			REQUIRE(hol::from_endian(hol::endian::big, n) == 0x01020304);
+			REQUIRE(hol::from_endian(hol::endian::little, n) == 0x04030201);
+		}
+		else if(hol::is_little_endian())
+		{
+			REQUIRE(hol::from_little_endian(n) == 0x01020304);
+			REQUIRE(hol::from_big_endian(n) == 0x04030201);
+			REQUIRE(hol::from_endian(hol::endian::little, n) == 0x01020304);
+			REQUIRE(hol::from_endian(hol::endian::big, n) == 0x04030201);
+		}
+	}
+
+	SECTION("network encoding/decoding")
+	{
+		std::uint32_t n = 0x01020304;
+		char buf[sizeof(n)];
+
+		char const* end = hol::encode_network_byte_order(n, buf);
+		REQUIRE(end == buf + sizeof(buf));
+
+		if(hol::is_big_endian())
+		{
+			char fix[sizeof(n)] = {0x04, 0x03, 0x02, 0x01};
+			REQUIRE(std::equal(std::begin(buf), std::end(buf), std::begin(fix), std::end(fix)));
+		}
+		else if(hol::is_little_endian())
+		{
+			char fix[sizeof(n)] = {0x01, 0x02, 0x03, 0x04};
+			REQUIRE(std::equal(std::begin(buf), std::end(buf), std::begin(fix), std::end(fix)));
+		}
+
+		std::uint32_t o;
+		end = hol::decode_network_byte_order(buf, o);
+		REQUIRE(end == buf + sizeof(buf));
+		REQUIRE(n == o);
 	}
 }
 
