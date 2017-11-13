@@ -21,17 +21,19 @@ HEADERS := $(wildcard hol/*.h)
 PKGCFGS := $(wildcard pkg-config/*.pc)
 
 DOCS := doxy-docs/*
-SRCS := $(wildcard src/*.cpp)
+TEST_SRCS := $(wildcard src/test*.cpp)
+TIME_SRCS := $(wildcard src/time*.cpp)
 #DEPS := $(patsubst %.cpp,%.d,$(SRCS))
 #TESTS := $(patsubst %.cpp,%,$(SRCS))
-TESTS_11 := $(patsubst test%.cpp,%-11,$(SRCS))
-TESTS_14 := $(patsubst test%.cpp,%-14,$(SRCS))
-TESTS_17 := $(patsubst test%.cpp,%-17,$(SRCS))
+TESTS_11 := $(patsubst %.cpp,%-11,$(TEST_SRCS))
+TESTS_14 := $(patsubst %.cpp,%-14,$(TEST_SRCS))
+TESTS_17 := $(patsubst %.cpp,%-17,$(TEST_SRCS))
 TESTS := $(TESTS_11) $(TESTS_14) $(TESTS_17)
 
-TIMES_14 := $(patsubst time%.cpp,%-14,$(SRCS))
+TIMES_14 := $(patsubst %.cpp,%-14,$(TIME_SRCS))
 TIMES := $(TIMES_11) $(TIMES_14) $(TIMES_17)
 
+SRCS := $(TEST_SRCS) $(TIME_SRCS)
 DEPS := $(patsubst %.cpp,%-14.d,$(SRCS))
 
 #all: $(TESTS_11) $(TESTS_14) $(TESTS_17)
@@ -39,7 +41,7 @@ DEPS := $(patsubst %.cpp,%-14.d,$(SRCS))
 all: $(TESTS_14) $(TIMES_14)
 
 show:
-	@echo SRCS $(SRCS)
+	@echo TEST_SRCS $(TEST_SRCS)
 	@echo DEPS $(DEPS)
 	@echo TESTS $(TESTS)
 	@echo TIMES $(TIMES)

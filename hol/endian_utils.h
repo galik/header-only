@@ -54,6 +54,11 @@ constexpr bool is_big_endian()
 	return !is_little_endian();
 }
 
+constexpr endian get_endianness()
+{
+	return is_little_endian() ? endian::little : endian::big;
+}
+
 template<typename Numeric>
 Numeric swap_endianness(Numeric n)
 {
@@ -78,7 +83,7 @@ constexpr Numeric from_big_endian(Numeric n)
 }
 
 template<typename Numeric>
-endian discover_endianness(Numeric const& field, Numeric const&& expected_value)
+endian discover_endianness(Numeric const& field, Numeric&& expected_value)
 {
 	if(from_little_endian(field) == expected_value)
 		return endian::little;
