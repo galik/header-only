@@ -21,7 +21,7 @@ HEADERS := $(wildcard hol/*.h)
 PKGCFGS := $(wildcard pkg-config/*.pc)
 
 DOCS := doxy-docs/*
-TEST_SRCS := $(wildcard src/test*.cpp)
+TEST_SRCS := $(wildcard src/test*.cpp) $(wildcard src/experimental/test*.cpp)
 TIME_SRCS := $(wildcard src/time*.cpp)
 #DEPS := $(patsubst %.cpp,%.d,$(SRCS))
 #TESTS := $(patsubst %.cpp,%,$(SRCS))

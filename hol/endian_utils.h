@@ -22,8 +22,12 @@
 // SOFTWARE.
 //
 
-#include <cinttypes>
 #include <algorithm>
+#include <cinttypes>
+
+#if __cplusplus >= 201703
+#include <cstddef>
+#endif
 
 #ifndef IF_CONSTEXPR
 #ifdef __cpp_if_constexpr
