@@ -419,6 +419,12 @@ decltype(auto) random_element(Iter begin, Iter end)
 	return *random_iterator(begin, end);
 }
 
+template<typename Iter>
+void random_shuffle(Iter begin, Iter end)
+{
+	std::shuffle(begin, end, random_generator());
+}
+
 // Alternative experimentation
 namespace alt {
 
@@ -552,7 +558,6 @@ private:
 };
 
 } // namespace alt
-
 } // namespace random_numbers
 } // namespace header_only_library
 
