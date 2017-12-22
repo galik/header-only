@@ -29,6 +29,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <cstddef> // std::size_t
 
 //#include "bug.h"
 
@@ -46,12 +47,12 @@
 namespace header_only_library {
 namespace thread_utils {
 
-//types
+// types
 
 class joining_thread
 {
 public:
-	joining_thread() noexcept =default;
+	joining_thread() noexcept = default;
 
 	joining_thread(joining_thread const&) = delete;
 	joining_thread(joining_thread&& other) noexcept
@@ -93,12 +94,63 @@ private:
 	}
 };
 
-using parallel_jobs = std::vector<joining_thread>;
+class parallel_jobs
+: private std::vector<joining_thread>
+{
+public:
+	template<typename Callable, typename... Args>
+	void add(Callable&& callable, Args&&... args)
+	{
+		emplace_back(std::forward<Callable>(callable), std::forward<Args>(args)...);
+	}
+
+	void wait() { clear(); }
+};
 
 template<typename... Funcs>
 void parallel_invoke(Funcs... funcs)
 {
 	joining_thread _[]{joining_thread{funcs}...};
+}
+
+// For dividing work up among threads
+
+template<typename Numeric>
+std::vector<Numeric> divide_numeric_range(Numeric from, Numeric to, std::size_t n)
+{
+	std::vector<Numeric> pieces;
+	pieces.reserve(n + 1);
+
+	pieces.push_back(from);
+
+	auto f = double(from);
+	auto t = double(to);
+	auto d = (t - f) / double(n);
+
+	for(Numeric i = 0; i < n - 1; ++i)
+		pieces.push_back(Numeric(f += d));
+
+	pieces.push_back(to);
+
+	return pieces;
+}
+
+template<typename Iter>
+std::vector<Iter> divide_iterator_range(Iter from, Iter to, std::size_t n)
+{
+	auto d = std::size_t(std::distance(from, to));
+	auto parts = divide_numeric_range(std::size_t(0), d, n);
+
+	std::vector<Iter> pieces;
+	pieces.reserve(parts.size());
+
+	std::transform(std::begin(parts), std::prev(std::end(parts)),
+		std::back_inserter(pieces),
+			[from](std::size_t n){ return from + n; });
+
+	pieces.push_back(to);
+
+	return pieces;
 }
 
 //=============================================================

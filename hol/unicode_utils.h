@@ -192,6 +192,63 @@ std::string ws_to_mb(std::wstring const& ws)
 	return mb;
 }
 
+// Codepoint conversions
+
+inline
+std::string codepoint_to_utf8(char32_t cp)
+{
+    char utf8[4];
+    char* end_of_utf8;
+
+	char32_t const* from = &cp;
+
+	std::mbstate_t mbs;
+	std::codecvt_utf8<char32_t> ccv;
+
+	if(ccv.out(mbs, from, from + 1, from, utf8, utf8 + 4, end_of_utf8))
+		throw std::runtime_error("bad conversion");
+
+	return {utf8, end_of_utf8};
+}
+
+// UTF-16 may contain either one or two char16_t characters so
+// we return a string to potentially contain both.
+//
+inline
+std::u16string codepoint_to_utf16(char32_t cp)
+{
+	// convert UTF-32 (standard unicode codepoint) to UTF-8 intermediate value
+    char utf8[4];
+    char* end_of_utf8;
+
+    {
+        char32_t const* from = &cp;
+
+        std::mbstate_t mbs;
+	    std::codecvt_utf8<char32_t> ccv;
+
+		if(ccv.out(mbs, from, from + 1, from, utf8, utf8 + 4, end_of_utf8))
+			throw std::runtime_error("bad conversion");
+    }
+
+    // Now convert the UTF-8 intermediate value to UTF-16
+
+    char16_t utf16[2];
+    char16_t* end_of_utf16;
+
+    {
+        char const* from = nullptr;
+
+		std::mbstate_t mbs;
+	    std::codecvt_utf8_utf16<char16_t> ccv;
+
+		if(ccv.in(mbs, utf8, end_of_utf8, from, utf16, utf16 + 2, end_of_utf16))
+			throw std::runtime_error("bad conversion");
+    }
+
+    return {utf16, end_of_utf16};
+}
+
 } // unicode_utils
 } // header_only_library
 
