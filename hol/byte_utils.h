@@ -22,9 +22,13 @@
 // SOFTWARE.
 //
 
+#include <array>
 #include <cstddef>
 #include <istream>
+#include <string>
 #include <vector>
+
+#include "bug.h"
 
 #if __cplusplus < 201703
 #error "This library requires C++17 or later."
@@ -33,36 +37,66 @@
 namespace header_only_library {
 namespace byte_utils {
 
+using byte = std::byte;
+template<std::size_t N>
+using byte_buffer = std::array<byte, N>;
+using byte_string = std::vector<byte>;
+
 inline
-std::istream& read(std::istream& is, std::byte* buf, std::size_t len)
+std::istream& read(std::istream& is, byte* buf, std::size_t len)
 	{ return is.read((char*)buf, len); }
 
 inline
-std::ostream& write(std::ostream& os, std::byte const* buf, std::size_t len)
+std::ostream& write(std::ostream& os, byte const* buf, std::size_t len)
 	{ return os.write((char const*)buf, len); }
 
 inline
-std::istream& getline(std::istream& is, std::vector<std::byte>& line, std::byte delim = std::byte('\n'))
+std::istream& getline(std::istream& is, byte_string& line, byte delim = byte('\n'))
 {
+	bug_fun();
 	std::string s;
 	std::getline(is, s, char(delim));
-	line = std::vector<std::byte>((std::byte*)s.data(), (std::byte*)s.data() + s.size());
+	line = std::vector<byte>((byte*)s.data(), (byte*)s.data() + s.size());
 	return is;
 }
 
 inline
-std::istream& get(std::istream& is, std::byte& b)
+std::istream& get(std::istream& is, byte& b)
 	{ return is.get((char&)b); }
+
+std::istream& get(std::istream& is,  byte* b, std::streamsize count)
+	{ return is.get((char*)b, count); }
+
+std::istream& get(std::istream& is,  byte* b, std::streamsize count, byte delim)
+	{ return is.get((char*)b, count, char(delim)); }
+
+std::istream& get(std::istream& is,  std::streambuf& buf)
+	{ return is.get(buf); }
+
+std::istream& get(std::istream& is,  std::streambuf& buf, byte delim)
+	{ return is.get(buf, char(delim)); }
 
 } // namespace byte_utils
 } // namespace header_only_library
 
 inline
-std::istream& operator<<(std::istream& is, std::byte& b)
+std::istream& operator>>(std::istream& is, std::byte& b)
 	{ char c; is >> c; b = std::byte(c); return is; }
 
 inline
 std::ostream& operator<<(std::ostream& os, std::byte b)
 	{ return os << char(b); }
+
+inline
+auto operator+(
+	header_only_library::byte_utils::byte_string a,
+	header_only_library::byte_utils::byte_string b)
+{
+	header_only_library::byte_utils::byte_string s;
+	s.reserve(std::size(a) + std::size(b));
+	s.insert(std::end(s), std::begin(a), std::end(a));
+	s.insert(std::end(s), std::begin(b), std::end(b));
+	return s;
+}
 
 #endif // HEADER_ONLY_LIBRARY_BYTE_UTILS_H

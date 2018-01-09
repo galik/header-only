@@ -28,14 +28,16 @@
  * readable.
  */
 
-#include <map>
-#include <set>
-#include <list>
-#include <regex>
-#include <vector>
-#include <string>
 #include <fstream>
+#include <list>
+#include <map>
+#include <regex>
+#include <set>
 #include <sstream>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace header_only_library{
 namespace small_types {
@@ -55,6 +57,8 @@ using namespace basic;
 using str_set = std::set<str>;
 using str_vec = std::vector<str>;
 using str_map = std::map<str, str>;
+using str_mmap = std::multimap<str, str>;
+using str_umap = std::unordered_map<str, str>;
 
 using siz_set = std::set<siz>;
 using siz_vec = std::vector<siz>;

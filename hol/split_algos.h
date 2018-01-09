@@ -75,7 +75,7 @@ private:
 };
 
 template<typename Container>
-auto inserter(Container& c)
+auto inserter(Container& c) -> emplace_back_inserter<Container>
 {
 	return emplace_back_inserter<Container>(c);
 }

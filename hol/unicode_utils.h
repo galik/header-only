@@ -25,27 +25,28 @@
 
 // TODO: Look at this: http://bjoern.hoehrmann.de/utf-8/decoder/dfa/
 
-#include <string>
-#include <locale>
 #include <codecvt>
+#include <locale>
+#include <stdexcept>
+#include <string>
 
 namespace header_only_library {
 namespace unicode_utils {
 namespace detail {
 
-using wcodecvt_utf8 = std::codecvt_utf8<wchar_t>;
-using ucs2codecvt_utf8 = std::codecvt_utf8<char16_t>;
-using ucs4codecvt_utf8 = std::codecvt_utf8<char32_t>;
-using utf16codecvt_utf8 = std::codecvt_utf8_utf16<char16_t>;
-using utf32codecvt_utf8 = std::codecvt_utf8<char32_t>;
-using utf32codecvt_utf16 = std::codecvt_utf16<char32_t>; // ??
+//using wcodecvt_utf8 = std::codecvt_utf8<wchar_t>;
+//using ucs2codecvt_utf8 = std::codecvt_utf8<char16_t>;
+//using ucs4codecvt_utf8 = std::codecvt_utf8<char32_t>;
+//using utf16codecvt_utf8 = std::codecvt_utf8_utf16<char16_t>;
+//using utf32codecvt_utf8 = std::codecvt_utf8<char32_t>;
+//using utf32codecvt_utf16 = std::codecvt_utf16<char32_t>; // ??
 
-using cvt_ws_utf8 = std::wstring_convert<wcodecvt_utf8, wchar_t>;
-using cvt_ucs2_utf8 = std::wstring_convert<ucs2codecvt_utf8, char16_t>;
-using cvt_ucs4_utf8 = std::wstring_convert<ucs4codecvt_utf8, char32_t>;
-using cvt_utf16_utf8 = std::wstring_convert<utf16codecvt_utf8, char16_t>;
-using cvt_utf32_utf8 = std::wstring_convert<utf32codecvt_utf8, char32_t>;
-using cvt_utf32_utf16 = std::wstring_convert<utf32codecvt_utf16, char32_t>; // ??
+using cvt_ws_utf8 = std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>;
+using cvt_ucs2_utf8 = std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t>;
+using cvt_ucs4_utf8 = std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>;
+using cvt_utf16_utf8 = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>;
+using cvt_utf32_utf8 = std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>;
+using cvt_utf32_utf16 = std::wstring_convert<std::codecvt_utf16<char32_t>, char32_t>; // ??
 
 template<typename CodeCvt, typename FromString, typename ToString = std::string>
 ToString convert_to(FromString const& s)

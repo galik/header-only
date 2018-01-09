@@ -93,7 +93,7 @@ template<typename CharT>
 std::basic_string<CharT>& lower_mute(std::basic_string<CharT>& s)
 {
 	std::transform(s.begin(), s.end(), s.begin()
-		, [&](auto c){ return std::tolower(c); });
+		, [&](CharT c){ return std::tolower(c); });
 	return s;
 }
 
@@ -101,7 +101,7 @@ template<typename CharT>
 std::basic_string<CharT>& upper_mute(std::basic_string<CharT>& s)
 {
 	std::transform(s.begin(), s.end(), s.begin()
-		, [&](auto c){ return std::toupper(c); });
+		, [&](CharT c){ return std::toupper(c); });
 	return s;
 }
 
@@ -614,21 +614,21 @@ String<C, T, A> trim_copy(String<C, T, A> s)
 // TODO: specify ws? seek a more holistic solution?
 
 template<typename C>
-String<C, std::char_traits<C>, std::allocator<C>> trim_left_copy(C const* s)
+String<C, std::char_traits<C>, std::allocator<C>> trim_left_copy(C const* s, C const* ws = C(' '))
 {
-	return trim_left_copy(String<C, std::char_traits<C>, std::allocator<C>>(s));
+	return trim_left_copy(String<C, std::char_traits<C>, std::allocator<C>>(s, ws));
 }
 
 template<typename C>
-String<C, std::char_traits<C>, std::allocator<C>> trim_right_copy(C const* s)
+String<C, std::char_traits<C>, std::allocator<C>> trim_right_copy(C const* s, C const* ws = C(' '))
 {
-	return trim_right_copy(String<C, std::char_traits<C>, std::allocator<C>>(s));
+	return trim_right_copy(String<C, std::char_traits<C>, std::allocator<C>>(s, ws));
 }
 
 template<typename C>
-String<C, std::char_traits<C>, std::allocator<C>> trim_copy(C const* s)
+String<C, std::char_traits<C>, std::allocator<C>> trim_copy(C const* s, C const* ws = C(' '))
 {
-	return trim_copy(String<C, std::char_traits<C>, std::allocator<C>>(s));
+	return trim_copy(String<C, std::char_traits<C>, std::allocator<C>>(s, ws));
 }
 
 //
@@ -718,26 +718,30 @@ String<C, T, A> trim_right_keep(String<C, T, A>& s)
  * @return A structure of the form `struct { String left; String right; };`
  * containing each String of characters that was removed.
  */
-template<typename C, typename T, typename A>
-auto trim_keep(String<C, T, A>& s, C const* ws)
-{
-	struct rv
-	{
-		String<C, T, A> left;
-		String<C, T, A> right;
-	};
 
-	return rv{trim_left_keep(s, ws), trim_right_keep(s, ws)};
+namespace detail {
+template<typename C, typename T, typename A>
+struct rv
+{
+	String<C, T, A> left;
+	String<C, T, A> right;
+};
+} // namespace detail
+
+template<typename C, typename T, typename A>
+auto trim_keep(String<C, T, A>& s, C const* ws) -> detail::rv<C, T, A>
+{
+	return detail::rv<C, T, A>{trim_left_keep(s, ws), trim_right_keep(s, ws)};
 }
 
 template<typename C, typename T, typename A>
-auto trim_keep(String<C, T, A>& s, String<C, T, A> const& ws)
+auto trim_keep(String<C, T, A>& s, String<C, T, A> const& ws) -> detail::rv<C, T, A>
 {
 	return trim_keep(s, ws.c_str());
 }
 
 template<typename C, typename T, typename A>
-auto trim_keep(String<C, T, A>& s)
+auto trim_keep(String<C, T, A>& s) -> detail::rv<C, T, A>
 {
 	return trim_keep(s, detail::ws(C()));
 }
@@ -1369,7 +1373,7 @@ String<C, T, A> join(Iter begin, Iter end, String<C, T, A> const& delim)
 	auto size = ((dist - 1) * delim.size());
 
 	size += std::accumulate(begin, end, std::size_t(0),
-		[](auto n, auto const& s){ return n + s.size(); });
+		[](std::size_t n, decltype(*begin) const& s){ return n + s.size(); });
 
 	String<C, T, A> s;
 	s.reserve(size);
@@ -1651,11 +1655,11 @@ public:
 
 	std::size_t size() const { return buff.size(); }
 
-	auto begin() { return std::begin(buff); }
-	auto begin() const { return std::begin(buff); }
+	typename std::array<char volatile, N>::iterator begin() { return std::begin(buff); }
+	typename std::array<char volatile, N>::const_iterator begin() const { return std::begin(buff); }
 
-	auto end() { return std::end(buff); }
-	auto end() const { return std::end(buff); }
+	typename std::array<char volatile, N>::iterator end() { return std::end(buff); }
+	typename std::array<char volatile, N>::const_iterator end() const { return std::end(buff); }
 
 private:
 	static void opaque_fill(char volatile* data)
@@ -1855,7 +1859,7 @@ std::size_t size(std::basic_string<C, T, A> const& s) { return s.size(); }
 } // namespace detail
 
 template<typename C, typename T, typename A, typename Delim1, typename Delim2>
-auto extract_delimited_text(
+typename std::basic_string<C, T, A>::size_type extract_delimited_text(
 	std::basic_string<C, T, A> const& s,
 	Delim1 const& d1,
 	Delim2 const& d2,
@@ -1874,18 +1878,18 @@ auto extract_delimited_text(
 			return end + detail::size(d2);
 		}
 	}
-	return std::string::npos;
+	return std::basic_string<C, T, A>::npos;
 }
 
 template<typename C, typename T, typename A, typename Delim1, typename Delim2>
-auto extract_delimited_text(
+std::basic_string<C, T, A> extract_delimited_text(
 	C const* s,
 	Delim1 const& d1,
 	Delim2 const& d2,
 	std::basic_string<C, T, A>& out,
 	std::size_t pos = 0)
 {
-	return extract_delimited_text(std::string(s), d1, d2, out, pos);
+	return extract_delimited_text(std::basic_string<C, T, A>(s), d1, d2, out, pos);
 }
 
 //namespace utf8 {

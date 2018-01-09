@@ -21,24 +21,27 @@ HEADERS := $(wildcard hol/*.h)
 PKGCFGS := $(wildcard pkg-config/*.pc)
 
 DOCS := doxy-docs/*
-TEST_SRCS := $(wildcard src/test*.cpp) $(wildcard src/experimental/test*.cpp)
-TIME_SRCS := $(wildcard src/time*.cpp)
+TEST_14_SRCS := $(wildcard src/test-14-*.cpp) $(wildcard src/experimental/test-*.cpp)
+TIME_SRCS := $(wildcard src/time-*.cpp)
+
+TEST_17_SRCS := $(wildcard src/test-17-*.cpp) $(wildcard src/experimental/test-17-*.cpp)
+
 #DEPS := $(patsubst %.cpp,%.d,$(SRCS))
 #TESTS := $(patsubst %.cpp,%,$(SRCS))
-TESTS_11 := $(patsubst %.cpp,%-11,$(TEST_SRCS))
-TESTS_14 := $(patsubst %.cpp,%-14,$(TEST_SRCS))
-TESTS_17 := $(patsubst %.cpp,%-17,$(TEST_SRCS))
+#TESTS_11 := $(patsubst %.cpp,%-11,$(TEST_SRCS))
+TESTS_14 := $(patsubst %.cpp,%,$(TEST_14_SRCS))
+TESTS_17 := $(patsubst %.cpp,%,$(TEST_17_SRCS))
 TESTS := $(TESTS_11) $(TESTS_14) $(TESTS_17)
 
-TIMES_14 := $(patsubst %.cpp,%-14,$(TIME_SRCS))
-TIMES := $(TIMES_11) $(TIMES_14) $(TIMES_17)
+#TIMES_14 := $(patsubst %.cpp,%-14,$(TIME_SRCS))
+#TIMES := $(TIMES_11) $(TIMES_14) $(TIMES_17)
 
 SRCS := $(TEST_SRCS) $(TIME_SRCS)
 DEPS := $(patsubst %.cpp,%-14.d,$(SRCS))
 
 #all: $(TESTS_11) $(TESTS_14) $(TESTS_17)
 #all: $(TESTS_14) $(TESTS_17)
-all: $(TESTS_14) $(TIMES_14)
+all: $(TESTS_14) $(TESTS_17)
 
 show:
 	@echo TEST_SRCS $(TEST_SRCS)
@@ -56,20 +59,20 @@ show:
 #	@echo [triggered by changes in $?]
 #	$(CXX) $(CXX_11_FLAGS) $(CPPFLAGS) -o $@ $<
 	
-test%-14: test%.cpp
+test-14-%: test-14-%.cpp
 	@echo "C: $@"
 	@echo [triggered by changes in $?]
 	$(CXX) $(CXX_14_FLAGS) $(CPPFLAGS) -o $@ $<
 	
-test%-17: test%.cpp
+test-17-%: test-17-%.cpp
 	@echo "C: $@"
 	@echo [triggered by changes in $?]
 	$(CXX) $(CXX_17_FLAGS) $(CPPFLAGS) -o $@ $<
 	
-time%-14: time%.cpp
-	@echo "C: $@"
-	@echo [triggered by changes in $?]
-	$(CXX) $(CXX_14_TIME_FLAGS) $(CPPFLAGS) -o $@ $<
+#time%-14: time%.cpp
+#	@echo "C: $@"
+#	@echo [triggered by changes in $?]
+#	$(CXX) $(CXX_14_TIME_FLAGS) $(CPPFLAGS) -o $@ $<
 	
 docs: doxy-docs/index.html
 
