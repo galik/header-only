@@ -25,8 +25,10 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <limits>
 #include <random>
+#include <thread>
 
 /**
  * Configuration:
@@ -168,7 +170,7 @@ constexpr std::size_t gen_size()
 }
 
 inline
-auto const& random_data()
+auto random_data() -> std::array<HOL_RANDOM_DEVICE::result_type, gen_size()> const&
 {
 //	thread_local static std::array<HOL_RANDOM_DEVICE::result_type, Generator::state_size> data;
 	thread_local static std::array<HOL_RANDOM_DEVICE::result_type, gen_size()> data = []
@@ -368,7 +370,8 @@ Iter random_iterator(Iter begin, Iter end)
  * @return An iterator to a pseudo randomly selected element from the supplied container.
  */
 template<typename Container>
-decltype(auto) random_iterator(Container&& c)
+//decltype(auto) random_iterator(Container&& c)
+auto random_iterator(Container&& c) -> decltype(std::begin(c))
 {
 	assert(!c.empty());
 	return random_iterator(std::begin(c), std::end(c));
@@ -383,7 +386,7 @@ decltype(auto) random_iterator(Container&& c)
  * @return An iterator to a pseudo randomly selected element from the supplied array.
  */
 template<typename T, std::size_t N>
-decltype(auto) random_iterator(T(&array)[N])
+auto random_iterator(T(&array)[N]) -> decltype(std::begin(array))
 {
 	assert(N > 0);
 	return std::next(std::begin(array), random_number(N - 1));
@@ -398,7 +401,7 @@ decltype(auto) random_iterator(T(&array)[N])
  * @return A reference to a pseudo randomly selected element from the supplied container.
  */
 template<typename Container>
-decltype(auto) random_element(Container&& c)
+auto random_element(Container&& c) -> decltype(*std::begin(c))
 {
 	return *random_iterator(std::forward<Container>(c));
 }
@@ -413,7 +416,7 @@ decltype(auto) random_element(Container&& c)
  * @return A reference to a pseudo randomly selected element from the supplied container.
  */
 template<typename Iter>
-decltype(auto) random_element(Iter begin, Iter end)
+auto random_element(Iter begin, Iter end) -> decltype(*begin)
 {
 	assert(std::distance(begin, end) > 0);
 	return *random_iterator(begin, end);
@@ -425,6 +428,14 @@ void random_shuffle(Iter begin, Iter end)
 	std::shuffle(begin, end, random_generator());
 }
 
+template<typename Duration1, typename Duration2>
+void random_sleep_for(Duration1 min, Duration2 max)
+{
+	using common_duration_type = typename std::common_type<Duration1, Duration2>::type;
+	auto duration = common_duration_type(random_number(min.count(), max.count()));
+	std::this_thread::sleep_for(duration);
+}
+
 // Alternative experimentation
 namespace alt {
 
@@ -434,7 +445,7 @@ class random_tools
 public:
 	random_tools() = delete;
 
-	static auto& generator()
+	static Generator& generator()
 	{
 		thread_local static Generator generator{RandomDevice{}()};
 		return generator;
@@ -447,39 +458,39 @@ public:
 	}
 
 	template<typename Int = int>
-	static auto uniform_int(Int lo, Int hi)
+	static Int uniform_int(Int lo, Int hi)
 	{
 		thread_local static std::uniform_int_distribution<Int> d;
 		return d(generator(), std::uniform_int_distribution<Int>::param_type(lo, hi));
 	}
 
 	template<typename Int = int>
-	static auto uniform_int(Int hi)
+	static Int uniform_int(Int hi)
 	{
 		return uniform_int(Int(), hi);
 	}
 
 	template<typename Int = int>
-	static auto uniform_int()
+	static Int uniform_int()
 	{
 		return uniform_int(std::numeric_limits<Int>::lowest(), std::numeric_limits<Int>::max());
 	}
 
 	template<typename Real = double>
-	static auto uniform_real(Real lo, Real hi)
+	static Real uniform_real(Real lo, Real hi)
 	{
 		thread_local static std::uniform_real_distribution<Real> d;
 		return d(generator(), std::uniform_real_distribution<Real>::param_type(lo, hi));
 	}
 
 	template<typename Real = double>
-	static auto uniform_real(Real hi)
+	static Real uniform_real(Real hi)
 	{
 		return uniform_real(Real(), hi);
 	}
 
 	template<typename Real = double>
-	static auto uniform_real()
+	static Real uniform_real()
 	{
 		return uniform_real(std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::max());
 	}
