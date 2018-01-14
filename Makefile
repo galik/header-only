@@ -14,6 +14,7 @@ CXX_11_FLAGS := -std=c++11 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
 CXX_14_FLAGS := -std=c++14 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
 CXX_17_FLAGS := -std=c++17 -pthread -MMD -MP -pedantic-errors $(CXXFLAGS)
 
+CXX_11_TIME_FLAGS := -std=c++11 -pthread -MMD -MP -pedantic-errors -O3 -g0
 CXX_14_TIME_FLAGS := -std=c++14 -pthread -MMD -MP -pedantic-errors -O3 -g0
 CXX_17_TIME_FLAGS := -std=c++17 -pthread -MMD -MP -pedantic-errors -O3 -g0
 
@@ -21,14 +22,15 @@ HEADERS := $(wildcard hol/*.h)
 PKGCFGS := $(wildcard pkg-config/*.pc)
 
 DOCS := doxy-docs/*
-TEST_14_SRCS := $(wildcard src/test-14-*.cpp) $(wildcard src/experimental/test-*.cpp)
 TIME_SRCS := $(wildcard src/time-*.cpp)
 
+TEST_11_SRCS := $(wildcard src/test-11-*.cpp) $(wildcard src/experimental/test-11-*.cpp)
+TEST_14_SRCS := $(wildcard src/test-14-*.cpp) $(wildcard src/experimental/test-14-*.cpp)
 TEST_17_SRCS := $(wildcard src/test-17-*.cpp) $(wildcard src/experimental/test-17-*.cpp)
 
 #DEPS := $(patsubst %.cpp,%.d,$(SRCS))
 #TESTS := $(patsubst %.cpp,%,$(SRCS))
-#TESTS_11 := $(patsubst %.cpp,%-11,$(TEST_SRCS))
+TESTS_11 := $(patsubst %.cpp,%,$(TEST_11_SRCS))
 TESTS_14 := $(patsubst %.cpp,%,$(TEST_14_SRCS))
 TESTS_17 := $(patsubst %.cpp,%,$(TEST_17_SRCS))
 TESTS := $(TESTS_11) $(TESTS_14) $(TESTS_17)
@@ -58,6 +60,11 @@ show:
 #	@echo "C: $@"
 #	@echo [triggered by changes in $?]
 #	$(CXX) $(CXX_11_FLAGS) $(CPPFLAGS) -o $@ $<
+	
+test-11-%: test-11-%.cpp
+	@echo "C: $@"
+	@echo [triggered by changes in $?]
+	$(CXX) $(CXX_11_FLAGS) $(CPPFLAGS) -o $@ $<
 	
 test-14-%: test-14-%.cpp
 	@echo "C: $@"
