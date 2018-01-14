@@ -123,16 +123,16 @@ public:
 		if(!ctx->n)
 		{
 			// last one in opens the gate
-			auto alt_ctx = std::make_shared<context>(total_n);
-			std::swap(ctx, alt_ctx);
-			alt_ctx->release = true;
-			alt_ctx->cv.notify_all();
+			auto old_ctx = ctx;
+			ctx = std::make_shared<context>(total_n);
+			old_ctx->release = true;
+			old_ctx->cv.notify_all();
 		}
 		else
 		{
 			// otherwise wait for the signal
-			auto alt_ctx = ctx;
-			ctx->cv.wait(lock, [alt_ctx]{ return alt_ctx->release; });
+			auto old_ctx = ctx;
+			ctx->cv.wait(lock, [old_ctx]{ return old_ctx->release; });
 		}
 	}
 
