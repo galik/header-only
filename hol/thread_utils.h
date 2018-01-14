@@ -94,6 +94,53 @@ private:
 	}
 };
 
+class cyclic_barrier
+{
+	struct context
+	{
+		context(std::size_t n): n(n) {}
+		std::size_t n = 0;
+		bool release = false;
+		std::condition_variable cv;
+		std::mutex mtx;
+	};
+
+	using context_sptr = std::shared_ptr<context>;
+
+public:
+	cyclic_barrier(std::size_t n): total_n(n), ctx{std::make_shared<context>(total_n)}
+	{
+		if(!n)
+			throw std::invalid_argument("cyclic_barrier needs > 0 on initialization");
+	}
+
+	void wait()
+	{
+		std::unique_lock<std::mutex> lock(ctx->mtx);
+
+		--ctx->n;
+
+		if(!ctx->n)
+		{
+			// last one in opens the gate
+			auto alt_ctx = std::make_shared<context>(total_n);
+			std::swap(ctx, alt_ctx);
+			alt_ctx->release = true;
+			alt_ctx->cv.notify_all();
+		}
+		else
+		{
+			// otherwise wait for the signal
+			auto alt_ctx = ctx;
+			ctx->cv.wait(lock, [alt_ctx]{ return alt_ctx->release; });
+		}
+	}
+
+private:
+	std::size_t const total_n;
+	context_sptr ctx;
+};
+
 class parallel_jobs
 : private std::vector<joining_thread>
 {
