@@ -39,7 +39,6 @@ bool random_bernoulli(double p = 0.5)
 
 template<typename Integer = int>
 Integer random_binomial(Integer t = 1, double p = 0.5)
-HOL_CONCEPT(requires detail::StdInteger<Integer>)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
 		"Template parameter must be short, int, long, long long, "
@@ -54,7 +53,6 @@ HOL_CONCEPT(requires detail::StdInteger<Integer>)
 
 template<typename Integer = int>
 Integer random_negative_binomial(Integer k = 1, double p = 0.5)
-HOL_CONCEPT(requires detail::StdInteger<Integer>)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
 		"Template parameter must be short, int, long, long long, "
@@ -69,13 +67,12 @@ HOL_CONCEPT(requires detail::StdInteger<Integer>)
 
 template<typename Integer = int>
 Integer random_geometric(double p = 0.5)
-HOL_CONCEPT(requires detail::StdInteger<Integer>)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
 		"Template parameter must be short, int, long, long long, "
 			"unsigned short, unsigned int, unsigned long, or unsigned long long");
 
-	assert(0.0 < p);
+	assert(p > 0.0);
 	assert(p < 1.0);
 
 	return detail::randomly_distributed_number<std::geometric_distribution<Integer>>(p);
@@ -83,7 +80,6 @@ HOL_CONCEPT(requires detail::StdInteger<Integer>)
 
 template<typename Integer = int>
 Integer random_poisson(double mean = 1.0)
-HOL_CONCEPT(requires detail::StdInteger<Integer>)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
 		"Template parameter must be short, int, long, long long, "
@@ -96,7 +92,6 @@ HOL_CONCEPT(requires detail::StdInteger<Integer>)
 
 template<typename Real = double>
 Real random_exponential(Real lambda = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameter must be float, double or long double");
@@ -108,7 +103,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Real = double>
 Real random_gamma(Real alpha = 1.0, Real beta = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -118,7 +112,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Real = double>
 Real random_weibull(Real a = 1.0, Real b = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -128,7 +121,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Real = double>
 Real random_extreme_value(Real a = 0.0, Real b = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -138,7 +130,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Real = double>
 Real random_normal(Real mean = 0.0, Real standard_deviation = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -148,7 +139,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Real = double>
 Real random_lognormal(Real m = 0.0, Real s = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -158,7 +148,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Real = double>
 Real random_chi_squared(Real n = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -168,7 +157,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Real = double>
 Real random_cauchy(Real a = 0.0, Real b = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -178,7 +166,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Real = double>
 Real random_fisher_f(Real m = 1.0, Real n = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -188,7 +175,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Real = double>
 Real random_student_t(Real n = 1.0)
-HOL_CONCEPT(requires detail::StdReal<Real>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -198,7 +184,6 @@ HOL_CONCEPT(requires detail::StdReal<Real>)
 
 template<typename Integer = int>
 Integer random_discrete(std::initializer_list<double> doubles)
-HOL_CONCEPT(requires detail::StdInteger<Integer>)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
 		"Template parameter must be short, int, long, long long, "
@@ -209,8 +194,6 @@ HOL_CONCEPT(requires detail::StdInteger<Integer>)
 
 template<typename Integer = int, typename InputIt>
 Integer random_discrete(InputIt first, InputIt last)
-HOL_CONCEPT(requires detail::StdInteger<Integer>               )
-HOL_CONCEPT(&&       detail::ValuesConvertableToDouble<InputIt>)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
 		"Template parameter must be short, int, long, long long, "
@@ -227,8 +210,6 @@ HOL_CONCEPT(&&       detail::ValuesConvertableToDouble<InputIt>)
 //
 template<typename Integer = int, typename UnaryOperation>
 Integer random_discrete(std::size_t count, double xmin, double xmax, UnaryOperation unary_op)
-HOL_CONCEPT(requires detail::StdInteger<Integer>)
-HOL_CONCEPT(&&       detail::RetCallableType<UnaryOperation>)
 {
 	static_assert(detail::std_int_type_test<Integer>::value,
 		"Template parameter must be short, int, long, long long, "
@@ -250,9 +231,6 @@ HOL_CONCEPT(&&       detail::RetCallableType<UnaryOperation>)
 
 template<typename Real = double, typename InputIteratorB, typename InputIteratorW>
 Real random_piecewise_constant(InputIteratorB first_b, InputIteratorB last_b, InputIteratorW first_w)
-HOL_CONCEPT(requires detail::StdReal<Real>                            )
-HOL_CONCEPT(&&       detail::ValuesConvertableToDouble<InputIteratorB>)
-HOL_CONCEPT(&&       detail::ValuesConvertableToDouble<InputIteratorW>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -269,8 +247,6 @@ HOL_CONCEPT(&&       detail::ValuesConvertableToDouble<InputIteratorW>)
 
 template<typename Real = double, typename UnaryOperation>
 Real random_piecewise_constant(std::initializer_list<Real> bl, UnaryOperation fw)
-HOL_CONCEPT(requires detail::StdReal<Real>                   )
-HOL_CONCEPT(&&       detail::RealCallableReal<UnaryOperation>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -280,8 +256,6 @@ HOL_CONCEPT(&&       detail::RealCallableReal<UnaryOperation>)
 
 template<typename Real = double, typename UnaryOperation>
 Real random_piecewise_constant(std::size_t nw, Real xmin, Real xmax, UnaryOperation fw)
-HOL_CONCEPT(requires detail::StdReal<Real>)
-HOL_CONCEPT(&&       detail::RealCallableReal<UnaryOperation>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -304,9 +278,6 @@ HOL_CONCEPT(&&       detail::RealCallableReal<UnaryOperation>)
 
 template<typename Real = double, typename InputIteratorB, typename InputIteratorW>
 Real random_piecewise_linear(InputIteratorB first_b, InputIteratorB last_b, InputIteratorW first_w)
-HOL_CONCEPT(requires detail::StdReal<Real>)
-HOL_CONCEPT(&&       detail::ValuesConvertableToDouble<InputIteratorB>)
-HOL_CONCEPT(&&       detail::ValuesConvertableToDouble<InputIteratorW>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -323,8 +294,6 @@ HOL_CONCEPT(&&       detail::ValuesConvertableToDouble<InputIteratorW>)
 
 template<typename Real = double, typename UnaryOperation>
 Real random_piecewise_linear(std::initializer_list<Real> bl, UnaryOperation fw)
-HOL_CONCEPT(requires detail::StdReal<Real>                   )
-HOL_CONCEPT(&&       detail::RealCallableReal<UnaryOperation>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");
@@ -340,8 +309,6 @@ HOL_CONCEPT(&&       detail::RealCallableReal<UnaryOperation>)
 
 template<typename Real = double, typename UnaryOperation>
 Real random_piecewise_linear(std::size_t nw, Real xmin, Real xmax, UnaryOperation fw)
-HOL_CONCEPT(requires detail::StdReal<Real>                   )
-HOL_CONCEPT(&&       detail::RealCallableReal<UnaryOperation>)
 {
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameters must be float, double or long double");

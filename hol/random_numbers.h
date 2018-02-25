@@ -61,86 +61,52 @@
  */
 
 #ifndef HOL_RANDOM_DEVICE
-#ifdef __MINGW32__
-#include <chrono>
-struct ____rd
-{
-	using result_type = std::size_t;
-	std::size_t operator()() const
-	{
-		std::chrono::system_clock::time_point then{};
-		return std::size_t((std::chrono::system_clock::now() - then).count());
-	}
-};
-#define HOL_RANDOM_DEVICE ____rd
-#else
-#define HOL_RANDOM_DEVICE std::random_device
-#endif
+#  ifdef __MINGW32__
+#    include <chrono>
+     namespace header_only_library {
+     namespace random_numbers {
+     namespace detail {
+     struct random_device
+     {
+	     using result_type = std::size_t;
+	     std::size_t operator()() const
+	     {
+		     std::chrono::system_clock::time_point then{};
+		     return std::size_t((std::chrono::system_clock::now() - then).count());
+	     }
+     };
+     } // namespace detail
+     } // namespace random_numbers
+     } // namespace header_only_library
+#    define HOL_RANDOM_DEVICE ::header_only_library::random_numbers::detail::random_device
+#  else
+#    define HOL_RANDOM_DEVICE std::random_device
+#  endif
 #endif
 #ifndef HOL_RANDOM_DEVICE_SOURCE // (select implementation specific source)
-#define HOL_RANDOM_DEVICE_SOURCE
+#  define HOL_RANDOM_DEVICE_SOURCE
 #endif
 #ifndef HOL_RANDOM_NUMBER_GENERATOR
-#define HOL_RANDOM_NUMBER_GENERATOR std::mt19937
+#  define HOL_RANDOM_NUMBER_GENERATOR std::mt19937
 #endif
-
-#ifndef HOL_CONCEPT
-#ifdef __cpp_concepts
-#define HOL_CONCEPT(c) c
-#else
-#define HOL_CONCEPT(c)
-#endif
-#endif // HOL_CONCEPT
 
 namespace header_only_library {
+
+/*! \namespace random_numbers
+    \brief Random number functions, making modern C++ random number generation simple.
+*/
 namespace random_numbers {
 namespace detail {
 
 using Generator = HOL_RANDOM_NUMBER_GENERATOR;
 
-#ifdef __cpp_concepts
-
-template<typename Integer>
-concept bool StdInteger
-	 = std::is_same<Integer, short>::value
-	|| std::is_same<Integer, int>::value
-	|| std::is_same<Integer, long>::value
-	|| std::is_same<Integer, long long>::value
-	|| std::is_same<Integer, unsigned short>::value
-	|| std::is_same<Integer, unsigned int>::value
-	|| std::is_same<Integer, unsigned long>::value
-	|| std::is_same<Integer, unsigned long long>::value;
-
-template<typename Real>
-concept bool StdReal
-	 = std::is_same<Real, float>::value
-	|| std::is_same<Real, double>::value
-	|| std::is_same<Real, long double>::value;
-
-template<typename InputIt>
-concept bool ValuesConvertableToDouble
-	 = std::is_convertible<typename std::iterator_traits<InputIt>::value_type,
-		double>::value;
-
-template <typename UnaryOperation>
-concept bool RealCallableReal
-	 = std::is_convertible<decltype(UnaryOperation(0.0)), double>::value;
-
-template <typename UnaryOperation>
-concept bool RetCallableType
-	 = std::is_convertible<double, decltype(UnaryOperation(0.0))>::value;
-
-template<typename Integer>
-struct std_int_type_test {constexpr static bool value = true;};
-
-template<typename Real>
-struct std_real_type_test {constexpr static bool value = true;};
-
-#else
-
+/*! \struct std_int_type_test
+	\brief SFNAE test for integer types
+ */
 template<typename Integer>
 struct std_int_type_test
 {
+	/*! true or false */
 	constexpr static bool value =
 	std::is_same<Integer, short>::value
 	|| std::is_same<Integer, int>::value
@@ -152,16 +118,18 @@ struct std_int_type_test
 	|| std::is_same<Integer, unsigned long long>::value;
 };
 
+/*! \struct std_real_type_test
+	\brief SFNAE test for float types
+ */
 template<typename Real>
 struct std_real_type_test
 {
+	/*! true or false */
 	constexpr static bool value =
 	std::is_same<Real, float>::value
 	|| std::is_same<Real, double>::value
 	|| std::is_same<Real, long double>::value;
 };
-
-#endif // __cpp_concepts
 
 constexpr std::size_t gen_size()
 {
@@ -195,8 +163,6 @@ Generator& random_generator()
 
 template<typename Number>
 Number random_number(Number from, Number to)
-HOL_CONCEPT(requires detail::StdReal<Number>   )
-HOL_CONCEPT(||       detail::StdInteger<Number>)
 {
 	static_assert(std_int_type_test<Number>::value||std_real_type_test<Number>::value,
 		"Parameters must be integer or floating point numbers");
@@ -225,23 +191,38 @@ randomly_distributed_number(Args&&... args)
 
 } // namespace detail
 
-/**
- * Get the underlying pseudo random number generator.
- * @return A random number generator.
- */
+///**
+// * Get the underlying pseudo random number generator.
+// * @return A random number generator.
+// */
+
+/*! \fn random_generator
+    \brief Get the underlying pseudo random number generator.
+
+    \return The random number generator used by this library.
+*/
 inline
 detail::Generator& random_generator()
 {
 	return detail::random_generator();
 }
 
-/**
- * Re-seed the underlying pseudo random number generator
+///**
+// * Re-seed the underlying pseudo random number generator
+// * from a `std::seed_seq`.
+// * Every unique list of seeds value will cause the same stream
+// * of pseudo random numbers to be generated
+// *
+// * @param seeds The `std::seed_seq` to use.
+// */
+
+/*!
+ * \brief Re-seed the underlying pseudo random number generator
  * from a `std::seed_seq`.
  * Every unique list of seeds value will cause the same stream
  * of pseudo random numbers to be generated
  *
- * @param seeds The `std::seed_seq` to use.
+ * \param seeds The `std::seed_seq` to use.
  */
 inline
 void random_reseed(std::seed_seq& seeds)
@@ -267,11 +248,17 @@ void random_reseed()
  *
  * @param numbers The list of seed values to use.
  */
-template<typename... Numbers>
-void random_reseed(Numbers... numbers)
+template<typename Number, typename... Numbers>
+void random_reseed(Number number, Numbers... numbers)
 {
-	std::seed_seq ss({numbers...});
+	std::seed_seq ss({number, numbers...});
 	random_reseed(ss);
+}
+
+template<typename Number>
+void random_reseed(Number number)
+{
+	random_generator().seed(number);
 }
 
 /**
@@ -286,8 +273,6 @@ void random_reseed(Numbers... numbers)
  */
 template<typename Number>
 Number random_number(Number from, Number to)
-HOL_CONCEPT(requires detail::StdReal<Number>   )
-HOL_CONCEPT(||       detail::StdInteger<Number>)
 {
 	auto mm = std::minmax(from, to);
 	return detail::random_number(mm.first, mm.second);
@@ -303,8 +288,6 @@ HOL_CONCEPT(||       detail::StdInteger<Number>)
  */
 template<typename Number>
 Number random_number(Number to)
-HOL_CONCEPT(requires detail::StdReal<Number>   )
-HOL_CONCEPT(||       detail::StdInteger<Number>)
 {
 	Number from = {};
 	auto mm = std::minmax(from, to);
@@ -323,8 +306,6 @@ HOL_CONCEPT(||       detail::StdInteger<Number>)
  */
 template<typename Number>
 Number random_number()
-HOL_CONCEPT(requires detail::StdReal<Number>   )
-HOL_CONCEPT(||       detail::StdInteger<Number>)
 {
 	auto from = std::numeric_limits<Number>::lowest();
 	auto to = std::numeric_limits<Number>::max();
@@ -370,7 +351,6 @@ Iter random_iterator(Iter begin, Iter end)
  * @return An iterator to a pseudo randomly selected element from the supplied container.
  */
 template<typename Container>
-//decltype(auto) random_iterator(Container&& c)
 auto random_iterator(Container&& c) -> decltype(std::begin(c))
 {
 	assert(!c.empty());
