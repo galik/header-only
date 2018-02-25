@@ -1,8 +1,8 @@
 #ifndef HOL_SPLIT_ALGOS_H
 #define HOL_SPLIT_ALGOS_H
 
+#include <hol/misc_utils.h>
 #include "macro_exceptions.h"
-#include "macro_utils.h"
 
 namespace header_only_library {
 namespace algorithm {
@@ -15,8 +15,25 @@ inline char32_t const* space(char32_t) { return U" "; }
 
 } // namespace chr
 
-using namespace header_only_library::macro_utils;
+using namespace header_only_library::misc_utils;
 
+/**
+ *
+ * Split a buffer by a delimiter.
+ *
+ * If the buffer is empty it can't be split and produces 0 pieces.
+ *
+ * If the buffer has 0 delimiters it is split 0 times producing 1 piece.
+ * If the buffer has 1 delimiters it is split 1 times producing 2 pieces.
+ * If the buffer has 2 delimiters it is split 2 times producing 3 pieces.
+ * If the buffer has n delimiters it is split n times producing n + 1 pieces.
+ *
+ * @param beg_s
+ * @param end_s
+ * @param beg_d
+ * @param end_d
+ * @param out
+ */
 template<typename SearchIter, typename DelimIter, typename Inserter>
 void split(SearchIter beg_s, SearchIter end_s, DelimIter beg_d, DelimIter end_d, Inserter out)
 {
@@ -34,7 +51,7 @@ void split(SearchIter beg_s, SearchIter end_s, DelimIter beg_d, DelimIter end_d,
 		++count;
 	}
 
-	if(count)
+	if(count || pos - beg_s)
 		out.insert(beg_s, pos);
 }
 
@@ -56,7 +73,7 @@ void split_fold(SearchIter beg_s, SearchIter end_s, DelimIter beg_d, DelimIter e
 		++count;
 	}
 
-	if(count && pos - beg_s)
+	if(pos - beg_s)
 		out.insert(beg_s, pos);
 }
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for prog in $(find src -name test-*-1[47] -executable|sort)
+for prog in $(find . -name "test-1[147]*" -executable|sort)
 do
-	./${prog}
+	${prog}
 done

@@ -25,6 +25,7 @@
 
 // TODO: Look at this: http://bjoern.hoehrmann.de/utf-8/decoder/dfa/
 
+#include <cassert>
 #include <codecvt>
 #include <locale>
 #include <stdexcept>
@@ -33,13 +34,6 @@
 namespace header_only_library {
 namespace unicode_utils {
 namespace detail {
-
-//using wcodecvt_utf8 = std::codecvt_utf8<wchar_t>;
-//using ucs2codecvt_utf8 = std::codecvt_utf8<char16_t>;
-//using ucs4codecvt_utf8 = std::codecvt_utf8<char32_t>;
-//using utf16codecvt_utf8 = std::codecvt_utf8_utf16<char16_t>;
-//using utf32codecvt_utf8 = std::codecvt_utf8<char32_t>;
-//using utf32codecvt_utf16 = std::codecvt_utf16<char32_t>; // ??
 
 using cvt_ws_utf8 = std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>;
 using cvt_ucs2_utf8 = std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t>;
@@ -249,6 +243,186 @@ std::u16string codepoint_to_utf16(char32_t cp)
 
     return {utf16, end_of_utf16};
 }
+
+class utf32_string
+{
+public:
+	utf32_string() {}
+	utf32_string(char const* utf8): m_data(utf8_to_utf32(std::string(utf8))) {}
+	utf32_string(std::string const& utf8): m_data(utf8_to_utf32(utf8)) {}
+	utf32_string(std::u32string const& utf32): m_data(utf32) {}
+
+	utf32_string& operator=(std::string const& utf8)
+		{ m_data = utf8_to_utf32(utf8); return *this; }
+
+	utf32_string& operator=(char const* utf8)
+		{ return *this = std::string(utf8); }
+
+	std::size_t size() const { return m_data.size(); }
+
+	char32_t& operator[](std::size_t n)
+		{ assert(n <= m_data.size()); return m_data[n]; }
+
+	char32_t const& operator[](std::size_t n) const
+		{ assert(n <= m_data.size()); return m_data[n]; }
+
+	friend utf32_string operator+(utf32_string const& s1, utf32_string const& s2)
+		{ return utf32_string(s1.m_data + s2.m_data); }
+
+	friend utf32_string operator+(utf32_string const& utf32, char const* utf8)
+		{ return utf32 + utf32_string(utf8); }
+
+	friend utf32_string operator+(char const* utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) + utf32; }
+
+	friend utf32_string operator+(utf32_string const& utf32, std::string const& utf8)
+		{ return utf32 + utf32_string(utf8); }
+
+	friend utf32_string operator+(std::string const& utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) + utf32; }
+
+
+	friend bool operator==(utf32_string const& s1, utf32_string const& s2)
+		{ return s1.m_data == s2.m_data; }
+
+	friend bool operator==(utf32_string const& utf32, char const* utf8)
+		{ return utf32 == utf32_string(utf8); }
+
+	friend bool operator==(char const* utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) == utf32; }
+
+	friend bool operator==(utf32_string const& utf32, std::string const& utf8)
+		{ return utf32 == utf32_string(utf8); }
+
+	friend bool operator==(std::string const& utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) == utf32; }
+
+
+	friend bool operator!=(utf32_string const& s1, utf32_string const& s2)
+		{ return s1.m_data != s2.m_data; }
+
+	friend bool operator!=(utf32_string const& utf32, char const* utf8)
+		{ return utf32 != utf32_string(utf8); }
+
+	friend bool operator!=(char const* utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) != utf32; }
+
+	friend bool operator!=(utf32_string const& utf32, std::string const& utf8)
+		{ return utf32 != utf32_string(utf8); }
+
+	friend bool operator!=(std::string const& utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) != utf32; }
+
+
+	friend bool operator<=(utf32_string const& s1, utf32_string const& s2)
+		{ return s1.m_data <= s2.m_data; }
+
+	friend bool operator<=(utf32_string const& utf32, char const* utf8)
+		{ return utf32 <= utf32_string(utf8); }
+
+	friend bool operator<=(char const* utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) <= utf32; }
+
+	friend bool operator<=(utf32_string const& utf32, std::string const& utf8)
+		{ return utf32 <= utf32_string(utf8); }
+
+	friend bool operator<=(std::string const& utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) <= utf32; }
+
+
+	friend bool operator>=(utf32_string const& s1, utf32_string const& s2)
+		{ return s1.m_data >= s2.m_data; }
+
+	friend bool operator>=(utf32_string const& utf32, char const* utf8)
+		{ return utf32 >= utf32_string(utf8); }
+
+	friend bool operator>=(char const* utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) >= utf32; }
+
+	friend bool operator>=(utf32_string const& utf32, std::string const& utf8)
+		{ return utf32 >= utf32_string(utf8); }
+
+	friend bool operator>=(std::string const& utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) >= utf32; }
+
+
+	friend bool operator<(utf32_string const& s1, utf32_string const& s2)
+		{ return s1.m_data < s2.m_data; }
+
+	friend bool operator<(utf32_string const& utf32, char const* utf8)
+		{ return utf32 < utf32_string(utf8); }
+
+	friend bool operator<(char const* utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) < utf32; }
+
+	friend bool operator<(utf32_string const& utf32, std::string const& utf8)
+		{ return utf32 < utf32_string(utf8); }
+
+	friend bool operator<(std::string const& utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) < utf32; }
+
+
+	friend bool operator>(utf32_string const& s1, utf32_string const& s2)
+		{ return s1.m_data > s2.m_data; }
+
+	friend bool operator>(utf32_string const& utf32, char const* utf8)
+		{ return utf32 > utf32_string(utf8); }
+
+	friend bool operator>(char const* utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) > utf32; }
+
+	friend bool operator>(utf32_string const& utf32, std::string const& utf8)
+		{ return utf32 > utf32_string(utf8); }
+
+	friend bool operator>(std::string const& utf8, utf32_string const& utf32)
+		{ return utf32_string(utf8) > utf32; }
+
+
+	std::string string() const { return utf32_to_utf8(m_data); }
+	std::string string(std::size_t n) const
+		{ assert(n <= m_data.size()); return utf32_to_utf8(std::u32string(1, m_data[n])); }
+
+	operator std::string() const { return string(); }
+
+	void clear() { m_data.clear(); }
+	void release() { std::u32string().swap(m_data); }
+	void shrink() { std::u32string(m_data).swap(m_data); }
+	void shrink_to_fit() { m_data.shrink_to_fit(); }
+
+	auto begin() { return std::begin(m_data); }
+	auto begin() const { return std::begin(m_data); }
+
+	auto end() { return std::end(m_data); }
+	auto end() const { return std::end(m_data); }
+
+	auto cbegin() const { return std::cbegin(m_data); }
+	auto cend() const { return std::cend(m_data); }
+
+	auto rbegin() { return std::rbegin(m_data); }
+	auto rbegin() const { return std::rbegin(m_data); }
+
+	auto rend() { return std::rend(m_data); }
+	auto rend() const { return std::rend(m_data); }
+
+	auto crbegin() const { return std::crbegin(m_data); }
+	auto crend() const { return std::crend(m_data); }
+
+	friend
+	std::ostream& operator<<(std::ostream& os, utf32_string const& s)
+		{ return os << s.string(); }
+
+	friend
+	std::istream& operator>>(std::istream& is, utf32_string& s)
+	{
+		std::string utf8;
+		if(is >> utf8)
+			s = utf8;
+		return is;
+	}
+
+private:
+	std::u32string m_data;
+};
 
 } // unicode_utils
 } // header_only_library

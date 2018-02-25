@@ -39,11 +39,11 @@ inline std::mutex& ctime_mutex()
 #endif
 
 /**
- * Thread-safe cross platform (xp) localtime function
+ * Thread-safe cross platform localtime function
  * @param timer
  * @return
  */
-inline std::tm localtime_xp(std::time_t timer)
+inline std::tm safe_localtime(std::time_t timer)
 {
 	std::tm bt {};
 #if defined(__unix__)
@@ -58,11 +58,11 @@ inline std::tm localtime_xp(std::time_t timer)
 }
 
 /**
- * Thread-safe cross platform (xp) gmtime function
+ * Thread-safe cross platform gmtime function
  * @param timer
  * @return
  */
-inline std::tm gmtime_xp(std::time_t timer)
+inline std::tm safe_gmtime(std::time_t timer)
 {
 	std::tm bt {};
 #if defined(__unix__)
@@ -76,17 +76,17 @@ inline std::tm gmtime_xp(std::time_t timer)
 	return bt;
 }
 
-inline std::time_t mktime_xp(std::tm& bt)
+inline std::time_t safe_mktime(std::tm& bt)
 {
 	return std::mktime(&bt);
 }
 
 /**
- * Thread-safe cross platform (xp) ctime function
+ * Thread-safe cross platform ctime function
  * @param timer
  * @return
  */
-inline std::string ctime_xp(std::time_t timer)
+inline std::string safe_ctime(std::time_t timer)
 {
 #if defined(__unix__)
 	char buf[26];
@@ -99,20 +99,23 @@ inline std::string ctime_xp(std::time_t timer)
 }
 
 // default = "YYYY-MM-DD HH:MM:SS"
-inline std::string time_stamp_at(std::time_t when, const std::string& fmt = "%F %T")
+inline
+std::string time_stamp_at(std::time_t when, const std::string& fmt = "%F %T")
 {
-	auto bt = localtime_xp(when);
+	auto bt = safe_localtime(when);
 	char buf[64];
 	return {buf, std::strftime(buf, sizeof(buf), fmt.c_str(), &bt)};
 }
 
-inline std::string time_stamp_now(const std::string& fmt = "%F %T")
+inline
+std::string time_stamp_now(const std::string& fmt = "%F %T")
 {
 	return time_stamp_at(std::time(0), fmt);
 }
 
 [[deprecated]]
-inline std::string time_stamp(const std::string& fmt = "%F %T")
+inline
+std::string time_stamp(const std::string& fmt = "%F %T")
 {
 	return time_stamp_now(fmt);
 }

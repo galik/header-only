@@ -1,11 +1,11 @@
 #ifndef HEADER_ONLY_LIBRARY_ROPE_H
 #define HEADER_ONLY_LIBRARY_ROPE_H
 
+#include <hol/misc_utils.h>
 #include <deque>
 #include <ostream>
 #include <string>
 
-#include "macro_utils.h"
 #include "zstring_utils.h"
 
 namespace header_only_library {

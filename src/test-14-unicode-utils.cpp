@@ -49,4 +49,70 @@ TEST_CASE("Unicode Conversions", "unicode_utils")
 	}
 }
 
+TEST_CASE("utf32_string constructors")
+{
+	SECTION("default")
+	{
+		hol::utf32_string utf32;
+		REQUIRE(utf32 == "");
+	}
 
+	SECTION("copy")
+	{
+		hol::utf32_string s = "hello string";
+		hol::utf32_string utf32(s);
+		REQUIRE(utf32 == "hello string");
+	}
+
+	SECTION("char*")
+	{
+		hol::utf32_string utf32("hello string");
+		REQUIRE(utf32 == "hello string");
+	}
+
+	SECTION("std::string")
+	{
+		std::string s = "hello string";
+		hol::utf32_string utf32(s);
+		REQUIRE(utf32 == "hello string");
+	}
+
+	SECTION("std::string&&")
+	{
+		hol::utf32_string s(std::string("hello string"));
+		REQUIRE(s == "hello string");
+	}
+}
+
+TEST_CASE("utf32_string assignment")
+{
+	SECTION("copy")
+	{
+		hol::utf32_string s = "hello string";
+		hol::utf32_string utf32;
+		utf32 = s;
+		REQUIRE(utf32 == "hello string");
+	}
+
+	SECTION("char*")
+	{
+		hol::utf32_string utf32;
+		utf32 = "hello string";
+		REQUIRE(utf32 == "hello string");
+	}
+
+	SECTION("std::string")
+	{
+		std::string s = "hello string";
+		hol::utf32_string utf32;
+		utf32 = s;
+		REQUIRE(utf32 == "hello string");
+	}
+
+	SECTION("std::string&&")
+	{
+		hol::utf32_string utf32;
+		utf32 = std::string("hello string");
+		REQUIRE(utf32 == "hello string");
+	}
+}

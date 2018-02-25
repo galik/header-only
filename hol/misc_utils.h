@@ -25,96 +25,24 @@
 #include <cassert>
 #include <iostream>
 
-// Version Utils
+// VERSIONS
 
-// AT LEAST
-//#if __cplusplus >= 199711L
-//#define HOL_IF_AT_LEAST_CPP98(code) do{code}while(0)
-//#define HOL_IF_AT_LEAST_CPP03(code) do{code}while(0)
-//#else
-//#define HOL_IF_AT_LEAST_CPP98(code) do{}while(0)
-//#define HOL_IF_AT_LEAST_CPP03(code) do{}while(0)
-//#endif
-//
-//#if __cplusplus >= 201103L
-//#define HOL_IF_AT_LEAST_CPP11(code) do{code}while(0)
-//#else
-//#define HOL_IF_AT_LEAST_CPP11(code) do{}while(0)
-//#endif
-//
-//#if __cplusplus >= 201402L
-//#define HOL_IF_AT_LEAST_CPP14(code) do{code}while(0)
-//#else
-//#define HOL_IF_AT_LEAST_CPP14(code) do{}while(0)
-//#endif
-//
-//#if __cplusplus >= 201703L
-//#define HOL_IF_AT_LEAST_CPP17(code) do{code}while(0)
-//#else
-//#define HOL_IF_AT_LEAST_CPP17(code) do{}while(0)
-//#endif
-//
-//#ifdef NDEBUG
-//#define HOL_IF_DEBUG(code) do{}while(0)
-//#else
-//#define HOL_IF_DEBUG(code) do{code}while(0)
-//#endif
-//
-//// BEFORE
-//
-//#if __cplusplus < 199711L
-//#define HOL_IF_BEFORE_CPP98(code) do{code}while(0)
-//#define HOL_IF_BEFORE_CPP03(code) do{code}while(0)
-//#else
-//#define HOL_IF_BEFORE_CPP98(code) do{}while(0)
-//#define HOL_IF_BEFORE_CPP03(code) do{}while(0)
-//#endif
-//
-//#if __cplusplus < 201103L
-//#define HOL_IF_BEFORE_CPP11(code) do{code}while(0)
-//#else
-//#define HOL_IF_BEFORE_CPP11(code) do{}while(0)
-//#endif
-//
-//#if __cplusplus < 201402L
-//#define HOL_IF_BEFORE_CPP14(code) do{code}while(0)
-//#else
-//#define HOL_IF_BEFORE_CPP14(code) do{}while(0)
-//#endif
-//
-//#if __cplusplus < 201703L
-//#define HOL_IF_BEFORE_CPP17(code) do{code}while(0)
-//#else
-//#define HOL_IF_BEFORE_CPP17(code) do{}while(0)
-//#endif
-//
-//// EXACTLY
-//
-//#if __cplusplus == 199711L
-//#define HOL_IF_EXACTLY_CPP98(code) do{code}while(0)
-//#define HOL_IF_EXACTLY_CPP03(code) do{code}while(0)
-//#else
-//#define HOL_IF_EXACTLY_CPP98(code) do{}while(0)
-//#define HOL_IF_EXACTLY_CPP03(code) do{}while(0)
-//#endif
-//
-//#if __cplusplus == 201103L
-//#define HOL_IF_EXACTLY_CPP11(code) do{code}while(0)
-//#else
-//#define HOL_IF_EXACTLY_CPP11(code) do{}while(0)
-//#endif
-//
-//#if __cplusplus == 201402L
-//#define HOL_IF_EXACTLY_CPP14(code) do{code}while(0)
-//#else
-//#define HOL_IF_EXACTLY_CPP14(code) do{}while(0)
-//#endif
-//
-//#if __cplusplus == 201703L
-//#define HOL_IF_EXACTLY_CPP17(code) do{code}while(0)
-//#else
-//#define HOL_IF_EXACTLY_CPP17(code) do{}while(0)
-//#endif
+#if __cplusplus >= 199711L
+#  define HOL_AT_LEAST_CPP98
+#  define HOL_AT_LEAST_CPP03
+#endif
+
+#if __cplusplus >= 201103L
+#  define HOL_AT_LEAST_CPP11
+#endif
+
+#if __cplusplus >= 201402L
+#  define HOL_AT_LEAST_CPP14
+#endif
+
+#if __cplusplus >= 201703L
+#  define HOL_AT_LEAST_CPP17
+#endif
 
 // ASERTS
 
@@ -162,10 +90,56 @@ do { \
 #define HOL_UNLIKELY(x)  (x)
 #endif
 
+// Attributes
+
+#ifndef __has_cpp_attribute
+#define __has_cpp_attribute(name) 0
+#endif
+
+#ifndef HOL_NODISCARD
+#if __has_cpp_attribute(nodiscard)
+#define HOL_NODISCARD [[nodiscard]]
+#else
+#define HOL_NODISCARD
+#endif
+#endif // HOL_NODISCARD
+
+#ifndef HOL_NORETURN
+#if __has_cpp_attribute(noreturn)
+#define HOL_NORETURN [[noreturn]]
+#else
+#define HOL_NORETURN
+#endif
+#endif // HOL_NORETURN
+
+#ifndef HOL_DEPRECATED
+#if __has_cpp_attribute(deprecated)
+#define HOL_DEPRECATED(reason) [[deprecated(reason)]]
+#else
+#define HOL_DEPRECATED(reason)
+#endif
+#endif // HOL_DEPRECATED
+
+#ifndef HOL_FALLTHROUGH
+#if __has_cpp_attribute(fallthrough)
+#define HOL_FALLTHROUGH [[fallthrough]]
+#else
+#define HOL_FALLTHROUGH
+#endif
+#endif // HOL_FALLTHROUGH
+
+#ifndef HOL_MAYBE_UNUSED
+#if __has_cpp_attribute(maybe_unused)
+#define HOL_MAYBE_UNUSED [[maybe_unused]]
+#else
+#define HOL_MAYBE_UNUSED
+#endif
+#endif // HOL_MAYBE_UNUSED
+
 // casting
 
 namespace header_only_library {
-namespace macro_utils {
+namespace misc_utils {
 
 template <class T, class U>
 inline T narrow_cast(U u) noexcept
@@ -177,7 +151,31 @@ inline T narrow_cast(U u) noexcept
 	return t;
 }
 
-} // namespace macro_utils
+template<typename Func>
+class HOL_NODISCARD scoped_action
+{
+public:
+	explicit scoped_action(Func func): func(std::move(func)), active(true) {}
+	~scoped_action() { if(active) func(); }
+
+	scoped_action(scoped_action const&) = delete;
+	scoped_action& operator=(scoped_action const&) = delete;
+
+	scoped_action(scoped_action&& other): func(std::move(other.func))
+		{ other.active = false; }
+
+private:
+	Func func;
+	bool active = true;
+};
+
+template<typename Func>
+scoped_action<Func> finally(Func&& func)
+{
+	return scoped_action<Func>(std::forward<Func>(func));
+}
+
+} // namespace misc_utils
 } // namespace header_only_library
 
 #endif // HOL_MACRO_UTILS_H

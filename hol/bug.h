@@ -174,7 +174,7 @@ void signal_received(int sig, siginfo_t* info, void* context)
 
 	if(sig == SIGSEGV)
 	{
-		std::cout << "  Address violation at: " << info->si_addr << '\n';
+//		std::cout << "  Address violation at: " << info->si_addr << '\n';
 		std::cout << "  From function       : " << (void*)uc->uc_mcontext.gregs[REG_RIP] << '\n';
 	}
 
@@ -212,12 +212,12 @@ void signal_received(int sig, siginfo_t* info, void* context)
 inline
 void set_backtrace()
 {
-	struct sigaction sa;
-	sa.sa_sigaction = signal_received;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_SIGINFO|SA_RESTART;
-	sigaction(SIGINT, &sa, nullptr);
-	sigaction(SIGSEGV, &sa, nullptr);
+//	struct sigaction sa;
+//	sa.sa_sigaction = signal_received;
+//	sigemptyset(&sa.sa_mask);
+//	sa.sa_flags = SA_SIGINFO|SA_RESTART;
+//	sigaction(SIGINT, &sa, nullptr);
+//	sigaction(SIGSEGV, &sa, nullptr);
 }
 
 #endif // __unix__

@@ -71,7 +71,7 @@ public:
 };
 
 inline
-auto open_shared_stdio_file(std::string const& filename, std::string const& mode)
+std::shared_ptr<std::FILE> open_shared_stdio_file(std::string const& filename, std::string const& mode)
 {
 	return std::shared_ptr<std::FILE>(std::fopen(filename.c_str(), mode.c_str()), stdio_file_closer());
 }

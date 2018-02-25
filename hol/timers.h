@@ -27,6 +27,7 @@
 #include <ostream>
 #include <iomanip>
 #include <thread>
+#include <condition_variable>
 
 namespace header_only_library {
 namespace timers {
@@ -186,6 +187,9 @@ public:
 
 	event_timer(steady_clock::duration delay): delay(delay) {}
 
+	// TODO: How to make stop() noexcept?
+//	~event_timer() { stop(); }
+
 	template<typename Func, typename... Args>
 	void add_event(Func func, Args&&... args)
 	{
@@ -194,13 +198,24 @@ public:
 
 	void start()
 	{
-		done = false;
+		{
+			std::unique_lock<std::mutex> lock(mtx);
+			done = false;
+		}
+
 		thread = std::thread(&event_timer::event_thread, this);
 	}
 
+	// TODO: make noexcept
 	void stop()
 	{
-		done = true;
+		{
+			std::unique_lock<std::mutex> lock(mtx);
+			done = true;
+		}
+
+		cv.notify_all();
+
 		if(thread.joinable())
 			thread.join();
 	}
@@ -208,28 +223,84 @@ public:
 private:
 	void event_thread()
 	{
-		steady_clock::time_point next_event = steady_clock::now() + delay;
-
-		while(!done)
+		for(auto next_event = steady_clock::now(); ; next_event += delay)
 		{
-			std::this_thread::sleep_until(next_event);
+			{
+				std::unique_lock<std::mutex> lock(mtx);
 
-			if(done)
-				break;
+				cv.wait_until(lock, next_event, [this]{ return done; });
+
+				if(done)
+					break;
+			}
 
 			auto now = system_clock::now();
 
 			for(auto& event: events)
 				event(now);
-
-			next_event += delay;
 		}
 	}
 
-	steady_clock::duration delay;
-	std::atomic_bool done{false};
+	bool done = false;
+
+	std::mutex mtx;
 	std::thread thread;
+	std::condition_variable cv;
+
+	steady_clock::duration delay;
 	std::vector<std::function<void(system_clock::time_point)>> events;
+};
+
+class regular_timer
+{
+public:
+	using clock = std::chrono::steady_clock;
+
+	// how to make stop() noexcept?
+//	~regular_timer() { stop(); }
+
+	template<typename Func>
+	void start(Func&& func, clock::duration delay)
+	{
+		for(auto wake_time = clock::now() + delay;; wake_time += delay)
+		{
+			{
+				std::unique_lock<std::mutex> lock(mtx);
+
+				cv.wait_until(lock, wake_time, [this]{ return done; });
+
+				if(done)
+					break;
+			}
+
+			std::forward<Func>(func)();
+		}
+	}
+
+	template<typename Func>
+	void start_async(Func&& func, clock::duration delay)
+	{
+		thread = std::thread(&regular_timer::start<Func>, this, func, delay);
+	}
+
+	// TODO: make noexcept
+	void stop()
+	{
+		{
+			std::unique_lock<std::mutex> lock(mtx);
+			done = true;
+		}
+		cv.notify_all();
+
+		if(thread.joinable())
+			thread.join();
+	}
+
+private:
+	bool done = false;
+	std::mutex mtx;
+	std::thread thread;
+	std::condition_variable cv;
 };
 
 } // timers
