@@ -68,9 +68,44 @@ public:
 		return st;
 	}
 
+	basic_string_tokenizer& next(string_view& sv, string_type const& delims)
+	{
+		return next(sv, delims.c_str());
+	}
+
+	basic_string_tokenizer& next(string_view& sv, CharT const* delims)
+	{
+		if(eot())
+		{
+			done = true;
+			return *this;
+		}
+
+		auto end = m_s.find_first_of(delims, m_pos);
+
+		if(end == string_type::npos)
+			end = m_s.size();
+
+		sv = string_view(m_s.data() + m_pos, end - m_pos);
+
+		m_pos = m_s.find_first_not_of(delims, end);
+
+		return *this;
+	}
+
+	basic_string_tokenizer& next(string_type& s, std::string const& delims)
+	{
+		string_view sv;
+		if(next(sv))
+			s = sv.to_string();
+		return *this;
+	}
+
 	bool eot() const { return m_pos == string_type::npos; }
 
 	explicit operator bool() const { return !done; }
+
+	void rewind() { m_pos = 0; done = false; }
 
 private:
 	string_type const& m_s;
