@@ -24,6 +24,22 @@
 
 namespace header_only_library {
 namespace string_span_utils {
+namespace detail {
+bool isspace(char c) { return std::isspace(int(c)); }
+bool isspace(wchar_t c) { return std::iswspace(wint_t(c)); }
+bool isspace(char16_t c)
+{
+	constexpr const char16_t* ws = u" \n\t\r";
+	constexpr const char16_t* wse = ws + sizeof(ws)/sizeof(ws[0]);
+	return std::find(ws, wse , c) != wse;
+}
+bool isspace(char32_t c)
+{
+	constexpr const char32_t* ws = U" \n\t\r";
+	constexpr const char32_t* wse = ws + sizeof(ws)/sizeof(ws[0]);
+	return std::find(ws, wse , c) != wse;
+}
+} // namespace detail
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
 class basic_string_span_istream;
@@ -39,7 +55,7 @@ public:
 	using span_type = gsl::basic_string_span<CharT>;
 	using int_type = typename stream_buf::int_type;
 
-	basic_string_span_buf(span_type sp): sp(sp)
+	basic_string_span_buf(span_type sp)
 		{ stream_buf::setg(sp.data(), sp.data(), sp.data() + sp.size()); }
 
 protected:
@@ -59,15 +75,28 @@ private:
 	span_type _getline(CharT delim)
 	{
 		auto pos = std::find(gptr(), egptr(), delim);
-		gsl::span<char> line(gptr(), pos);
+
+		span_type line(gptr(), pos);
+
 		if(pos < egptr())
 			++pos; // skip delim
 
 		gbump(int(pos - gptr()));
+
 		return line;
 	}
 
-	span_type sp;
+	span_type _extract()
+	{
+		auto pos = std::find_if(gptr(), egptr(), [](CharT c){ return !detail::isspace(c); });
+		gbump(int(pos - gptr()));
+
+		pos = std::find_if(gptr(), egptr(), [](CharT c){ return detail::isspace(c); });
+		span_type word(gptr(), pos);
+		gbump(int(pos - gptr()));
+
+		return word;
+	}
 };
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
@@ -87,8 +116,17 @@ public:
 
 	basic_string_span_istream(span_type sp): std::istream(&buf), buf(sp) {}
 
+	friend
+	basic_string_span_istream& operator>>(basic_string_span_istream& is, span_type& sp)
+	{
+		sp = is._extract();
+		return is;
+	}
+
 private:
 	using istream = std::basic_istream<CharT, Traits>;
+
+//	span_type& span() { return buf.sp; }
 
 	span_type _getline(CharT delim)
 	{
@@ -97,11 +135,31 @@ private:
 			istream::setstate(istream::failbit);
 			return {};
 		}
+
 		span_type line = buf._getline(delim);
+
 		if(buf.gptr() == buf.egptr())
 			istream::setstate(istream::eofbit);
+
 		return line;
 	}
+
+	span_type _extract()
+	{
+		if(std::basic_istream<CharT, Traits>::eof())
+		{
+			istream::setstate(istream::failbit);
+			return {};
+		}
+
+		span_type word = buf._extract();
+
+		if(buf.gptr() == buf.egptr())
+			istream::setstate(istream::eofbit);
+
+		return word;
+	}
+
 	basic_string_span_buf<CharT, Traits> buf;
 };
 
