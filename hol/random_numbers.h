@@ -132,31 +132,25 @@ struct std_real_type_test
 	|| std::is_same<Real, long double>::value;
 };
 
-constexpr std::size_t gen_size()
-{
-	// max number of result_type numbers needed to seed from the random_device
-	return sizeof(Generator)/sizeof(HOL_RANDOM_DEVICE::result_type);
-}
-
 inline
-auto random_data() -> std::array<HOL_RANDOM_DEVICE::result_type, gen_size()> const&
+void random_reseed(Generator& gen)
 {
-	thread_local static std::array<HOL_RANDOM_DEVICE::result_type, gen_size()> data = []
-	{
-		HOL_RANDOM_DEVICE rd{HOL_RANDOM_DEVICE_SOURCE};
-		std::array<HOL_RANDOM_DEVICE::result_type, gen_size()> data;
-		std::generate(std::begin(data), std::end(data), std::ref(rd));
-		return data;
-	}();
-
-	return data;
+	auto constexpr gen_size = sizeof(Generator)/sizeof(HOL_RANDOM_DEVICE::result_type);
+	std::array<HOL_RANDOM_DEVICE::result_type, gen_size> data;
+	HOL_RANDOM_DEVICE rd{};
+	std::generate(std::begin(data), std::end(data), std::ref(rd));
+	std::seed_seq seeds(std::begin(data), std::end(data));
+	gen.seed(seeds);
 }
 
 inline
 Generator& random_generator()
 {
-	thread_local static std::seed_seq seeds(std::begin(random_data()), std::end(random_data()));
-	thread_local static Generator gen{seeds};
+	thread_local static Generator gen = []{
+		Generator gen;
+		random_reseed(gen);
+		return gen;
+	}();
 
 	return gen;
 }
@@ -237,8 +231,7 @@ void random_reseed(std::seed_seq& seeds)
 inline
 void random_reseed()
 {
-	std::seed_seq seeds(std::begin(detail::random_data()), std::end(detail::random_data()));
-	random_reseed(seeds);
+	detail::random_reseed(random_generator());
 }
 
 /**
