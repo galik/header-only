@@ -1,5 +1,5 @@
-#ifndef HOL_TEST_H
-#define HOL_TEST_H
+#ifndef HEADER_ONLY_LIBRARY_TEST_H
+#define HEADER_ONLY_LIBRARY_TEST_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -84,5 +84,5 @@ using result_vec = std::vector<result>;
 
 } // hol
 
-#endif // HOL_TEST_H
+#endif // HEADER_ONLY_LIBRARY_TEST_H
 

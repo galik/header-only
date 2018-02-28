@@ -1,5 +1,5 @@
-#ifndef HOL_RANDOM_UTILS_H
-#define HOL_RANDOM_UTILS_H
+#ifndef HEADER_ONLY_LIBRARY_RANDOM_UTILS_H
+#define HEADER_ONLY_LIBRARY_RANDOM_UTILS_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -254,4 +254,4 @@ using PRNG_64D = PRNG_64<double>;
 } // random_utils
 } // header_only_library
 
-#endif // HOL_RANDOM_UTILS_H
+#endif // HEADER_ONLY_LIBRARY_RANDOM_UTILS_H

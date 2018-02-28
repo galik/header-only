@@ -1,5 +1,5 @@
-#ifndef HOL_SMALL_TYPES_H
-#define HOL_SMALL_TYPES_H
+#ifndef HEADER_ONLY_LIBRARY_SMALL_TYPES_H
+#define HEADER_ONLY_LIBRARY_SMALL_TYPES_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -120,4 +120,4 @@ inline std::istream& sgl(std::istream&& i, std::string& s, char c = '\n')
 } // small_types
 } // header_only_library
 
-#endif // HOL_SMALL_TYPES_H
+#endif // HEADER_ONLY_LIBRARY_SMALL_TYPES_H

@@ -1,5 +1,5 @@
-#ifndef HOL_SIMPLE_LOGGER_H
-#define HOL_SIMPLE_LOGGER_H
+#ifndef HEADER_ONLY_LIBRARY_SIMPLE_LOGGER_H
+#define HEADER_ONLY_LIBRARY_SIMPLE_LOGGER_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -542,4 +542,4 @@ Logger operator<<(const LOG& level, const T& v)
 //}
 //} // <anon>
 
-#endif // HOL_SIMPLE_LOGGER_H
+#endif // HEADER_ONLY_LIBRARY_SIMPLE_LOGGER_H

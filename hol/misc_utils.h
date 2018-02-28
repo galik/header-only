@@ -1,5 +1,5 @@
-#ifndef HOL_MACRO_UTILS_H
-#define HOL_MACRO_UTILS_H
+#ifndef HEADER_ONLY_LIBRARY_MISC_UTILS_H
+#define HEADER_ONLY_LIBRARY_MISC_UTILS_H
 //
 // Copyright (c) 2017 Galik <galik.bool@gmail.com>
 //
@@ -25,6 +25,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "assertions.h"
+
 // VERSIONS
 
 #if __cplusplus >= 199711L
@@ -42,34 +44,6 @@
 
 #if __cplusplus >= 201703L
 #  define HOL_AT_LEAST_CPP17
-#endif
-
-// ASERTS
-
-#ifdef NDEBUG
-#define HOL_ASSERT(expr) do{}while(0)
-#define HOL_ASSERT_IF(cond,expr) do{}while(0)
-#define HOL_ASSERT_MSG(expr,msg) do{}while(0)
-#define HOL_ASSERT_MSG_IF(cond,expr,msg) do{}while(0)
-#else
-#define HOL_ASSERT(expr) \
-do { \
-	if(!(expr)) \
-	{ \
-		std::cerr << "assertion '" << #expr << "' failed." << "\nfile: " << __FILE__ << "\nline: " << __LINE__ << '\n'; \
-		std::abort(); \
-	} \
-}while(0)
-#define HOL_ASSERT_IF(cond,expr) do { if(cond) HOL_ASSERT(expr); }while(0)
-#define HOL_ASSERT_MSG(expr,msg) \
-do { \
-	if(!(expr)) \
-	{ \
-		std::cerr << "assertion '" << #expr << "' failed.\ninfo: " << msg << "\nfile: " << __FILE__ << "\nline: " << __LINE__ << '\n'; \
-		std::abort(); \
-	} \
-}while(0)
-#define HOL_ASSERT_MSG_IF(cond,expr,msg) do { if(cond) HOL_ASSERT_MSG(expr,msg); }while(0)
 #endif
 
 #ifdef __GNUG__
@@ -178,4 +152,4 @@ scoped_action<Func> finally(Func&& func)
 } // namespace misc_utils
 } // namespace header_only_library
 
-#endif // HOL_MACRO_UTILS_H
+#endif // HEADER_ONLY_LIBRARY_MISC_UTILS_H

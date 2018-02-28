@@ -1,5 +1,5 @@
-#ifndef HOL_TIMER_H
-#define HOL_TIMER_H
+#ifndef HEADER_ONLY_LIBRARY_TIMER_H
+#define HEADER_ONLY_LIBRARY_TIMER_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -307,4 +307,4 @@ private:
 } // header_only_library
 
 
-#endif // HOL_TIMER_H
+#endif // HEADER_ONLY_LIBRARY_TIMER_H

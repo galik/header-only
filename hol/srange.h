@@ -1,5 +1,5 @@
-#ifndef HOL_SRANGE_H
-#define HOL_SRANGE_H
+#ifndef HEADER_ONLY_LIBRARY_SRANGE_H
+#define HEADER_ONLY_LIBRARY_SRANGE_H
 //
 // Copyright (c) 2017 Galik <galik.bool@gmail.com>
 //
@@ -182,4 +182,4 @@ auto operator""_u32sr(char32_t const* s, std::size_t n) noexcept { return const_
 } // namespace range
 } // namespace header_only_library
 
-#endif // HOL_SRANGE_H
+#endif // HEADER_ONLY_LIBRARY_SRANGE_H

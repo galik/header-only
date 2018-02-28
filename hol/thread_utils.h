@@ -1,5 +1,5 @@
-#ifndef HOL_THREAD_UTILS_H
-#define HOL_THREAD_UTILS_H
+#ifndef HEADER_ONLY_LIBRARY_THREAD_UTILS_H
+#define HEADER_ONLY_LIBRARY_THREAD_UTILS_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -761,4 +761,4 @@ private:
 } // thread_utils
 } // header_only_library
 
-#endif // HOL_THREAD_UTILS_H
+#endif // HEADER_ONLY_LIBRARY_THREAD_UTILS_H

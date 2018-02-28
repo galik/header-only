@@ -1,5 +1,5 @@
-#ifndef HOL_SRANGE_REGEX_H
-#define HOL_SRANGE_REGEX_H
+#ifndef HEADER_ONLY_LIBRARY_SRANGE_REGEX_H
+#define HEADER_ONLY_LIBRARY_SRANGE_REGEX_H
 //
 // Copyright (c) 2017 Galik <galik.bool@gmail.com>
 //
@@ -129,4 +129,4 @@ std::vector<std::vector<basic_range<Char>>> regex_search_all(basic_range<Char> s
 } // namespace range_regex
 } // namespace header_only_library
 
-#endif // HOL_SRANGE_REGEX_H
+#endif // HEADER_ONLY_LIBRARY_SRANGE_REGEX_H

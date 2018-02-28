@@ -1,5 +1,5 @@
-#ifndef HOL_RANGE_H
-#define HOL_RANGE_H
+#ifndef HEADER_ONLY_LIBRARY_RANGE_H
+#define HEADER_ONLY_LIBRARY_RANGE_H
 //
 // Copyright (c) 2017 Galik <galik.bool@gmail.com>
 //
@@ -454,4 +454,4 @@ getline(u32range_istream& is, basic_range<char32_t>& r, char32_t delim = U'\n')
 } // namespace range
 } // namespace header_only_library
 
-#endif // HOL_RANGE_H
+#endif // HEADER_ONLY_LIBRARY_RANGE_H

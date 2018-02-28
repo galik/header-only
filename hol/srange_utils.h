@@ -1,5 +1,5 @@
-#ifndef HOL_SRANGE_UTILS_H
-#define HOL_SRANGE_UTILS_H
+#ifndef HEADER_ONLY_LIBRARY_SRANGE_UTILS_H
+#define HEADER_ONLY_LIBRARY_SRANGE_UTILS_H
 //
 // Copyright (c) 2017 Galik <galik.bool@gmail.com>
 //
@@ -247,4 +247,4 @@ std::vector<basic_srange<CharT>> split_fold(
 } // namespace range_utils
 } // namespace header_only_library
 
-#endif // HOL_SRANGE_UTILS_H
+#endif // HEADER_ONLY_LIBRARY_SRANGE_UTILS_H

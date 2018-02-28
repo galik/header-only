@@ -1,5 +1,5 @@
-#ifndef HEADER_ONLY_LIBRARY_MEMORY_H
-#define HEADER_ONLY_LIBRARY_MEMORY_H
+#ifndef HEADER_ONLY_LIBRARY_MEMORY_UTILS_H
+#define HEADER_ONLY_LIBRARY_MEMORY_UTILS_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -163,4 +163,4 @@ Handle unique_handle<Handle, Cleaner>::release() { owner = false; return h; }
 } // namespace memory_utils
 } // namespace header_only_library
 
-#endif // HEADER_ONLY_LIBRARY_MEMORY_H
+#endif // HEADER_ONLY_LIBRARY_MEMORY_UTILS_H

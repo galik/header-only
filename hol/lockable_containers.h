@@ -1,5 +1,5 @@
-#ifndef HOL_LOCKABLE_CONTAINERS_H
-#define HOL_LOCKABLE_CONTAINERS_H
+#ifndef HEADER_ONLY_LIBRARY_LOCKABLE_CONTAINERS_H
+#define HEADER_ONLY_LIBRARY_LOCKABLE_CONTAINERS_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -128,4 +128,4 @@ HOL_UPDATABLE_LOCKED_ASSOCIATIVE_CONTAINER(unordered_map);
 } // thread_utils
 } // header_only_library
 
-#endif // HOL_LOCKABLE_CONTAINERS_H
+#endif // HEADER_ONLY_LIBRARY_LOCKABLE_CONTAINERS_H

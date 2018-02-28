@@ -24,11 +24,12 @@
 
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <chrono>
 #include <limits>
 #include <random>
 #include <thread>
+
+#include "assertions.h"
 
 /**
  * Configuration:
@@ -133,14 +134,13 @@ struct std_real_type_test
 
 constexpr std::size_t gen_size()
 {
-	// max number of bytes needed from random_devide
+	// max number of result_type numbers needed to seed from the random_device
 	return sizeof(Generator)/sizeof(HOL_RANDOM_DEVICE::result_type);
 }
 
 inline
 auto random_data() -> std::array<HOL_RANDOM_DEVICE::result_type, gen_size()> const&
 {
-//	thread_local static std::array<HOL_RANDOM_DEVICE::result_type, Generator::state_size> data;
 	thread_local static std::array<HOL_RANDOM_DEVICE::result_type, gen_size()> data = []
 	{
 		HOL_RANDOM_DEVICE rd{HOL_RANDOM_DEVICE_SOURCE};
@@ -321,55 +321,55 @@ Number random_number()
  */
 template<typename Real = double>
 bool random_choice(Real p = 0.5)
-	{ return detail::randomly_distributed_number<std::bernoulli_distribution>(p); }
+{
+	HOL_ASSERT(p >= 0.0);
+	HOL_ASSERT(p <= 1.0);
+	return detail::randomly_distributed_number<std::bernoulli_distribution>(p);
+}
 
 /**
  * Return an iterator to a randomly selected container element
- * from the `begin` iterator up to, but not including the `end` iterator.
- * If the distance between the iterators is zero, the behavior is undefined.
+ * from the `begin` iterator up to, and including the `end` iterator.
  *
  * @param begin The first iterator in the range to be considered.
- * @param end The last iterator in the range which will not be included.
+ * @param end The last iterator in the range.
  *
  * @return An iterator to a pseudo randomly selected element
- * from the supplied range.
+ * from the supplied range (or the `end` iterator).
  */
 template<typename Iter>
 Iter random_iterator(Iter begin, Iter end)
 {
-	assert(std::distance(begin, end) > 0);
 	return std::next(begin,
-		random_number(std::distance(begin, end) - 1));
+		random_number(std::distance(begin, end)));
 }
 
 /**
- * Return an iterator to a randomly selected container element. If the
- * container is empty the behavior is undefined.
+ * Return a randomly selected iterator to container.
  *
- * @param c The container to select an element from.
+ * @param c The container to select an iterator from.
  *
- * @return An iterator to a pseudo randomly selected element from the supplied container.
+ * @return A randomly selected iterator, including std::end(c).
  */
 template<typename Container>
-auto random_iterator(Container&& c) -> decltype(std::begin(c))
+auto random_iterator(Container& c) -> decltype(std::begin(c))
 {
-	assert(!c.empty());
+	HOL_ASSERT(!c.empty());
 	return random_iterator(std::begin(c), std::end(c));
 }
 
 /**
- * Return an iterator to a randomly selected array element. If the
- * array is empty the behavior is undefined.
+ * Return a randomly selected iterator to an array.
  *
- * @param c The array to select an element from.
+ * @param array The array to select an element from.
  *
- * @return An iterator to a pseudo randomly selected element from the supplied array.
+ * @return A randomly selected iterator, including std::end(array).
  */
 template<typename T, std::size_t N>
 auto random_iterator(T(&array)[N]) -> decltype(std::begin(array))
 {
-	assert(N > 0);
-	return std::next(std::begin(array), random_number(N - 1));
+	HOL_ASSERT(N > 0);
+	return std::next(std::begin(array), random_number(N));
 }
 
 /**
@@ -383,7 +383,8 @@ auto random_iterator(T(&array)[N]) -> decltype(std::begin(array))
 template<typename Container>
 auto random_element(Container&& c) -> decltype(*std::begin(c))
 {
-	return *random_iterator(std::forward<Container>(c));
+	return *random_iterator(std::begin(std::forward<Container>(c)),
+		std::prev(std::end(std::forward<Container>(c))));
 }
 
 /**
@@ -398,14 +399,26 @@ auto random_element(Container&& c) -> decltype(*std::begin(c))
 template<typename Iter>
 auto random_element(Iter begin, Iter end) -> decltype(*begin)
 {
-	assert(std::distance(begin, end) > 0);
-	return *random_iterator(begin, end);
+	HOL_ASSERT(std::distance(begin, end) > 0);
+	return *random_iterator(begin, std::prev(end));
 }
 
 template<typename Iter>
 void random_shuffle(Iter begin, Iter end)
 {
 	std::shuffle(begin, end, random_generator());
+}
+
+template<typename Container>
+void random_shuffle(Container& c)
+{
+	std::shuffle(std::begin(c), std::end(c), random_generator());
+}
+
+template<typename T, std::size_t N>
+void random_shuffle(T(&array)[N])
+{
+	std::shuffle(std::begin(array), std::end(array), random_generator());
 }
 
 template<typename Duration1, typename Duration2>

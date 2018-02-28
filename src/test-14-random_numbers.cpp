@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-//#include "test.h"
+#define HOL_ASSERT_THROWS
 #include "hol/bug.h"
 #include "hol/random_numbers.h"
 
@@ -46,7 +46,7 @@ TEST_CASE("types", "[]")
 			std::numeric_limits<short>::max()
 		};
 		hol::random_reseed(1);
-		for(auto n = 0; n < 1000000; ++n)
+		for(auto n = 0; n < 100; ++n)
 			REQUIRE(hol::random_number<short>() == pick(mt));
 	}
 
@@ -59,7 +59,7 @@ TEST_CASE("types", "[]")
 			std::numeric_limits<int>::max()
 		};
 		hol::random_reseed(1);
-		for(auto n = 0; n < 1000000; ++n)
+		for(auto n = 0; n < 100; ++n)
 			REQUIRE(hol::random_number<int>() == pick(mt));
 	}
 
@@ -72,7 +72,7 @@ TEST_CASE("types", "[]")
 			std::numeric_limits<long>::max()
 		};
 		hol::random_reseed(1);
-		for(auto n = 0; n < 1000000; ++n)
+		for(auto n = 0; n < 100; ++n)
 			REQUIRE(hol::random_number<long>() == pick(mt));
 	}
 
@@ -85,7 +85,7 @@ TEST_CASE("types", "[]")
 			std::numeric_limits<long long>::max()
 		};
 		hol::random_reseed(1);
-		for(auto n = 0; n < 1000000; ++n)
+		for(auto n = 0; n < 100; ++n)
 			REQUIRE(hol::random_number<long long>() == pick(mt));
 	}
 
@@ -98,7 +98,7 @@ TEST_CASE("types", "[]")
 			std::numeric_limits<unsigned short>::max()
 		};
 		hol::random_reseed(1);
-		for(auto n = 0; n < 1000000; ++n)
+		for(auto n = 0; n < 100; ++n)
 			REQUIRE(hol::random_number<unsigned short>() == pick(mt));
 	}
 
@@ -111,7 +111,7 @@ TEST_CASE("types", "[]")
 			std::numeric_limits<unsigned int>::max()
 		};
 		hol::random_reseed(1);
-		for(auto n = 0; n < 1000000; ++n)
+		for(auto n = 0; n < 100; ++n)
 			REQUIRE(hol::random_number<unsigned int>() == pick(mt));
 	}
 
@@ -124,7 +124,7 @@ TEST_CASE("types", "[]")
 			std::numeric_limits<unsigned long>::max()
 		};
 		hol::random_reseed(1);
-		for(auto n = 0; n < 1000000; ++n)
+		for(auto n = 0; n < 100; ++n)
 			REQUIRE(hol::random_number<unsigned long>() == pick(mt));
 	}
 
@@ -137,7 +137,19 @@ TEST_CASE("types", "[]")
 			std::numeric_limits<unsigned long long>::max()
 		};
 		hol::random_reseed(1);
-		for(auto n = 0; n < 1000000; ++n)
+		for(auto n = 0; n < 100; ++n)
 			REQUIRE(hol::random_number<unsigned long long>() == pick(mt));
+	}
+}
+
+TEST_CASE("functions")
+{
+	SECTION("random_choice")
+	{
+		REQUIRE_NOTHROW(hol::random_choice(0.0));
+		REQUIRE_NOTHROW(hol::random_choice(1.0));
+
+		REQUIRE_THROWS(hol::random_choice(-0.1));
+		REQUIRE_THROWS(hol::random_choice(1.1));
 	}
 }

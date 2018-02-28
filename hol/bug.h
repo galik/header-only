@@ -1,5 +1,5 @@
-#ifndef HOL_BUG_H
-#define HOL_BUG_H
+#ifndef HEADER_ONLY_LIBRARY_BUG_H
+#define HEADER_ONLY_LIBRARY_BUG_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -224,4 +224,4 @@ void set_backtrace()
 
 } // header_only_library
 
-#endif // HOL_BUG_H
+#endif // HEADER_ONLY_LIBRARY_BUG_H

@@ -1,5 +1,5 @@
-#ifndef HOL_SPLIT_ALGOS_H
-#define HOL_SPLIT_ALGOS_H
+#ifndef HEADER_ONLY_LIBRARY_SPLIT_ALGOS_H
+#define HEADER_ONLY_LIBRARY_SPLIT_ALGOS_H
 
 #include <hol/misc_utils.h>
 #include "macro_exceptions.h"
@@ -125,4 +125,4 @@ auto inserter(Container& c) -> emplace_back_inserter<Container>
 } // namespace algorithm
 } // namespace header_only_library
 
-#endif // HOL_SPLIT_ALGOS_H
+#endif // HEADER_ONLY_LIBRARY_SPLIT_ALGOS_H

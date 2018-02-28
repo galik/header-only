@@ -1,5 +1,5 @@
-#ifndef HOL_RANGE_UTILS_H
-#define HOL_RANGE_UTILS_H
+#ifndef HEADER_ONLY_LIBRARY_RANGE_UTILS_H
+#define HEADER_ONLY_LIBRARY_RANGE_UTILS_H
 //
 // Copyright (c) 2017 Galik <galik.bool@gmail.com>
 //
@@ -378,4 +378,4 @@ auto right_splice(basic_range<T> r1, basic_range<T> r2)
 } // namespace range
 } // namespace header_only_library
 
-#endif // HOL_RANGE_UTILS_H
+#endif // HEADER_ONLY_LIBRARY_RANGE_UTILS_H

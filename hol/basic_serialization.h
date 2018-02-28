@@ -1,5 +1,5 @@
-#ifndef HOL_BASIC_SERIALIZATION_H
-#define HOL_BASIC_SERIALIZATION_H
+#ifndef HEADER_ONLY_LIBRARY_BASIC_SERIALIZATION_H
+#define HEADER_ONLY_LIBRARY_BASIC_SERIALIZATION_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -524,4 +524,4 @@ std::istream& operator>>(std::istream& is, std::list<T>& c)
 
 #endif // version 0.1.0 (100)
 
-#endif // HOL_BASIC_SERIALIZATION_H
+#endif // HEADER_ONLY_LIBRARY_BASIC_SERIALIZATION_H

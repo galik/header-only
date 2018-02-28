@@ -1,5 +1,5 @@
-#ifndef HOL_MACRO_EXCEPTIONS_H
-#define HOL_MACRO_EXCEPTIONS_H
+#ifndef HEADER_ONLY_LIBRARY_MACRO_EXCEPTIONS_H
+#define HEADER_ONLY_LIBRARY_MACRO_EXCEPTIONS_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -136,4 +136,4 @@ public:
 	hol_throw_exception(header_only_library::macro_exceptions::tracable_runtime_error, m)
 #endif // __linux__
 
-#endif // HOL_MACRO_EXCEPTIONS_H
+#endif // HEADER_ONLY_LIBRARY_MACRO_EXCEPTIONS_H

@@ -1,5 +1,5 @@
-#ifndef HOL_TIME_UTILE_H
-#define HOL_TIME_UTILE_H
+#ifndef HEADER_ONLY_LIBRARY_TIME_UTILE_H
+#define HEADER_ONLY_LIBRARY_TIME_UTILE_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -123,4 +123,4 @@ std::string time_stamp(const std::string& fmt = "%F %T")
 } // time_utils
 } // header_only_library
 
-#endif // HOL_TIME_UTILE_H
+#endif // HEADER_ONLY_LIBRARY_TIME_UTILE_H

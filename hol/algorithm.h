@@ -1,5 +1,5 @@
-#ifndef HOL_ALGORITHM_H
-#define HOL_ALGORITHM_H
+#ifndef HEADER_ONLY_LIBRARY_ALGORITHM_H
+#define HEADER_ONLY_LIBRARY_ALGORITHM_H
 //
 // Copyright (c) 2016 Galik <galik.bool@gmail.com>
 //
@@ -110,4 +110,4 @@ void erase_remove_from_if(Container&& c, Pred p)
 } // algorithms
 } // header_only_library
 
-#endif // HOL_ALGORITHM_H
+#endif // HEADER_ONLY_LIBRARY_ALGORITHM_H

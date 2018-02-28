@@ -26,6 +26,7 @@
 #include <cassert>
 #include <limits>
 
+#include "assertions.h"
 #include "random_numbers.h"
 
 namespace header_only_library {
@@ -44,9 +45,9 @@ Integer random_binomial(Integer t = 1, double p = 0.5)
 		"Template parameter must be short, int, long, long long, "
 			"unsigned short, unsigned int, unsigned long, or unsigned long long");
 
-	assert(0 <= t);
-	assert(0.0 < p);
-	assert(p <= 1.0);
+	HOL_ASSERT(0 <= t);
+	HOL_ASSERT(0.0 < p);
+	HOL_ASSERT(p <= 1.0);
 	// Requires that 0 ≤ p ≤ 1 and 0 ≤ t.
 	return detail::randomly_distributed_number<std::binomial_distribution<Integer>>(t, p);
 }
@@ -58,9 +59,9 @@ Integer random_negative_binomial(Integer k = 1, double p = 0.5)
 		"Template parameter must be short, int, long, long long, "
 			"unsigned short, unsigned int, unsigned long, or unsigned long long");
 
-	assert(0 < k);
-	assert(0.0 < p);
-	assert(p <= 1.0);
+	HOL_ASSERT(0 < k);
+	HOL_ASSERT(0.0 < p);
+	HOL_ASSERT(p <= 1.0);
 
 	return detail::randomly_distributed_number<std::negative_binomial_distribution<Integer>>(k, p);
 }
@@ -72,8 +73,8 @@ Integer random_geometric(double p = 0.5)
 		"Template parameter must be short, int, long, long long, "
 			"unsigned short, unsigned int, unsigned long, or unsigned long long");
 
-	assert(p > 0.0);
-	assert(p < 1.0);
+	HOL_ASSERT(p > 0.0);
+	HOL_ASSERT(p < 1.0);
 
 	return detail::randomly_distributed_number<std::geometric_distribution<Integer>>(p);
 }
@@ -85,7 +86,7 @@ Integer random_poisson(double mean = 1.0)
 		"Template parameter must be short, int, long, long long, "
 			"unsigned short, unsigned int, unsigned long, or unsigned long long");
 
-	assert(0.0 < mean);
+	HOL_ASSERT(0.0 < mean);
 
 	return detail::randomly_distributed_number<std::poisson_distribution<Integer>>(mean);
 }
@@ -96,7 +97,7 @@ Real random_exponential(Real lambda = 1.0)
 	static_assert(detail::std_real_type_test<Real>::value,
 		"Parameter must be float, double or long double");
 
-	assert(0.0 < lambda);
+	HOL_ASSERT(0.0 < lambda);
 
 	return detail::randomly_distributed_number<std::exponential_distribution<Real>>(lambda);
 }
@@ -220,7 +221,7 @@ Integer random_discrete(std::size_t count, double xmin, double xmax, UnaryOperat
 
 	double delta = (xmax - xmin) / double(count);
 
-	assert(delta > 0.0);
+	HOL_ASSERT(delta > 0.0);
 
 	return detail::randomly_distributed_number<std::discrete_distribution<Integer>>(
 		count, xmin, xmax, unary_op);
@@ -266,8 +267,8 @@ Real random_piecewise_constant(std::size_t nw, Real xmin, Real xmax, UnaryOperat
 
 	using dist_type = std::piecewise_constant_distribution<Real>;
 
-	assert(xmin < xmax);
-	assert(0.0 < (xmax - xmin) / Real(nw ? nw : 1));
+	HOL_ASSERT(xmin < xmax);
+	HOL_ASSERT(0.0 < (xmax - xmin) / Real(nw ? nw : 1));
 
 	return detail::randomly_distributed_number<dist_type>(nw, xmin, xmax, fw);
 }

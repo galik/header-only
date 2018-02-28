@@ -41,37 +41,22 @@ public:
 
 	friend
 	basic_string_tokenizer& operator>>(basic_string_tokenizer& st, string_view& s)
-	{
-		if(st.eot())
-		{
-			st.done = true;
-			return st;
-		}
-
-		auto end = st.m_s.find_first_of(st.m_delims, st.m_pos);
-
-		if(end == string_type::npos)
-			end = st.m_s.size();
-
-		s = string_view(st.m_s.data() + st.m_pos, end - st.m_pos);
-		st.m_pos = st.m_s.find_first_not_of(st.m_delims, end);
-
-		return st;
-	}
+		{ return st.next(s, st.m_delims.c_str()); }
 
 	friend
 	basic_string_tokenizer& operator>>(basic_string_tokenizer& st, string_type& s)
 	{
 		string_view sv;
-		st >> sv;
-		s = sv.to_string();
+		if(st >> sv)
+			s = sv.to_string();
 		return st;
 	}
 
+	basic_string_tokenizer& next(string_view& sv)
+		{ return next(sv, m_delims.c_str()); }
+
 	basic_string_tokenizer& next(string_view& sv, string_type const& delims)
-	{
-		return next(sv, delims.c_str());
-	}
+		{ return next(sv, delims.c_str()); }
 
 	basic_string_tokenizer& next(string_view& sv, CharT const* delims)
 	{
@@ -93,10 +78,16 @@ public:
 		return *this;
 	}
 
+	basic_string_tokenizer& next(string_type& s)
+		{ return next(s, m_delims.c_str()); }
+
 	basic_string_tokenizer& next(string_type& s, std::string const& delims)
+		{ return next(s, delims.c_str()); }
+
+	basic_string_tokenizer& next(string_type& s, CharT const* delims)
 	{
 		string_view sv;
-		if(next(sv))
+		if(next(sv, delims))
 			s = sv.to_string();
 		return *this;
 	}
