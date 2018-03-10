@@ -22,8 +22,9 @@
 // SOFTWARE.
 //
 
-#include <cassert>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
 
 #ifndef HOL_ASSERT_THROWS
 #  define HOL_ASSERT_ACTION(msg) do { \
