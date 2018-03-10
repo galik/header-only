@@ -84,6 +84,8 @@ public:
 	void swap(joining_thread& other) noexcept
 		{ using std::swap; swap(t, other.t); }
 
+	bool free() { return !t.joinable(); }
+
 private:
 	std::thread t;
 
@@ -145,6 +147,9 @@ class parallel_jobs
 : private std::vector<joining_thread>
 {
 public:
+	using std::vector<joining_thread>::reserve;
+	using std::vector<joining_thread>::size;
+
 	template<typename Callable, typename... Args>
 	void add(Callable&& callable, Args&&... args)
 	{

@@ -149,13 +149,11 @@ struct scope_bomb
 
 struct bug_type
 {
-	bug_type() { bug_fun(); }
-	bug_type(bug_type&&) { bug_fun(); }
-	bug_type(bug_type const&) { bug_fun(); }
-	~bug_type() { bug_fun(); }
-
-	bug_type& operator=(bug_type&&) { bug_fun(); return *this; }
-	bug_type& operator=(bug_type const&) { bug_fun(); return *this; }
+	bug_type() { bug_fun(); bug_var(this); }
+	bug_type(bug_type const&) { bug_fun(); bug_var(this); }
+	bug_type(bug_type&&) { bug_fun(); bug_var(this); }
+	bug_type& operator=(bug_type const&) { bug_fun(); bug_var(this); return *this; }
+	bug_type& operator=(bug_type&&) { bug_fun(); bug_var(this); return *this; }
 };
 
 // BACKTRACE LINUX

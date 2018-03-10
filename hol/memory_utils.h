@@ -28,19 +28,20 @@ namespace header_only_library {
 namespace memory_utils {
 
 struct malloc_dter{void operator()(void*p)const{std::free(p);}};
-using  calloc_uptr = std::unique_ptr<char, malloc_dter>;
+
+template<typename T>
+using malloc_uptr = std::unique_ptr<T, malloc_dter>;
+
+using calloc_uptr = malloc_uptr<char>;
+
 
 struct stdio_file_closer
-{
-	void operator()(std::FILE* fp) const { std::fclose(fp); }
-};
+	{ void operator()(std::FILE* fp) const { if(fp) std::fclose(fp); } };
 
 #ifdef __unix__
 
 struct piped_file_closer
-{
-	void operator()(std::FILE* fp) const { pclose(fp); }
-};
+	{ void operator()(std::FILE* fp) const { if(fp) pclose(fp); } };
 
 using unique_piped_file_ptr = std::unique_ptr<std::FILE, piped_file_closer>;
 

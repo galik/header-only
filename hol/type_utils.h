@@ -22,8 +22,12 @@
 // SOFTWARE.
 //
 
+#include <cstddef>
+
 namespace header_only_library {
 namespace type_utils {
+
+namespace whole_types {
 
 using signed_char = signed char;
 using signed_short = signed short;
@@ -38,6 +42,10 @@ using unsigned_long = unsigned long;
 using unsigned_long_long = unsigned long long;
 
 using long_double = long double;
+
+} // namespace whole_types
+
+using index = std::ptrdiff_t;
 
 } // namespace type_utils
 } // namespace header_only_library
