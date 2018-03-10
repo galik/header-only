@@ -28,8 +28,6 @@
 #include <string>
 #include <vector>
 
-#include "bug.h"
-
 #if __cplusplus < 201703
 #error "This library requires C++17 or later."
 #endif
@@ -53,7 +51,6 @@ std::ostream& write(std::ostream& os, byte const* buf, std::size_t len)
 inline
 std::istream& getline(std::istream& is, byte_string& line, byte delim = byte('\n'))
 {
-	bug_fun();
 	std::string s;
 	std::getline(is, s, char(delim));
 	line = std::vector<byte>((byte*)s.data(), (byte*)s.data() + s.size());
