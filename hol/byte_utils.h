@@ -78,7 +78,7 @@ std::istream& get(std::istream& is,  std::streambuf& buf, byte delim)
 
 inline
 std::istream& operator>>(std::istream& is, std::byte& b)
-	{ char c; is >> c; b = std::byte(c); return is; }
+	{ return is >> (std::byte&)b; }
 
 inline
 std::ostream& operator<<(std::ostream& os, std::byte b)
