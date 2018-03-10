@@ -30,6 +30,7 @@
 #include <thread>
 
 #include "assertions.h"
+//#include "misc_utils.h"
 
 /**
  * Configuration:
@@ -90,6 +91,12 @@
 #ifndef HOL_RANDOM_NUMBER_GENERATOR
 #  define HOL_RANDOM_NUMBER_GENERATOR std::mt19937
 #endif
+
+#ifndef HOL_AT_LEAST_CPP17
+#  if __cplusplus >= 201703L
+#    define HOL_AT_LEAST_CPP17
+#  endif
+#endif // HOL_AT_LEAST_CPP17
 
 namespace header_only_library {
 
@@ -185,11 +192,6 @@ randomly_distributed_number(Args&&... args)
 
 } // namespace detail
 
-///**
-// * Get the underlying pseudo random number generator.
-// * @return A random number generator.
-// */
-
 /*! \fn random_generator
     \brief Get the underlying pseudo random number generator.
 
@@ -200,15 +202,6 @@ detail::Generator& random_generator()
 {
 	return detail::random_generator();
 }
-
-///**
-// * Re-seed the underlying pseudo random number generator
-// * from a `std::seed_seq`.
-// * Every unique list of seeds value will cause the same stream
-// * of pseudo random numbers to be generated
-// *
-// * @param seeds The `std::seed_seq` to use.
-// */
 
 /*!
  * \brief Re-seed the underlying pseudo random number generator
@@ -421,6 +414,27 @@ void random_sleep_for(Duration1 min, Duration2 max)
 	auto duration = common_duration_type(random_number(min.count(), max.count()));
 	std::this_thread::sleep_for(duration);
 }
+
+#ifdef HOL_AT_LEAST_CPP17
+
+template<typename PIter, typename SIter>
+auto random_sample(PIter begin, PIter end, SIter out, std::size_t n)
+	{ std::sample(begin, end, out, n, random_generator()); }
+
+template<typename Container>
+auto random_sample(Container&& c, std::size_t n)
+{
+	if(n >= c.size())
+		return c;
+
+	typename std::remove_reference<Container>::type s;
+	s.reserve(n);
+	random_sample(std::begin(std::forward<Container>(c)), std::end(std::forward<Container>(c)),
+		std::inserter(s, std::end(s)), n);
+	return s;
+}
+
+#endif // C++17
 
 // Alternative experimentation
 namespace alt {
