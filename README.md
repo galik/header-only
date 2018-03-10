@@ -26,6 +26,8 @@ Everything in this repository is released under the **MIT** license as follows:
 ```
 # The Library
 
+## This library is currently EXPERIMENTAL
+
 * `string_utils`
 
 This is basic string manipulation functions like `trim()`.
