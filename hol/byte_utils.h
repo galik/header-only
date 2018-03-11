@@ -53,7 +53,7 @@ std::istream& getline(std::istream& is, byte_string& line, byte delim = byte('\n
 {
 	std::string s;
 	std::getline(is, s, char(delim));
-	line = std::vector<byte>((byte*)s.data(), (byte*)s.data() + s.size());
+	line = byte_string((byte*)s.data(), (byte*)s.data() + s.size());
 	return is;
 }
 
