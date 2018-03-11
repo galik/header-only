@@ -120,3 +120,11 @@ int main()
 }
 ```
 
+## Z String Utils
+
+This is an experimental library dealing with Zero-terminated Strings. It has two parts. First 
+the generic versions of the classic `C` library string functions like `std::strlen`. 
+Secondly functions with easier to understand names and better interfaces.
+
+```cpp
+```

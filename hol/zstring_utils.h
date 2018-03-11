@@ -338,7 +338,7 @@ CharT* strtok(CharT* s, CharT const* delim)
 
 		s = tok + strspn(tok, delim);
 
-		if(*(s))
+		if(*s)
 		{
 			*s = {};
 			p = s + 1;
