@@ -424,6 +424,48 @@ private:
 	std::u32string m_data;
 };
 
+enum class encoding_type{unknown, utf8, utf16le, utf16be, utf32le, utf32be};
+
+#if __cplusplus >= 201703L
+	using byte = std::byte;
+#else
+	using byte = unsigned char;
+#endif
+
+inline
+encoding_type get_encoding_from_BOM(byte* buf, std::size_t n)
+{
+	// utf8	- EF BB BF
+	// utf16le - FF FE
+	// utf16be - FE FF
+	// utf32le - FF FE 00 00
+	// utf32be - 00 00 FE FF
+
+	if(n > 1) // UTF-16
+	{
+		if(buf[0] == byte(0xFF) && buf[1] == byte(0xFE))
+			return encoding_type::utf16le;
+		else if(buf[0] == byte(0xFE) && buf[1] == byte(0xFF))
+			return encoding_type::utf16be;
+	}
+
+	if(n > 2) // UTF-8
+	{
+		if(buf[0] == byte(0xEF) && buf[1] == byte(0xBB) && buf[2] == byte(0xBF))
+			return encoding_type::utf8;
+	}
+
+	if(n == 4) // UTF-32
+	{
+		if(buf[0] == byte(0xFF) && buf[1] == byte(0xFE) && buf[2] == byte(0x00) && buf[3] == byte(0x00))
+			return encoding_type::utf32le;
+		else if(buf[0] == byte(0x00) && buf[1] == byte(0x00) && buf[2] == byte(0xFE) && buf[3] == byte(0xFF))
+			return encoding_type::utf32be;
+	}
+
+	return encoding_type::unknown;
+}
+
 } // unicode_utils
 } // header_only_library
 
