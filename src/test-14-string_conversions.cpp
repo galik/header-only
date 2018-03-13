@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Galik <galik.bool@gmail.com>
+// Copyright (c) 2018 Galik <galik.bool@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
@@ -29,12 +29,12 @@
 
 //#include "test.h"
 #include "hol/bug.h"
-//#include "hol/random_numbers.h"
+#include "hol/random_numbers.h"
 #include "hol/string_utils.h"
 //#include "hol/unicode_utils.h"
 
 namespace hol{
-//	using namespace header_only_library::random_numbers;
+	using namespace header_only_library::random_numbers;
 	using namespace header_only_library::string_utils;
 //	using namespace header_only_library::unicode_utils;
 }
@@ -67,6 +67,14 @@ unsigned long long int const min_unsigned_long = static_cast<unsigned long long 
 
 unsigned long long int const max_unsigned_long_long = static_cast<unsigned long long int>(limits<unsigned long long>::max());
 unsigned long long int const min_unsigned_long_long = static_cast<unsigned long long int>(limits<unsigned long long>::min());
+
+template<typename T>
+std::vector<T> random_buffer(std::size_t n, T min = limits<T>::lowest(), T max = limits<T>::max())
+{
+	std::vector<T> v;
+	std::generate_n(std::back_inserter(v), n, [&]{ return hol::random_number(min, max); });
+	return v;
+}
 
 TEST_CASE("Signed number conversion utils", "[signed]")
 {
@@ -223,6 +231,127 @@ TEST_CASE("Unsigned number conversion utils", "[unsigned]")
 	}
 }
 
+constexpr std::size_t const N = 1000ULL;
 
+TEST_CASE("Random testing", "[random]")
+{
+	SECTION("short")
+	{
+		using int_type = short;
 
+		auto v = random_buffer<int_type>(N);
 
+		for(auto i: v)
+		{
+			auto s = std::to_string(i);
+			int_type n;
+			REQUIRE(hol::s_to_i(s, n));
+			REQUIRE(i == n);
+		}
+	}
+
+	SECTION("int")
+	{
+		using int_type = int;
+
+		auto v = random_buffer<int_type>(N);
+
+		for(auto i: v)
+		{
+			auto s = std::to_string(i);
+			int_type n;
+			REQUIRE(hol::s_to_i(s, n));
+			REQUIRE(i == n);
+		}
+	}
+
+	SECTION("long")
+	{
+		using int_type = long;
+
+		auto v = random_buffer<int_type>(N);
+
+		for(auto i: v)
+		{
+			auto s = std::to_string(i);
+			int_type n;
+			REQUIRE(hol::s_to_i(s, n));
+			REQUIRE(i == n);
+		}
+	}
+
+	SECTION("long long")
+	{
+		using int_type = long long;
+
+		auto v = random_buffer<int_type>(N);
+
+		for(auto i: v)
+		{
+			auto s = std::to_string(i);
+			int_type n;
+			REQUIRE(hol::s_to_i(s, n));
+			REQUIRE(i == n);
+		}
+	}
+
+	SECTION("unsigned short")
+	{
+		using int_type = unsigned short;
+
+		auto v = random_buffer<int_type>(N);
+
+		for(auto i: v)
+		{
+			auto s = std::to_string(i);
+			int_type n;
+			REQUIRE(hol::s_to_u(s, n));
+			REQUIRE(i == n);
+		}
+	}
+
+	SECTION("unsigned int")
+	{
+		using int_type = unsigned int;
+
+		auto v = random_buffer<int_type>(N);
+
+		for(auto i: v)
+		{
+			auto s = std::to_string(i);
+			int_type n;
+			REQUIRE(hol::s_to_u(s, n));
+			REQUIRE(i == n);
+		}
+	}
+
+	SECTION("unsigned long")
+	{
+		using int_type = unsigned long;
+
+		auto v = random_buffer<int_type>(N);
+
+		for(auto i: v)
+		{
+			auto s = std::to_string(i);
+			int_type n;
+			REQUIRE(hol::s_to_u(s, n));
+			REQUIRE(i == n);
+		}
+	}
+
+	SECTION("unsigned long long")
+	{
+		using int_type = unsigned long long;
+
+		auto v = random_buffer<int_type>(N);
+
+		for(auto i: v)
+		{
+			auto s = std::to_string(i);
+			int_type n;
+			REQUIRE(hol::s_to_u(s, n));
+			REQUIRE(i == n);
+		}
+	}
+}
