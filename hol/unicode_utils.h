@@ -31,6 +31,11 @@
 #include <stdexcept>
 #include <string>
 
+// std::byte
+#if __cplusplus >= 201703L
+#  include <cstddef>
+#endif
+
 namespace header_only_library {
 namespace unicode_utils {
 namespace detail {
@@ -244,6 +249,10 @@ std::u16string codepoint_to_utf16(char32_t cp)
     return {utf16, end_of_utf16};
 }
 
+/**
+ * This string class uses `UTF-32` internally but accepts and
+ * outputs `UTF-8`.
+ */
 class utf32_string
 {
 public:

@@ -28,9 +28,9 @@ TEST_11_SRCS := $(wildcard src/test-11-*.cpp) $(wildcard src/experimental/test-1
 TEST_14_SRCS := $(wildcard src/test-14-*.cpp) $(wildcard src/experimental/test-14-*.cpp)
 TEST_17_SRCS := $(wildcard src/test-17-*.cpp) $(wildcard src/experimental/test-17-*.cpp)
 
-TEST_11_DEPS += $(patsubst src/test-%.cpp,src/test-%.d,$(TEST_11_SRCS))
-TEST_14_DEPS += $(patsubst src/test-%.cpp,src/test-%.d,$(TEST_14_SRCS))
-TEST_17_DEPS += $(patsubst src/test-%.cpp,src/test-%.d,$(TEST_17_SRCS))
+TEST_11_DEPS += $(patsubst %.cpp,%.d,$(TEST_11_SRCS))
+TEST_14_DEPS += $(patsubst %.cpp,%.d,$(TEST_14_SRCS))
+TEST_17_DEPS += $(patsubst %.cpp,%.d,$(TEST_17_SRCS))
 
 #DEPS := $(patsubst %.cpp,%.d,$(SRCS))
 #TESTS := $(patsubst %.cpp,%,$(SRCS))
