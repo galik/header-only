@@ -24,12 +24,13 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <chrono>
 #include <limits>
 #include <random>
 #include <thread>
 
-#include "assertions.h"
+//#include "assertions.h"
 //#include "misc_utils.h"
 
 /**
@@ -308,8 +309,8 @@ Number random_number()
 template<typename Real = double>
 bool random_choice(Real p = 0.5)
 {
-	HOL_ASSERT(p >= 0.0);
-	HOL_ASSERT(p <= 1.0);
+	assert(p >= 0.0);
+	assert(p <= 1.0);
 	return detail::randomly_distributed_number<std::bernoulli_distribution>(p);
 }
 
@@ -340,7 +341,7 @@ Iter random_iterator(Iter begin, Iter end)
 template<typename Container>
 auto random_iterator(Container& c) -> decltype(std::begin(c))
 {
-	HOL_ASSERT(!c.empty());
+	assert(!c.empty());
 	return random_iterator(std::begin(c), std::end(c));
 }
 
@@ -354,7 +355,7 @@ auto random_iterator(Container& c) -> decltype(std::begin(c))
 template<typename T, std::size_t N>
 auto random_iterator(T(&array)[N]) -> decltype(std::begin(array))
 {
-	HOL_ASSERT(N > 0);
+	assert(N > 0);
 	return std::next(std::begin(array), random_number(N));
 }
 
@@ -385,7 +386,7 @@ auto random_element(Container&& c) -> decltype(*std::begin(c))
 template<typename Iter>
 auto random_element(Iter begin, Iter end) -> decltype(*begin)
 {
-	HOL_ASSERT(std::distance(begin, end) > 0);
+	assert(std::distance(begin, end) > 0);
 	return *random_iterator(begin, std::prev(end));
 }
 
