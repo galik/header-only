@@ -181,6 +181,24 @@ Number random_number(Number from, Number to)
 	return dist(random_generator(), typename Distribution::param_type{from, to});
 }
 
+template<typename Number>
+Number random_number()
+{
+	static_assert(std_int_type_test<Number>::value||std_real_type_test<Number>::value,
+		"Parameters must be integer or floating point numbers");
+
+	using Distribution = typename std::conditional
+	<
+		std::is_integral<Number>::value,
+		std::uniform_int_distribution<Number>,
+		std::uniform_real_distribution<Number>
+	>::type;
+
+	thread_local static Distribution dist;
+
+	return dist(random_generator());
+}
+
 template<typename Distribution, typename... Args>
 typename Distribution::result_type
 randomly_distributed_number(Args&&... args)
@@ -283,20 +301,17 @@ Number random_number(Number to)
 
 /**
  * Generate a pseudo random number that is uniformly distributed
- * between the lowest and the highest possible value according to
- * the template parameter's numeric type.
+ * between 0.0 and 1.0 (exclusive) for real values and 0 and the maximum
+ * possible value (inclusive) for integer numbers.
  *
  * @param Number the type of number to generate.
  *
- * @return A random number between the lowest and the highest possible
- * value for the supplied numeric type (inclusive)
+ * @return A random number between 0.0 and 1.0
  */
 template<typename Number>
 Number random_number()
 {
-	auto from = std::numeric_limits<Number>::lowest();
-	auto to = std::numeric_limits<Number>::max();
-	return detail::random_number(from, to);
+	return detail::random_number<Number>();
 }
 
 /**
