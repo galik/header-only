@@ -115,24 +115,24 @@ constexpr std::size_t size(const T(&)[N]) noexcept
 #define bug(m) do{std::ostringstream o;o<<m<<'\n';std::cout<<o.str();}while(0)
 #define bug_var(v) bug(#v ": " << std::boolalpha << v)
 
-#define bug_cnt(c) \
-	do{ \
-		std::ostringstream o; \
-		o << #c ": " << header_only_library::private_details::size(c) << '\n'; \
-		int i = 0; \
-		for(auto&& v_c: c) \
+#define bug_cnt(c)                                                                  \
+	do{                                                                             \
+		std::ostringstream o;                                                       \
+		o << #c ": " << header_only_library::private_details::size(c) << '\n';      \
+		int i = 0;                                                                  \
+		for(auto&& v_c: c)                                                          \
 			{o << (i<100?" ":"") << (i<10?" ":"") << i << ": " << v_c << '\n';++i;} \
-		std::cout << o.str(); \
+		std::cout << o.str();                                                       \
 	}while(0)
 
-#define bug_itr(c, b, e) \
-	do{ \
-		std::ostringstream o; \
-		o << #c ": " << std::distance(b, e) << '\n'; \
-		int n=0; \
-		for(auto i = (b); i != (e); ++i) \
+#define bug_itr(c, b, e)                                                                  \
+	do{                                                                                   \
+		std::ostringstream o;                                                             \
+		o << #c ": " << std::distance(b, e) << '\n';                                      \
+		int n=0;                                                                          \
+		for(auto i = (b); i != (e); ++i)                                                  \
 			{o << " " << (n<100?" ":"") << (n<10?" ":"") << n << ": " << *i << '\n';++n;} \
-		std::cout << o.str(); \
+		std::cout << o.str();                                                             \
 	}while(0)
 
 struct scope_bomb

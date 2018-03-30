@@ -1,6 +1,8 @@
 #ifndef HEADER_ONLY_LIBRARY_SPAN_ALLOCATOR_H
 #define HEADER_ONLY_LIBRARY_SPAN_ALLOCATOR_H
 
+#include <algorithm>
+#include <cassert>
 #include <optional>
 #include <vector>
 
@@ -12,10 +14,20 @@ namespace containers {
 template<typename T>
 class span_allocator
 {
-	using type = T;
-	using span = gsl::span<type>;
+	template<typename TT>
+	class vector
+	: public std::vector<TT>
+	{
+	public:
+		using std::vector<TT>::vector;
+		gsl::index size() const { return gsl::index(std::vector<TT>::size()); }
+
+	};
 
 public:
+	using value_type = T;
+	using span = gsl::span<value_type>;
+
 	span_allocator(std::size_t n)
 	: m_data(n), m_free(1, span{m_data.data(), gsl::index(m_data.size())}) {}
 
@@ -27,9 +39,26 @@ public:
 		m_data.resize(n);
 	}
 
+	std::vector<span> divide_into(gsl::index n)
+	{
+		m_used.clear();
+		m_free.clear();
+		std::vector<span> sps;
+
+		auto sz = (m_data.size() / n) + (m_data.size() % n);
+
+		while(auto sp = allocate(sz))
+			sps.push_back(sp.value());
+
+		return sps;
+	}
+
 	// TODO: Make this policy plugable
 	std::optional<span> allocate(gsl::index n)
 	{
+		assert(n > 0);
+		assert(n <= gsl::index(m_data.size()));
+
 		auto found = std::find_if(std::begin(m_free), std::end(m_free), [n](span s){
 			return n == s.size();
 		});
@@ -93,41 +122,94 @@ public:
 
 	void dump()
 	{
-		bug_cnt(m_data);
+		std::cout << "m_data: " << m_data.size() << '\n';
+		int i = 0;
+		for(auto sp: m_data)
+			std::cout << i++ << ": " << sp << '\n';
 
-		bug("m_used:");
+		std::cout << "m_used: " << m_used.size() << '\n';
 		for(auto sp: m_used)
-			std::cout << '{' << std::distance(m_data.data(), sp.data())
-				<< ", " << std::distance(m_data.data(), sp.data() + sp.size()) << '}' << '\n';
+			print(sp);
 
-		bug("m_free:");
+		std::cout << "m_free: " << m_free.size() << '\n';
 		for(auto sp: m_free)
-			std::cout << '{' << std::distance(m_data.data(), sp.data())
-				<< ", " << std::distance(m_data.data(), sp.data() + sp.size()) << '}' << '\n';
+			print(sp);
+	}
+
+	std::vector<gsl::index> state()
+	{
+		std::vector<gsl::index> s;
+		// used_size, {used pos}*, free_size, {free pos}*
+		{
+			auto temp = m_used;
+//			std::sort(std::begin(temp), std::end(temp));
+			s.push_back(temp.size());
+			std::transform(std::begin(temp), std::end(temp), std::back_inserter(s), [this](span sp){
+				return std::distance(m_data.data(), sp.data());
+			});
+		}
+		{
+			auto temp = m_free;
+//			std::sort(std::begin(temp), std::end(temp));
+			s.push_back(temp.size());
+			std::transform(std::begin(temp), std::end(temp), std::back_inserter(s), [this](span sp){
+				return std::distance(m_data.data(), sp.data());
+			});
+		}
+		return s;
 	}
 
 private:
+
+	void print(span sp)
+	{
+		std::cout << '{' << std::distance(m_data.data(), sp.data())
+			<< ", " << std::distance(m_data.data(), sp.data() + sp.size()) << '}' << '\n';
+	}
+
 	void move_to_free(typename std::vector<span>::iterator found)
 	{
+		bug_fun();
+//		bug_var(m_auto_defrag);
+//		bug("============");
+		print(*found);
+//		bug("============");
+
 		if(!m_auto_defrag)
 			m_free.push_back(*found);
 		else
 		{
 			auto lb = std::lower_bound(std::begin(m_free), std::end(m_free), *found);
 
-			if(lb != std::end(m_free) && found->data() + found->size() == lb->data())
-				*lb = gsl::make_span(found->data(), found->size() + lb->size());
+			if(lb == std::end(m_free))
+				lb = m_free.insert(lb, *found);
 			else
-				m_free.insert(lb, *found);
+			{
+				if(found->data() + found->size() == lb->data())
+					*lb = gsl::make_span(found->data(), found->size() + lb->size());
+				else
+					lb = m_free.insert(lb, *found);
+			}
+
+			if(lb != std::begin(m_free))
+			{
+				auto prev = std::prev(lb);
+
+				if(prev->data() + prev->size() == lb->data())
+				{
+					*prev = gsl::make_span(prev->data(), prev->size() + lb->size());
+					lb = m_free.erase(lb);
+				}
+			}
 		}
 
 		m_used.erase(found);
 	}
 
 	bool m_auto_defrag = false; // if true, deallocate => OlogN, else O1
-	std::vector<type> m_data;
-	std::vector<span> m_used;
-	std::vector<span> m_free;
+	vector<value_type> m_data;
+	vector<span> m_used;
+	vector<span> m_free;
 };
 
 } // namespace containers

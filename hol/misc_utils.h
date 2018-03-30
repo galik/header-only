@@ -149,6 +149,16 @@ scoped_action<Func> finally(Func&& func)
 	return scoped_action<Func>(std::forward<Func>(func));
 }
 
+template<typename Container>
+typename Container::value_type& at(Container&& c, std::size_t n)
+{
+#ifndef NDEBUG
+	return std::forward<Container>(c).at(n);
+#else
+	return (*std::forward<Container>(c))[n];
+#endif
+}
+
 } // namespace misc_utils
 } // namespace header_only_library
 

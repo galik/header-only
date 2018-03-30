@@ -274,7 +274,7 @@ typename SpanType::index_type find_last_not_of(SpanType s, CSpanType t)
 
 } // detail
 
-template<typename SpanType, typename CSpanType>
+template<typename SpanType, typename CSpanType = SpanType>
 SpanType trim_left_span(SpanType s, CSpanType t = detail::ws(typename CSpanType::element_type()))
 {
 	auto found = detail::find_first_not_of(s, t);
@@ -285,17 +285,23 @@ SpanType trim_left_span(SpanType s, CSpanType t = detail::ws(typename CSpanType:
 	return s.subspan(found);
 }
 
-template<typename SpanType, typename CSpanType>
+template<typename SpanType, typename CSpanType = SpanType>
 SpanType trim_right_span(SpanType s, CSpanType t = detail::ws(typename CSpanType::element_type()))
 {
 	return s.subspan(0, detail::find_last_not_of(s, t) + 1);
 }
 
-template<typename SpanType, typename CSpanType>
+template<typename SpanType, typename CSpanType = SpanType>
 SpanType trim_span(SpanType s, CSpanType t = detail::ws(typename CSpanType::element_type()))
 {
 	return trim_left_span(trim_right_span(s, t), t);
 }
+
+//template<typename SpanType>
+//SpanType trim_span(SpanType s)
+//{
+//	return trim_left_span(trim_right_span(s, t), t);
+//}
 
 // Splitting
 
