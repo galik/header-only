@@ -54,6 +54,13 @@ bool s_to_test(char const* s, char const* e)
 
 } // namespace detail
 
+/**
+ *
+ * @param s String to convert.
+ * @param i Converted output. ONLY set if conversion succeeds.
+ * @param base
+ * @return Pointer to first unconverted character or nullptr on failure to convert.
+ */
 template<typename Signed>
 char const* s_to_i(char const* s, Signed& i, int base = 10)
 {
@@ -84,7 +91,10 @@ CharT const* s_to_i(CharT const* s, Signed& i, int base = 10)
 	else
 		return nullptr;
 
-	return s_to_i(buf, i, base);
+	if(auto* pos = s_to_i(buf, i, base))
+		return s + (pos - buf);
+
+	return nullptr;
 }
 
 template<typename CharT, typename Traits = std::char_traits<CharT>,
@@ -124,7 +134,10 @@ CharT const* s_to_u(CharT const* s, Unsigned& i, int base = 10)
 	else
 		return nullptr;
 
-	return s_to_u(buf, i, base);
+	if(auto* pos = s_to_u(buf, i, base))
+		return s + (pos - buf);
+
+	return nullptr;
 }
 
 template<typename CharT, typename Traits = std::char_traits<CharT>,
@@ -158,7 +171,10 @@ CharT const* s_to_i(CharT const* s, long int& i)
 	else
 		return nullptr;
 
-	return s_to_i(buf, i);
+	if(auto* pos = s_to_i(buf, i))
+		return s + (pos - buf);
+
+	return nullptr;
 }
 
 template<typename CharT, typename Traits = std::char_traits<CharT>,
@@ -192,7 +208,10 @@ CharT const* s_to_i(CharT const* s, long long int& i)
 	else
 		return nullptr;
 
-	return s_to_i(buf, i);
+	if(auto* pos = s_to_i(buf, i))
+		return s + (pos - buf);
+
+	return nullptr;
 }
 
 template<typename CharT, typename Traits = std::char_traits<CharT>,
@@ -226,7 +245,10 @@ CharT const* s_to_u(CharT const* s, unsigned long int& u)
 	else
 		return nullptr;
 
-	return s_to_u(buf, u);
+	if(auto* pos = s_to_u(buf, u))
+		return s + (pos - buf);
+
+	return nullptr;
 }
 
 template<typename CharT, typename Traits = std::char_traits<CharT>,
@@ -260,7 +282,10 @@ CharT const* s_to_u(CharT const* s, unsigned long long int& u)
 	else
 		return nullptr;
 
-	return s_to_u(buf, u);
+	if(auto* pos = s_to_u(buf, u))
+		return s + (pos - buf);
+
+	return nullptr;
 }
 
 template<typename CharT, typename Traits = std::char_traits<CharT>,
@@ -296,7 +321,10 @@ CharT const* s_to_r(CharT const* s, float& r)
 	else
 		return nullptr;
 
-	return s_to_r(buf, r);
+	if(auto* pos = s_to_r(buf, r))
+		return s + (pos - buf);
+
+	return nullptr;
 }
 
 template<typename CharT, typename Traits = std::char_traits<CharT>,
@@ -330,7 +358,10 @@ CharT const* s_to_r(CharT const* s, double& r)
 	else
 		return nullptr;
 
-	return s_to_r(buf, r);
+	if(auto* pos = s_to_r(buf, r))
+		return s + (pos - buf);
+
+	return nullptr;
 }
 
 template<typename CharT, typename Traits = std::char_traits<CharT>,
@@ -364,7 +395,10 @@ CharT const* s_to_r(CharT const* s, long double& r)
 	else
 		return nullptr;
 
-	return s_to_r(buf, r);
+	if(auto* pos = s_to_r(buf, r))
+		return s + (pos - buf);
+
+	return nullptr;
 }
 
 template<typename CharT, typename Traits = std::char_traits<CharT>,
