@@ -28,6 +28,52 @@ Everything in this repository is released under the **MIT** license as follows:
 
 ## This library is currently EXPERIMENTAL
 
+### Namespaces
+
+The philosophy of this library is to put control of the namespace into the hands
+of the application. Namespaces are all very well but there will come a time when
+all of the short, catch namespaces have been taken. `math`, `rnd`, `big`, `cgi` etc... Then people will wonder 
+what use namespaces even are when different libraries have used up the same namespace names
+and applications are unable to use one library because they picked another with clashing namespace.
+
+So this library has deliberately long, unique surrounding namcspaces to give the application
+the freedom to decide which namespace to use for the various parts.
+
+For example the `<string_utils.h>` library has thi namespace:
+```
+namespace header_only_library { namespace string_utils {
+// ...
+}}
+``
+
+The intention is that the application then gets to choose a **working namespace* for itself:
+
+```
+#include <hol/string_utils.h>
+#include <hol/thread_utils.h>
+
+namespace ss {using namespace header_only_library::string_utils; }
+namespace mt {using namespace header_only_library::thread_utils; }
+
+// ...
+
+auto a = ss::trim_copy(s);
+
+auto o = mt::locked_object<std::vector> v;
+```
+
+Using this philosophy, instead of (say) two math related libraries using `namespace math {}`
+forcing the application to choose between them the application could put each math library
+into seperate namespaces:
+
+namespace math1 { using namespace uniquely_named_mathlib_1; }
+namespace math2 { using namespace uniquely_named_mathlib_2; }
+
+For the examples using this library I have chosen to set the application namespace
+to `namespace hol {}`. But you can choose anything you want.
+
+## The libraries.
+
 * `string_utils`
 
 This is basic string manipulation functions like `trim()`.
