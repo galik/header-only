@@ -40,7 +40,7 @@ So this library has deliberately long, unique surrounding namcspaces to give the
 the freedom to decide which namespace to use for the various parts.
 
 For example the `<string_utils.h>` library has thi namespace:
-```
+```cpp
 namespace header_only_library { namespace string_utils {
 // ...
 }}
@@ -48,7 +48,7 @@ namespace header_only_library { namespace string_utils {
 
 The intention is that the application then gets to choose a **working namespace* for itself:
 
-```
+```cpp
 #include <hol/string_utils.h>
 #include <hol/thread_utils.h>
 
@@ -65,10 +65,10 @@ auto o = mt::locked_object<std::vector> v;
 Using this philosophy, instead of (say) two math related libraries using `namespace math {}`
 forcing the application to choose between them the application could put each math library
 into seperate namespaces:
-
+```cpp
 namespace math1 { using namespace uniquely_named_mathlib_1; }
 namespace math2 { using namespace uniquely_named_mathlib_2; }
-
+```
 For the examples using this library I have chosen to set the application namespace
 to `namespace hol {}`. But you can choose anything you want.
 
