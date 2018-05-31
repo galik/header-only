@@ -163,6 +163,8 @@ struct bug_type
 inline
 void signal_received(int sig, siginfo_t* info, void* context)
 {
+	(void) info;
+
 	auto uc = reinterpret_cast<ucontext_t*>(context);
 
 	void* trace[16];

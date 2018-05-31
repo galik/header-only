@@ -44,7 +44,7 @@ private:
 	unsigned precision;
 
 public:
-	Timer(unsigned precision = 6): precision(precision) {}
+	Timer(unsigned precision = 6): precision(precision) { clear(); }
 
 	void clear() { timer.clear(); }
 	void start() { timer.start(); }

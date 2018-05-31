@@ -2,7 +2,7 @@
 #define HEADER_ONLY_LIBRARY_SPLIT_ALGOS_H
 
 #include <hol/misc_utils.h>
-#include "macro_exceptions.h"
+//#include "macro_exceptions.h"
 
 namespace header_only_library {
 namespace algorithm {
@@ -14,6 +14,14 @@ inline char16_t const* space(char16_t) { return u" "; }
 inline char32_t const* space(char32_t) { return U" "; }
 
 } // namespace chr
+
+template<typename CharT>
+CharT* find_null_terminator(CharT* s)
+{
+	while(*s)
+		++s;
+	return s;
+}
 
 using namespace header_only_library::misc_utils;
 

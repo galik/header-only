@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-#include "test.h"
+//#include "test.h"
 #include "hol/bug.h"
 #include "hol/random_numbers.h"
 #include "hol/string_utils.h"

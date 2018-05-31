@@ -22,6 +22,8 @@
 // SOFTWARE.
 //
 
+#include <gsl/string_span>
+
 namespace header_only_library {
 namespace string_span_utils {
 namespace detail {
@@ -30,13 +32,13 @@ bool isspace(wchar_t c) { return std::iswspace(wint_t(c)); }
 bool isspace(char16_t c)
 {
 	constexpr const char16_t* ws = u" \t\n\r\f\v\0";
-	constexpr const char16_t* wse = ws + sizeof(ws)/sizeof(ws[0]);
+	constexpr const char16_t* wse = ws + 7;
 	return std::find(ws, wse , c) != wse;
 }
 bool isspace(char32_t c)
 {
 	constexpr const char32_t* ws = U" \t\n\r\f\v\0";
-	constexpr const char32_t* wse = ws + sizeof(ws)/sizeof(ws[0]);
+	constexpr const char32_t* wse = ws + 7;
 	return std::find(ws, wse , c) != wse;
 }
 } // namespace detail

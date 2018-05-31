@@ -259,7 +259,7 @@ public:
 
 	void insert(iterator pos, size_type count, CharT ch)
 	{
-		return *this;
+//		return *this;
 	}
 
 	iterator insert(const_iterator pos, size_type count, CharT ch)
@@ -270,7 +270,7 @@ public:
 	template< class InputIt >
 	void insert(iterator pos, InputIt first, InputIt last)
 	{
-		return *this;
+//		return *this;
 	}
 
 	template< class InputIt >

@@ -275,6 +275,9 @@ public:
 	char32_t const& operator[](std::size_t n) const
 		{ assert(n <= m_data.size()); return m_data[n]; }
 
+	friend utf32_string operator+(utf32_string const& s1, char32_t c)
+		{ return utf32_string(s1.m_data + c); }
+
 	friend utf32_string operator+(utf32_string const& s1, utf32_string const& s2)
 		{ return utf32_string(s1.m_data + s2.m_data); }
 
@@ -386,7 +389,6 @@ public:
 	friend bool operator>(std::string const& utf8, utf32_string const& utf32)
 		{ return utf32_string(utf8) > utf32; }
 
-
 	std::string string() const { return utf32_to_utf8(m_data); }
 	std::string string(std::size_t n) const
 		{ assert(n <= m_data.size()); return utf32_to_utf8(std::u32string(1, m_data[n])); }
@@ -428,6 +430,20 @@ public:
 			s = utf8;
 		return is;
 	}
+
+	auto find_last_of(char32_t c, std::size_t pos = 0) const
+		{ return m_data.find_last_of(c, pos); }
+
+	auto substr(std::size_t pos, std::size_t n = npos) const
+		{ return m_data.substr(pos, n); }
+
+	auto c_str() const
+		{ return m_data.c_str(); }
+
+	auto empty() const
+		{ return m_data.empty(); }
+
+	constexpr static std::size_t const npos = std::size_t(-1);
 
 private:
 	std::u32string m_data;

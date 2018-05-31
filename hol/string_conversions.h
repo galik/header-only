@@ -25,6 +25,8 @@
 #include <cstdlib>
 #include <string>
 
+// FIXME: std::numeric_limits<Unsigned>::max_digits10 only works for FLOAT!!!
+
 namespace header_only_library {
 namespace string_conversions {
 namespace detail {

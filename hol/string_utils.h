@@ -1892,6 +1892,40 @@ std::basic_string<C, T, A> extract_delimited_text(
 	return extract_delimited_text(std::basic_string<C, T, A>(s), d1, d2, out, pos);
 }
 
+template<typename C, typename T = std::char_traits<C>, typename A = std::allocator<C>,
+	typename Integer>
+std::basic_string<C, T, A> pad(Integer i, std::size_t n)
+{
+	std::basic_ostringstream<C, T, A> oss;
+	oss << i;
+
+	auto s = oss.str();
+
+	if(s.empty())
+		return std::basic_string<C, T, A>(n - s.size(), C('0'));
+
+	if(s.size() < n)
+	{
+		if(s[0] == C('-'))
+			return C('-') + std::basic_string<C, T, A>(n - s.size(), C('0')) + s.substr(1);
+
+		return std::basic_string<C, T, A>(n - s.size(), C('0')) + s;
+	}
+	return s;
+}
+
+template<typename Integer>
+std::string spad(Integer i, std::size_t n) { return pad<char>(i, n); }
+
+template<typename Integer>
+std::string wpad(Integer i, std::size_t n) { return pad<wchar_t>(i, n); }
+
+template<typename Integer>
+std::string u16pad(Integer i, std::size_t n) { return pad<char16_t>(i, n); }
+
+template<typename Integer>
+std::string u32pad(Integer i, std::size_t n) { return pad<char32_t>(i, n); }
+
 //namespace utf8 {
 //
 //inline std::string from_ws(std::wstring const& s)

@@ -72,32 +72,32 @@ namespace header_only_library {
 namespace range {
 namespace detail {
 
-template<typename T>
-class basic_reverse_iterator
-{
-public:
-	basic_reverse_iterator(T* pos): m_pos(pos) {}
-
-	basic_reverse_iterator& operator++()    { --m_pos; return *this; }
-	basic_reverse_iterator  operator++(int) { auto i = *this; ++(*this); return i; }
-
-	basic_reverse_iterator& operator--()    { ++m_pos; return *this; }
-	basic_reverse_iterator  operator--(int) { auto i = *this; --(*this); return i; }
-
-	bool operator==(basic_reverse_iterator other) const { return m_pos == other.m_pos; }
-	bool operator!=(basic_reverse_iterator other) const { return !(*this == other); }
-
-	T& operator*() { return *base(); }
-	T const& operator*() const { return *base(); }
-
-	T* operator->() { return base(); }
-	T const* operator->() const { return base(); }
-
-	T* base() { return m_pos - 1; }
-
-private:
-	T* m_pos;
-};
+//template<typename T>
+//class basic_reverse_iterator
+//{
+//public:
+//	basic_reverse_iterator(T* pos): m_pos(pos) {}
+//
+//	basic_reverse_iterator& operator++()    { --m_pos; return *this; }
+//	basic_reverse_iterator  operator++(int) { auto i = *this; ++(*this); return i; }
+//
+//	basic_reverse_iterator& operator--()    { ++m_pos; return *this; }
+//	basic_reverse_iterator  operator--(int) { auto i = *this; --(*this); return i; }
+//
+//	bool operator==(basic_reverse_iterator other) const { return m_pos == other.m_pos; }
+//	bool operator!=(basic_reverse_iterator other) const { return !(*this == other); }
+//
+//	T& operator*() { return *base(); }
+//	T const& operator*() const { return *base(); }
+//
+//	T* operator->() { return base(); }
+//	T const* operator->() const { return base(); }
+//
+//	T* base() { return m_pos - 1; }
+//
+//private:
+//	T* m_pos;
+//};
 
 template<typename CharT>
 std::size_t length_of(CharT const* s)
@@ -120,8 +120,10 @@ public:
 	using const_reference = value_type const&;
 	using iterator = pointer;
 	using const_iterator = const_pointer;
-	using reverse_iterator = detail::basic_reverse_iterator<T>;
-	using const_reverse_iterator = detail::basic_reverse_iterator<T const>;
+//	using reverse_iterator = detail::basic_reverse_iterator<T>;
+//	using const_reverse_iterator = detail::basic_reverse_iterator<T const>;
+	using reverse_iterator = std::reverse_iterator<iterator>;
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 	basic_range() HOL_RANGE_NOEXCEPT = default;
 	basic_range(basic_range&& r) HOL_RANGE_NOEXCEPT = default;
@@ -238,12 +240,6 @@ public:
 		std::swap(m_end, other.m_end);
 	}
 
-	void resize(std::size_t n)
-	{
-		HOL_RANGE_ASSERT(m_beg + n <= m_end);
-		m_end = m_beg + n;
-	}
-
 protected:
 	pointer m_beg = nullptr;
 	pointer m_end = nullptr;
@@ -260,6 +256,10 @@ using range_iterator = typename basic_range<T>::iterator;
 
 template<typename T>
 using const_range_iterator = range_iterator<const T>;
+
+template<typename T>
+auto make_range()
+	{ return range<T>(); }
 
 template<typename Container>
 auto make_range(Container& c)
@@ -292,6 +292,85 @@ auto make_range(T* beg, T* end)
 template<typename T>
 auto make_range(T const* beg, T const* end)
 	{ return range<T const>(beg, end); }
+
+// STRING MAKERS
+
+template<typename CharT> inline
+auto make_string_range(CharT const* beg)
+{
+	static_assert(
+		   std::is_same<CharT, char>::value
+		|| std::is_same<CharT, wchar_t>::value
+		|| std::is_same<CharT, char16_t>::value
+		|| std::is_same<CharT, char32_t>::value
+		, "Must be a char type to make a string");
+
+	return make_range(beg, beg + detail::length_of(beg));
+}
+
+template<typename CharT> inline
+auto make_string_range(CharT* beg)
+{
+	static_assert(
+		   std::is_same<CharT, char>::value
+		|| std::is_same<CharT, wchar_t>::value
+		|| std::is_same<CharT, char16_t>::value
+		|| std::is_same<CharT, char32_t>::value
+		, "Must be a char type to make a string");
+
+	return make_range(beg, beg + detail::length_of(beg));
+}
+
+template<typename CharT>
+using basic_string_range = range<CharT>;
+
+template<typename CharT>
+auto substr(basic_string_range<CharT> r, std::size_t off, std::size_t len)
+{
+	static_assert(
+		   std::is_same<CharT, char>::value
+		|| std::is_same<CharT, wchar_t>::value
+		|| std::is_same<CharT, char16_t>::value
+		|| std::is_same<CharT, char32_t>::value
+		, "Must be a char type.");
+
+	assert(off < r.size());
+
+	if(off + len > r.size())
+		len = r.size() - off;
+
+	return make_range(r.data() + off, r.data() + off + len);
+}
+
+template<typename CharT>
+auto find(basic_string_range<CharT> r, basic_string_range<typename std::remove_const<CharT>::type> s)
+{
+	static_assert(
+		   std::is_same<CharT, char>::value
+		|| std::is_same<CharT, wchar_t>::value
+		|| std::is_same<CharT, char16_t>::value
+		|| std::is_same<CharT, char32_t>::value
+		, "Must be a char type.");
+
+	assert(s.size() <= r.size());
+
+	auto found = std::search(std::begin(r), std::end(r), std::begin(s), std::end(s));
+
+	if(found == std::end(r))
+		return make_range<CharT>();
+
+	return make_range(found, found + s.size());
+}
+
+using string_range = basic_string_range<char>;
+using wstring_range = basic_string_range<wchar_t>;
+using u16string_range = basic_string_range<char16_t>;
+using u32string_range = basic_string_range<char32_t>;
+
+using cstring_range = basic_string_range<char const>;
+using cwstring_range = basic_string_range<wchar_t const>;
+using cu16string_range = basic_string_range<char16_t const>;
+using cu32string_range = basic_string_range<char32_t const>;
 
 // Free functions -------------------------------------------
 
