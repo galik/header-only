@@ -135,6 +135,12 @@ The *read_write* version (`writing_accessor`) contains an internal `unique_lock`
 **Here is some example usage:**
 
 ```cpp
+#include <hol/thread_utils.h>
+
+namespace hol { using namespace header_only_library::thread_utils; }
+
+// ...
+
 hol::locked_object<std::vector<int>> v;  // locked_object vector wrapper
 
 v.push_back(3);                          // compile error
