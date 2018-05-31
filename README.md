@@ -32,26 +32,29 @@ Everything in this repository is released under the **MIT** license as follows:
 
 The philosophy of this library is to put control of the namespace into the hands
 of the application. Namespaces are all very well but there will come a time when
-all of the short, catch namespaces have been taken. `math`, `rnd`, `big`, `cgi` etc... Then people will wonder 
+all of the short, catchy namespaces have been taken. `math`, `rnd`, `big`, `cgi` etc... Then people will wonder 
 what use namespaces even are when different libraries have used up the same namespace names
-and applications are unable to use one library because they picked another with clashing namespace.
+and applications are unable to use one library because they picked another with a clashing namespace.
 
-So this library has deliberately long, unique surrounding namcspaces to give the application
+So this library has deliberately long, unique surrounding namespaces to give the application
 the freedom to decide which namespace to use for the various parts.
 
-For example the `<string_utils.h>` library has thi namespace:
+For example the `<string_utils.h>` library has this namespace:
 ```cpp
-namespace header_only_library { namespace string_utils {
+namespace header_only_library {
+namespace string_utils {
 // ...
 }}
-``
+```
 
-The intention is that the application then gets to choose a **working namespace* for itself:
+The intention is that the application then gets to choose a **working namespace** for itself:
 
 ```cpp
 #include <hol/string_utils.h>
 #include <hol/thread_utils.h>
 
+// transfer the library symbols to small, catchy, 
+// application specific namespaces
 namespace ss {using namespace header_only_library::string_utils; }
 namespace mt {using namespace header_only_library::thread_utils; }
 
@@ -59,7 +62,7 @@ namespace mt {using namespace header_only_library::thread_utils; }
 
 auto a = ss::trim_copy(s);
 
-auto o = mt::locked_object<std::vector> v;
+mt::locked_object<std::vector> v;
 ```
 
 Using this philosophy, instead of (say) two math related libraries using `namespace math {}`
