@@ -122,7 +122,7 @@ int main()
 
 ## Thread Utils <hol/thread_utils.h>
 
-# locked_object<T>
+### locked_object<T>
 
 The basic idea is very simple. There are just a few *wrapper* classes used to enforce read/write locking and, at the same time, presenting either a *const* (for read-only) or *non-const* (for read-write) *view* of the *wrapped* object.
 
