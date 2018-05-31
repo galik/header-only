@@ -135,38 +135,38 @@ The *read_write* version (`writing_accessor`) contains an internal `unique_lock`
 **Here is some example usage:**
 
 ```cpp
-locked_object<std::vector<int>> v;     // locked_object vector wrapper
+hol::locked_object<std::vector<int>> v;  // locked_object vector wrapper
 
-v.push_back(3);                        // compile error
+v.push_back(3);                          // compile error
 
-std::cout << v.size() << '\n';         // compile error
+std::cout << v.size() << '\n';           // compile error
 
 // locks are released at the end of their scope
 {
-	auto ro_v = v.open_for_reading();  // read-only locked wrapper
+	auto ro_v = v.open_for_reading();    // read-only locked wrapper
 
-	ro_v->push_back(3);                // compile error
+	ro_v->push_back(3);                  // compile error
 
-	std::cout << ro_v->size() << '\n'; // OK! (const functions accessible)
+	std::cout << ro_v->size() << '\n';   // OK! (const functions accessible)
 }
 
 {
-	auto rw_v = v.open_for_writing();  // read-or-write locked wrapper
-	
-	rw_v->push_back(3);                // OK! (non const functions accessible)
-	
-	std::cout << rw_v->size() << '\n'; // OK! (const functions accessible)
+	auto rw_v = v.open_for_writing();    // read-or-write locked wrapper
+
+	rw_v->push_back(3);                  // OK! (non const functions accessible)
+
+	std::cout << rw_v->size() << '\n';   // OK! (const functions accessible)
 }
 
-locked_object<std::size_t> i{0};       // locked_object integer wrapper
+hol::locked_object<std::size_t> i{0};    // locked_object integer wrapper
 
 {
 	// deadlock safe locking
-	auto [ro_v, rw_i] = open_locked_objects(for_reading(v), for_writing(i));   
-	
-	ro_v->push_back(*rw_i);            // compile error (ro_v is read only)
-	
-	*rw_i = ro_v->size();              // OK!
+	auto [ro_v, rw_i] = hol::open_locked_objects(hol::for_reading(v), hol::for_writing(i));
+
+	ro_v->push_back(*rw_i);              // compile error (ro_v is read only)
+
+	*rw_i = ro_v->size();                // OK!
 }
 ```
 
