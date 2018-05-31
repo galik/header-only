@@ -1153,7 +1153,7 @@ auto for_writing(locked_object<CRTP>& l)
 }
 
 template <typename... Lockables>
-auto open_locks(Lockables&&... lockables)
+auto open_locked_objects(Lockables&&... lockables)
 {
     auto tp = std::make_tuple(std::forward<Lockables>(lockables).lock()...);
     detail::apply_multilock(tp, std::make_index_sequence<sizeof...(Lockables)>{});
