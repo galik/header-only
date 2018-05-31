@@ -120,6 +120,56 @@ int main()
 }
 ```
 
+## Thread Utils <hol/thread_utils.h>
+
+# locked_object<T>
+
+The basic idea is very simple. There are just a few *wrapper* classes used to enforce read/write locking and, at the same time, presenting either a *const* (for read-only) or *non-const* (for read-write) *view* of the *wrapped* object.
+
+The idea is to make it practically *compile-time impossible* to improperly access a resource shared between threads.
+
+The *read-only* version (`reading_accessor`) contains an internal `shared_lock` and binds a *const reference* (`const&`) to the target object ensuring that **only** `const` functions can be invoked.
+
+The *read_write* version (`writing_accessor`) contains an internal `unique_lock` and a *non-const reference* (`&`)  to the target allowing updates to its internal state.
+
+**Here is some example usage:**
+
+```cpp
+locked_object<std::vector<int>> v;     // locked_object vector wrapper
+
+v.push_back(3);                        // compile error
+
+std::cout << v.size() << '\n';         // compile error
+
+// locks are released at the end of their scope
+{
+	auto ro_v = v.open_for_reading();  // read-only locked wrapper
+
+	ro_v->push_back(3);                // compile error
+
+	std::cout << ro_v->size() << '\n'; // OK! (const functions accessible)
+}
+
+{
+	auto rw_v = v.open_for_writing();  // read-or-write locked wrapper
+	
+	rw_v->push_back(3);                // OK! (non const functions accessible)
+	
+	std::cout << rw_v->size() << '\n'; // OK! (const functions accessible)
+}
+
+locked_object<std::size_t> i{0};       // locked_object integer wrapper
+
+{
+	// deadlock safe locking
+	auto [ro_v, rw_i] = open_locked_objects(for_reading(v), for_writing(i));   
+	
+	ro_v->push_back(*rw_i);            // compile error (ro_v is read only)
+	
+	*rw_i = ro_v->size();              // OK!
+}
+```
+
 ## Z String Utils
 
 This is an experimental library dealing with Zero-terminated Strings. It has two parts. First 
