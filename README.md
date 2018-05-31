@@ -143,30 +143,30 @@ std::cout << v.size() << '\n';           // compile error
 
 // locks are released at the end of their scope
 {
-	auto ro_v = v.open_for_reading();    // read-only locked wrapper
+    auto ro_v = v.open_for_reading();    // read-only locked wrapper
 
-	ro_v->push_back(3);                  // compile error
+    ro_v->push_back(3);                  // compile error
 
-	std::cout << ro_v->size() << '\n';   // OK! (const functions accessible)
+    std::cout << ro_v->size() << '\n';   // OK! (const functions accessible)
 }
 
 {
-	auto rw_v = v.open_for_writing();    // read-or-write locked wrapper
+    auto rw_v = v.open_for_writing();    // read-or-write locked wrapper
 
-	rw_v->push_back(3);                  // OK! (non const functions accessible)
+    rw_v->push_back(3);                  // OK! (non const functions accessible)
 
-	std::cout << rw_v->size() << '\n';   // OK! (const functions accessible)
+    std::cout << rw_v->size() << '\n';   // OK! (const functions accessible)
 }
 
 hol::locked_object<std::size_t> i{0};    // locked_object integer wrapper
 
 {
-	// deadlock safe locking
-	auto [ro_v, rw_i] = hol::open_locked_objects(hol::for_reading(v), hol::for_writing(i));
+    // deadlock safe locking
+    auto [ro_v, rw_i] = hol::open_locked_objects(hol::for_reading(v), hol::for_writing(i));
 
-	ro_v->push_back(*rw_i);              // compile error (ro_v is read only)
+    ro_v->push_back(*rw_i);              // compile error (ro_v is read only)
 
-	*rw_i = ro_v->size();                // OK!
+    *rw_i = ro_v->size();                // OK!
 }
 ```
 
